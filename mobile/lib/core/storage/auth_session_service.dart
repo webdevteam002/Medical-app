@@ -21,7 +21,7 @@ class AuthSessionService {
     return await _secureStorageService.getAccessToken();
   }
 
-  /// Clears stored access and refresh tokens.
+  /// Clears stored access and refresh tokens while preserving device ID.
   Future<void> clearSession() async {
     try {
       await _secureStorageService.delete(
@@ -29,5 +29,10 @@ class AuthSessionService {
       await _secureStorageService.delete(
           key: SecureStorageService.refreshTokenKey);
     } catch (_) {}
+  }
+
+  /// Explicit logout convenience method.
+  Future<void> logout() async {
+    await clearSession();
   }
 }

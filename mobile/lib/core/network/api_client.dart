@@ -67,6 +67,11 @@ class ApiClient {
             return handler.next(error);
           }
 
+          if (_isSessionRevoked(error)) {
+            await _authSessionService.clearSession();
+            return handler.next(error);
+          }
+
           error.requestOptions.extra['isRetry'] = true;
 
           try {
@@ -88,6 +93,21 @@ class ApiClient {
         },
       ),
     );
+  }
+
+  bool _isSessionRevoked(DioException error) {
+    if (error.response?.statusCode != 401) return false;
+    final data = error.response?.data;
+    if (data is Map) {
+      final code = data['code'];
+      if (code == 'SESSION_REVOKED') return true;
+      final message = data['message'];
+      if (message is String &&
+          message.toLowerCase().contains('session revoked')) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Future<AuthTokens?> _performTokenRefresh() async {
@@ -149,7 +169,10 @@ class ApiClient {
         _refreshCompleter!.complete(null);
         return null;
       }
-    } catch (_) {
+    } catch (e) {
+      if (e is DioException && _isSessionRevoked(e)) {
+        await _authSessionService.clearSession();
+      }
       _refreshCompleter!.complete(null);
       return null;
     } finally {

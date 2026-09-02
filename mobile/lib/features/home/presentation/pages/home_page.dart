@@ -1,12 +1,41 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/storage/auth_session_service.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../study/data/datasources/study_remote_datasource.dart';
+import '../widgets/exams_destination_view.dart';
+import '../widgets/profile_destination_view.dart';
+import '../widgets/study_destination_view.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class HomePage extends StatefulWidget {
+  final AuthSessionService? authSessionService;
+  final StudyRemoteDataSource? studyRemoteDataSource;
+
+  const HomePage({
+    super.key,
+    this.authSessionService,
+    this.studyRemoteDataSource,
+  });
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> destinations = [
+      StudyDestinationView(
+        studyRemoteDataSource: widget.studyRemoteDataSource,
+      ),
+      const ExamsDestinationView(),
+      ProfileDestinationView(
+        authSessionService: widget.authSessionService,
+      ),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppConstants.appName),
@@ -14,32 +43,39 @@ class HomePage extends StatelessWidget {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.spacingLg),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.local_hospital_rounded,
-                  size: 64,
-                  color: AppTheme.primaryColor,
-                ),
-                const SizedBox(height: AppTheme.spacingMd),
-                Text(
-                  'Welcome to ${AppConstants.appName}',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(height: AppTheme.spacingSm),
-                Text(
-                  'Student Portal & Medical Study Dashboard',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: destinations,
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (int index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        backgroundColor: Colors.white,
+        indicatorColor: AppTheme.primaryColor.withValues(alpha: 0.15),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon:
+                Icon(Icons.menu_book_rounded, color: AppTheme.primaryColor),
+            label: 'Study',
           ),
-        ),
+          NavigationDestination(
+            icon: Icon(Icons.assignment_outlined),
+            selectedIcon:
+                Icon(Icons.assignment_rounded, color: AppTheme.primaryColor),
+            label: 'Exams',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon:
+                Icon(Icons.person_rounded, color: AppTheme.primaryColor),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

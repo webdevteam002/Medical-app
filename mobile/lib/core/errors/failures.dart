@@ -10,3 +10,8 @@ class NetworkFailure extends Failure {
 class StorageFailure extends Failure {
   const StorageFailure([super.message = 'Storage error occurred.']);
 }
+
+class SessionRevokedFailure extends Failure {
+  const SessionRevokedFailure(
+      [super.message = 'Session revoked. Log in again.']);
+}

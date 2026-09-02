@@ -64,6 +64,29 @@ class Fake401HttpClientAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+class FakeSessionRevokedHttpClientAdapter implements HttpClientAdapter {
+  int callCount = 0;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    callCount++;
+    return ResponseBody.fromString(
+      '{"statusCode":401,"code":"SESSION_REVOKED","message":"Session revoked. Log in again."}',
+      401,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 void main() {
   group('ApiClient Day 9 Interceptor Tests', () {
     late FakeSecureStorageService fakeStorage;
@@ -139,6 +162,69 @@ void main() {
       }
 
       expect(fakeStorage.storage[SecureStorageService.accessTokenKey], isNull);
+    });
+  });
+
+  group('ApiClient Day 11 SESSION_REVOKED Tests', () {
+    late FakeSecureStorageService fakeStorage;
+    late FakeDeviceIdService fakeDeviceIdService;
+    late AuthSessionService authSessionService;
+
+    setUp(() {
+      fakeStorage = FakeSecureStorageService();
+      fakeDeviceIdService =
+          FakeDeviceIdService(secureStorageService: fakeStorage);
+      authSessionService =
+          AuthSessionService(secureStorageService: fakeStorage);
+
+      fakeStorage.storage[SecureStorageService.accessTokenKey] =
+          'access_token_123';
+      fakeStorage.storage[SecureStorageService.refreshTokenKey] =
+          'refresh_token_456';
+      fakeStorage.storage[SecureStorageService.deviceIdKey] =
+          'fake-device-uuid-1234';
+    });
+
+    test('1. SESSION_REVOKED response clears tokens while preserving device ID',
+        () async {
+      final dio = Dio();
+      final adapter = FakeSessionRevokedHttpClientAdapter();
+      dio.httpClientAdapter = adapter;
+
+      final apiClient = ApiClient(
+        dio: dio,
+        secureStorageService: fakeStorage,
+        deviceIdService: fakeDeviceIdService,
+        authSessionService: authSessionService,
+      );
+
+      try {
+        await apiClient.client.get('/users/profile');
+      } catch (e) {
+        expect(e, isA<DioException>());
+      }
+
+      // Verify access & refresh tokens cleared
+      expect(fakeStorage.storage[SecureStorageService.accessTokenKey], isNull);
+      expect(fakeStorage.storage[SecureStorageService.refreshTokenKey], isNull);
+
+      // Verify device_id PRESERVED
+      expect(fakeStorage.storage[SecureStorageService.deviceIdKey],
+          equals('fake-device-uuid-1234'));
+
+      // Verify only 1 network call was made (no refresh attempt triggered)
+      expect(adapter.callCount, equals(1));
+    });
+
+    test('2. Explicit logout clears tokens while preserving device ID',
+        () async {
+      await authSessionService.logout();
+
+      expect(fakeStorage.storage[SecureStorageService.accessTokenKey], isNull);
+      expect(fakeStorage.storage[SecureStorageService.refreshTokenKey], isNull);
+      expect(fakeStorage.storage[SecureStorageService.deviceIdKey],
+          equals('fake-device-uuid-1234'));
+      expect(await authSessionService.isAuthenticated(), isFalse);
     });
   });
 }
