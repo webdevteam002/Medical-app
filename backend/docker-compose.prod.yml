@@ -1,0 +1,28 @@
+# Production stack: API + PostgreSQL (for Oracle VM or any VPS)
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-medstudy}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-medstudy}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - '127.0.0.1:5432:5432'
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file: .env.production
+    ports:
+      - '127.0.0.1:3000:3000'
+    volumes:
+      - uploads:/app/uploads
+
+volumes:
+  pgdata:
+  uploads:

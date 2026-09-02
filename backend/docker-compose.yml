@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: medstudy-postgres
+    restart: unless-stopped
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: medstudy
+      POSTGRES_PASSWORD: medstudy
+      POSTGRES_DB: medstudy
+    volumes:
+      - medstudy_pg_data:/var/lib/postgresql/data
+
+volumes:
+  medstudy_pg_data:

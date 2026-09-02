@@ -1,0 +1,5 @@
+file_path,title,year_slug,subject_slug,topic,tags,type,status,notes
+materials/year-2/anatomy/upper-limb-notes.pdf,Upper Limb Notes,year-2,anatomy,upper-limb,year-2;anatomy,pdf,DRAFT,Compress before upload
+materials/year-2/anatomy/past-paper-annual-2024.pdf,Anatomy Annual 2024,year-2,anatomy,past-papers,past-paper;2024,pdf,DRAFT,
+qbanks/year-2-anatomy.csv,Anatomy MCQ Bank Year 2,year-2,anatomy,general,year-2;anatomy,questions,DRAFT,Use qbank-template.csv columns
+images/questions/anatomy/q0001-main.webp,Brachial plexus diagram,year-2,anatomy,brachial-plexus,year-2;anatomy,image,DRAFT,Link in qbank image_key column

@@ -1,0 +1,297 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
+}
+
+enum PlanType {
+  YEAR_1
+  YEAR_2
+  YEAR_3
+  YEAR_4
+  YEAR_5
+  FCPS_PART_1
+  FCPS_PART_2
+  ALL_MBBS
+  ULTIMATE_BUNDLE
+}
+
+enum MaterialType {
+  PDF
+  VIDEO
+  NOTES
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  fullName     String   @map("full_name")
+  role         UserRole @default(STUDENT)
+  isBanned     Boolean  @default(false) @map("is_banned")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  deviceSessions   DeviceSession[]
+  subscriptions    Subscription[]
+  examAttempts     ExamAttempt[]
+  bookmarks        Bookmark[]
+  screenshotEvents ScreenshotEvent[]
+
+  @@map("users")
+}
+
+model DeviceSession {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  deviceId         String   @map("device_id")
+  deviceName       String   @map("device_name")
+  refreshTokenHash String   @map("refresh_token_hash")
+  isActive         Boolean  @default(true) @map("is_active")
+  lastActiveAt     DateTime @default(now()) @map("last_active_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@map("device_sessions")
+}
+
+model SubscriptionPlan {
+  id                  String   @id @default(uuid())
+  name                String
+  planType            PlanType @unique @map("plan_type")
+  pricePkr            Int      @map("price_pkr")
+  durationDays        Int      @default(365) @map("duration_days")
+  revenuecatProductId String?  @map("revenuecat_product_id")
+  isActive            Boolean  @default(true) @map("is_active")
+
+  subscriptions Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id                   String             @id @default(uuid())
+  userId               String             @map("user_id")
+  planId               String             @map("plan_id")
+  status               SubscriptionStatus @default(PENDING)
+  startDate            DateTime?          @map("start_date")
+  endDate              DateTime?          @map("end_date")
+  revenuecatSubscriberId String?            @map("revenuecat_subscriber_id")
+  createdAt            DateTime           @default(now()) @map("created_at")
+
+  user User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([userId, status])
+  @@map("subscriptions")
+}
+
+model Year {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  sortOrder Int      @map("sort_order")
+  planType  PlanType @map("plan_type")
+
+  subjects Subject[]
+
+  @@map("years")
+}
+
+model Subject {
+  id        String @id @default(uuid())
+  yearId    String @map("year_id")
+  name      String
+  slug      String
+  sortOrder Int    @map("sort_order")
+
+  year      Year       @relation(fields: [yearId], references: [id], onDelete: Cascade)
+  topics    Topic[]
+  materials Material[]
+  questions Question[]
+  exams     Exam[]
+
+  @@index([yearId])
+  @@unique([yearId, slug])
+  @@map("subjects")
+}
+
+model Topic {
+  id        String @id @default(uuid())
+  subjectId String @map("subject_id")
+  name      String
+  sortOrder Int    @map("sort_order")
+
+  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  materials Material[]
+
+  @@index([subjectId])
+  @@map("topics")
+}
+
+model Material {
+  id               String       @id @default(uuid())
+  subjectId        String       @map("subject_id")
+  topicId          String?      @map("topic_id")
+  title            String
+  type             MaterialType @default(PDF)
+  fileKey          String       @map("file_key")
+  fileSizeBytes    BigInt       @default(0) @map("file_size_bytes")
+  isDownloadable   Boolean      @default(true) @map("is_downloadable")
+  isPublished      Boolean      @default(false) @map("is_published")
+  isPastPaper      Boolean      @default(false) @map("is_past_paper")
+  pastPaperYear    Int?         @map("past_paper_year")
+  pastPaperSession String?      @map("past_paper_session")
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topic     Topic?     @relation(fields: [topicId], references: [id])
+  bookmarks Bookmark[]
+
+  @@index([subjectId])
+  @@index([topicId])
+  @@index([isPublished, subjectId])
+  @@map("materials")
+}
+
+model Question {
+  id              String     @id @default(uuid())
+  subjectId       String     @map("subject_id")
+  stem            String
+  options         Json
+  correctOptionId String     @map("correct_option_id")
+  explanation     String
+  difficulty      Difficulty @default(MEDIUM)
+  tags            Json       @default("[]")
+  imageKey        String?    @map("image_key")
+  isPublished     Boolean    @default(false) @map("is_published")
+  createdAt       DateTime   @default(now()) @map("created_at")
+
+  subject             Subject              @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  examQuestions       ExamQuestion[]
+  examAttemptDetails  ExamAttemptDetail[]
+
+  @@index([subjectId])
+  @@index([subjectId, isPublished])
+  @@map("questions")
+}
+
+model Exam {
+  id               String   @id @default(uuid())
+  title            String
+  subjectId        String   @map("subject_id")
+  durationMinutes  Int      @map("duration_minutes")
+  questionCount    Int      @map("question_count")
+  shuffleQuestions Boolean  @default(true) @map("shuffle_questions")
+  shuffleOptions   Boolean  @default(false) @map("shuffle_options")
+  isPublished      Boolean  @default(false) @map("is_published")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  subject       Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  examQuestions ExamQuestion[]
+  attempts      ExamAttempt[]
+
+  @@index([subjectId])
+  @@index([isPublished, subjectId])
+  @@map("exams")
+}
+
+model ExamQuestion {
+  examId     String @map("exam_id")
+  questionId String @map("question_id")
+  sortOrder  Int    @map("sort_order")
+
+  exam     Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([examId, questionId])
+  @@map("exam_questions")
+}
+
+model ExamAttempt {
+  id          String        @id @default(uuid())
+  userId      String        @map("user_id")
+  examId      String        @map("exam_id")
+  status      AttemptStatus @default(IN_PROGRESS)
+  score       Int?
+  total       Int?
+  percentage  Decimal?      @db.Decimal(5, 2)
+  startedAt   DateTime      @default(now()) @map("started_at")
+  completedAt DateTime?     @map("completed_at")
+
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam    Exam                @relation(fields: [examId], references: [id], onDelete: Cascade)
+  details ExamAttemptDetail[]
+
+  @@index([userId, examId])
+  @@map("exam_attempts")
+}
+
+model ExamAttemptDetail {
+  id               String  @id @default(uuid())
+  attemptId        String  @map("attempt_id")
+  questionId       String  @map("question_id")
+  selectedOptionId String? @map("selected_option_id")
+  isCorrect        Boolean @default(false) @map("is_correct")
+  timeSpentSeconds Int     @default(0) @map("time_spent_seconds")
+
+  attempt  ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+  @@index([questionId])
+  @@map("exam_attempt_details")
+}
+
+model Bookmark {
+  userId     String   @map("user_id")
+  materialId String   @map("material_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@id([userId, materialId])
+  @@map("bookmarks")
+}
+
+model ScreenshotEvent {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  screen    String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("screenshot_events")
+}

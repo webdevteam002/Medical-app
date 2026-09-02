@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pub-cache/
+.dart_tool/
+build/
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.pem
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flutter
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/build/
+mobile/ios/Pods/
+mobile/android/.gradle/
+
+# Next.js
+admin/.next/
+admin/out/
+
+# NestJS
+backend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Prisma
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# Uploads (local dev storage)
+uploads/
+backend/uploads/
+
+# Secrets
+**/serviceAccountKey.json
+**/GoogleService-Info.plist
+**/google-services.json
