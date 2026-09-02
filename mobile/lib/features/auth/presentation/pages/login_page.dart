@@ -104,6 +104,7 @@ class _LoginPageState extends State<LoginPage> {
             backgroundColor: AppTheme.secondaryColor,
           ),
         );
+        context.go('/home');
       }
     } on Failure catch (e) {
       if (mounted) {

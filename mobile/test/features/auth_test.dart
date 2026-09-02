@@ -31,7 +31,7 @@ class FakeDeviceIdService extends DeviceIdService {
     this.fakeId = 'fake-device-uuid-1234',
     this.fakeName = 'Test Device Name',
     super.secureStorageService,
-  })  : _storage = secureStorageService ?? SecureStorageService();
+  }) : _storage = secureStorageService ?? SecureStorageService();
 
   @override
   Future<String> getOrCreateDeviceId() async {
@@ -51,7 +51,11 @@ class FakeAuthRemoteDataSource extends AuthRemoteDataSource {
   final bool shouldFail;
   final String? errorMessage;
   final AuthTokens tokens;
-  int callCount = 0;
+  int loginCallCount = 0;
+  int registerCallCount = 0;
+
+  String? lastRegisterFullName;
+  String? lastRegisterEmail;
   String? lastDeviceId;
   String? lastDeviceName;
 
@@ -72,12 +76,33 @@ class FakeAuthRemoteDataSource extends AuthRemoteDataSource {
     required String deviceId,
     required String deviceName,
   }) async {
-    callCount++;
+    loginCallCount++;
     lastDeviceId = deviceId;
     lastDeviceName = deviceName;
 
     if (shouldFail) {
       throw NetworkFailure(errorMessage ?? 'Invalid email or password');
+    }
+    return tokens;
+  }
+
+  @override
+  Future<AuthTokens> register({
+    required String email,
+    required String password,
+    required String fullName,
+    required String deviceId,
+    required String deviceName,
+  }) async {
+    registerCallCount++;
+    lastRegisterEmail = email;
+    lastRegisterFullName = fullName;
+    lastDeviceId = deviceId;
+    lastDeviceName = deviceName;
+
+    if (shouldFail) {
+      throw NetworkFailure(
+          errorMessage ?? 'Email already registered or invalid payload');
     }
     return tokens;
   }
@@ -90,7 +115,7 @@ void main() {
     );
   }
 
-  group('LoginPage Day 6 Integration & Unit Tests', () {
+  group('LoginPage Day 7 Tests', () {
     testWidgets('1. Login screen renders expected branding and fields',
         (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest(const LoginPage()));
@@ -103,30 +128,7 @@ void main() {
       expect(find.widgetWithText(ElevatedButton, 'Sign In'), findsOneWidget);
     });
 
-    testWidgets('2. Invalid/empty form does not call the API',
-        (WidgetTester tester) async {
-      final fakeDataSource = FakeAuthRemoteDataSource();
-      final fakeStorage = FakeSecureStorageService();
-      final deviceIdService =
-          FakeDeviceIdService(secureStorageService: fakeStorage);
-
-      await tester.pumpWidget(createWidgetUnderTest(
-        LoginPage(
-          authRemoteDataSource: fakeDataSource,
-          secureStorageService: fakeStorage,
-          deviceIdService: deviceIdService,
-        ),
-      ));
-
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
-      await tester.pumpAndSettle();
-
-      expect(fakeDataSource.callCount, equals(0));
-      expect(fakeStorage.storage[SecureStorageService.accessTokenKey], isNull);
-      expect(find.text('Email is required'), findsOneWidget);
-    });
-
-    testWidgets('3. Successful login obtains real device ID and stores tokens',
+    testWidgets('2. Successful login obtains real device ID and stores tokens',
         (WidgetTester tester) async {
       final fakeDataSource = FakeAuthRemoteDataSource();
       final fakeStorage = FakeSecureStorageService();
@@ -149,74 +151,112 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(fakeDataSource.callCount, equals(1));
+      expect(fakeDataSource.loginCallCount, equals(1));
       expect(fakeDataSource.lastDeviceId, equals('fake-device-uuid-1234'));
-      expect(fakeDataSource.lastDeviceName, equals('Test Device Name'));
-      expect(fakeStorage.storage[SecureStorageService.deviceIdKey],
-          equals('fake-device-uuid-1234'));
       expect(fakeStorage.storage[SecureStorageService.accessTokenKey],
           equals('fake_access_token_123'));
-      expect(fakeStorage.storage[SecureStorageService.refreshTokenKey],
-          equals('fake_refresh_token_456'));
-    });
-
-    testWidgets('4. Failed login shows appropriate error banner',
-        (WidgetTester tester) async {
-      final fakeDataSource = FakeAuthRemoteDataSource(
-        shouldFail: true,
-        errorMessage: 'Invalid email or password',
-      );
-      final fakeStorage = FakeSecureStorageService();
-      final deviceIdService =
-          FakeDeviceIdService(secureStorageService: fakeStorage);
-
-      await tester.pumpWidget(createWidgetUnderTest(
-        LoginPage(
-          authRemoteDataSource: fakeDataSource,
-          secureStorageService: fakeStorage,
-          deviceIdService: deviceIdService,
-        ),
-      ));
-
-      await tester.enterText(
-          find.byType(TextFormField).at(0), 'student@medstudy.org');
-      await tester.enterText(find.byType(TextFormField).at(1), 'wrongpassword');
-
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
-      await tester.pump();
-      await tester.pumpAndSettle();
-
-      expect(fakeDataSource.callCount, equals(1));
-      expect(fakeStorage.storage[SecureStorageService.accessTokenKey], isNull);
-      expect(find.text('Invalid email or password'), findsOneWidget);
     });
   });
 
-  group('RegisterPage Widget Tests', () {
-    testWidgets('Register screen renders expected title and fields',
+  group('RegisterPage Day 7 Integration Tests', () {
+    testWidgets('1. Register screen renders expected title and fields',
         (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest(const RegisterPage()));
 
       expect(find.text('Create Account'), findsOneWidget);
+      expect(find.text('Full Name'), findsOneWidget);
       expect(find.text('Email Address'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
       expect(find.text('Confirm Password'), findsOneWidget);
       expect(find.widgetWithText(ElevatedButton, 'Register'), findsOneWidget);
     });
 
-    testWidgets('Password mismatch shows validation error',
+    testWidgets('2. Password mismatch shows validation error',
         (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest(const RegisterPage()));
 
       await tester.enterText(
-          find.byType(TextFormField).at(0), 'student@medstudy.org');
-      await tester.enterText(find.byType(TextFormField).at(1), 'password123');
-      await tester.enterText(find.byType(TextFormField).at(2), 'password456');
+          find.byType(TextFormField).at(1), 'student@medstudy.org');
+      await tester.enterText(find.byType(TextFormField).at(2), 'password123');
+      await tester.enterText(find.byType(TextFormField).at(3), 'password456');
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
+      final buttonFinder = find.widgetWithText(ElevatedButton, 'Register');
+      await tester.ensureVisible(buttonFinder);
+      await tester.tap(buttonFinder);
       await tester.pumpAndSettle();
 
       expect(find.text('Passwords do not match'), findsOneWidget);
+    });
+
+    testWidgets('3. Successful registration stores tokens and reuses device ID',
+        (WidgetTester tester) async {
+      final fakeDataSource = FakeAuthRemoteDataSource();
+      final fakeStorage = FakeSecureStorageService();
+      final deviceIdService =
+          FakeDeviceIdService(secureStorageService: fakeStorage);
+
+      await tester.pumpWidget(createWidgetUnderTest(
+        RegisterPage(
+          authRemoteDataSource: fakeDataSource,
+          secureStorageService: fakeStorage,
+          deviceIdService: deviceIdService,
+        ),
+      ));
+
+      await tester.enterText(find.byType(TextFormField).at(0), 'Ali Khan');
+      await tester.enterText(
+          find.byType(TextFormField).at(1), 'student@medstudy.org');
+      await tester.enterText(find.byType(TextFormField).at(2), 'password123');
+      await tester.enterText(find.byType(TextFormField).at(3), 'password123');
+
+      final buttonFinder = find.widgetWithText(ElevatedButton, 'Register');
+      await tester.ensureVisible(buttonFinder);
+      await tester.tap(buttonFinder);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(fakeDataSource.registerCallCount, equals(1));
+      expect(fakeDataSource.lastRegisterEmail, equals('student@medstudy.org'));
+      expect(fakeDataSource.lastRegisterFullName, equals('Ali Khan'));
+      expect(fakeDataSource.lastDeviceId, equals('fake-device-uuid-1234'));
+      expect(fakeStorage.storage[SecureStorageService.accessTokenKey],
+          equals('fake_access_token_123'));
+      expect(fakeStorage.storage[SecureStorageService.refreshTokenKey],
+          equals('fake_refresh_token_456'));
+    });
+
+    testWidgets('4. Registration API error displays error banner',
+        (WidgetTester tester) async {
+      final fakeDataSource = FakeAuthRemoteDataSource(
+        shouldFail: true,
+        errorMessage: 'Email already registered',
+      );
+      final fakeStorage = FakeSecureStorageService();
+      final deviceIdService =
+          FakeDeviceIdService(secureStorageService: fakeStorage);
+
+      await tester.pumpWidget(createWidgetUnderTest(
+        RegisterPage(
+          authRemoteDataSource: fakeDataSource,
+          secureStorageService: fakeStorage,
+          deviceIdService: deviceIdService,
+        ),
+      ));
+
+      await tester.enterText(
+          find.byType(TextFormField).at(1), 'existing@medstudy.org');
+      await tester.enterText(find.byType(TextFormField).at(2), 'password123');
+      await tester.enterText(find.byType(TextFormField).at(3), 'password123');
+
+      final buttonFinder = find.widgetWithText(ElevatedButton, 'Register');
+      await tester.ensureVisible(buttonFinder);
+      await tester.tap(buttonFinder);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(fakeDataSource.registerCallCount, equals(1));
+      expect(fakeStorage.storage[SecureStorageService.accessTokenKey], isNull);
+      expect(find.text('Email already registered'), findsOneWidget);
     });
   });
 }

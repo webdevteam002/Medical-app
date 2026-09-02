@@ -18,7 +18,7 @@ export default function DashboardPage() {
             <p className="text-xs text-slate-500 mt-0.5">Overview of platform metrics and administration</p>
           </div>
           <span className="text-xs font-medium bg-teal-50 text-teal-700 px-3 py-1 rounded-full border border-teal-200">
-            Day 5 Admin Shell
+            Day 8 Auth Guard Active
           </span>
         </header>
 
@@ -49,25 +49,25 @@ export default function DashboardPage() {
               MedStudy Control Center Shell
             </h2>
             <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-              This dashboard shell establishes the responsive visual and navigation foundation for Person 2&apos;s Next.js admin application.
+              Protected administration panel. Route access is enforced by Day 8 authentication middleware.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-5 rounded-lg bg-slate-50 border border-slate-200">
                 <h3 className="text-sm font-semibold text-slate-800 mb-1">
-                  Sidebar Navigation
+                  Protected Navigation
                 </h3>
                 <p className="text-xs text-slate-500 leading-normal">
-                  Navigation sections for Dashboard, Users, Content, Exams, and Subscriptions are active in the UI layout with active route highlighting.
+                  Unauthenticated requests to protected routes (/dashboard, /users, /content, /exams, /subscriptions) are automatically redirected to /login.
                 </p>
               </div>
 
               <div className="p-5 rounded-lg bg-slate-50 border border-slate-200">
                 <h3 className="text-sm font-semibold text-slate-800 mb-1">
-                  Scope Notice
+                  Security Architecture
                 </h3>
                 <p className="text-xs text-slate-500 leading-normal">
-                  Live backend API integration, user management tables, PDF uploads, and exam builders are scheduled for later days per the roadmap.
+                  Authentication tokens are maintained in SameSite cookies. Clear session or tap Sign Out to test route protection.
                 </p>
               </div>
             </div>

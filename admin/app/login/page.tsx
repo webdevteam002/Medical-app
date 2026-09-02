@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { setAdminSession } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,12 +12,14 @@ export default function LoginPage() {
 
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [apiError, setApiError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = (): boolean => {
     let isValid = true;
     setEmailError("");
     setPasswordError("");
+    setApiError("");
 
     if (!email.trim()) {
       setEmailError("Email address is required.");
@@ -40,15 +43,62 @@ export default function LoginPage() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    // Client-side UI foundation navigation
-    setTimeout(() => {
-      router.push("/");
-    }, 400);
+    setApiError("");
+
+    try {
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api";
+
+      const res = await fetch(`${baseUrl}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          deviceId: "admin-web-dashboard",
+          deviceName: "MedStudy Admin Web",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.accessToken) {
+        const role = data.user?.role?.toUpperCase();
+        if (role === "ADMIN" || role === "SUPER_ADMIN") {
+          setAdminSession(data.accessToken, data.user);
+          router.push("/");
+          return;
+        } else {
+          setApiError("Access denied. Admin credentials required.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      if (res.status === 401 || res.status === 403) {
+        setApiError(data.message || "Invalid admin email or password.");
+      } else {
+        setApiError(
+          data.message || "Authentication failed. Please check credentials."
+        );
+      }
+    } catch (err: unknown) {
+      setApiError(
+        err instanceof Error
+          ? err.message
+          : "Unable to connect to authentication server."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -65,6 +115,15 @@ export default function LoginPage() {
             Sign in to access the administration portal
           </p>
         </div>
+
+        {apiError && (
+          <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 flex items-start gap-3">
+            <span className="text-red-500 text-lg">⚠️</span>
+            <p className="text-xs font-medium text-red-800 leading-snug">
+              {apiError}
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
           <div>
@@ -140,7 +199,7 @@ export default function LoginPage() {
 
         <div className="mt-8 pt-6 border-t border-slate-100 text-center">
           <p className="text-xs text-slate-400">
-            Day 5 Admin UI Foundation &bull; Authentication API integration pending backend
+            Day 8 Admin Auth Guard Active &bull; Protected Route Enforcement
           </p>
         </div>
       </div>

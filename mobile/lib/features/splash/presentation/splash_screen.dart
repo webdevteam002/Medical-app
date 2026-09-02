@@ -1,10 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/storage/auth_session_service.dart';
 import '../../../core/theme/app_theme.dart';
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+  final AuthSessionService? authSessionService;
+
+  const SplashScreen({
+    super.key,
+    this.authSessionService,
+  });
+
+  Future<void> _handleNavigation(BuildContext context) async {
+    final sessionService = authSessionService ?? AuthSessionService();
+    try {
+      final isAuth = await sessionService.isAuthenticated();
+      if (context.mounted) {
+        if (isAuth) {
+          context.go('/home');
+        } else {
+          context.go('/login');
+        }
+      }
+    } catch (_) {
+      await sessionService.clearSession();
+      if (context.mounted) {
+        context.go('/login');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +58,7 @@ class SplashScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: AppTheme.spacingXl),
                 ElevatedButton(
-                  onPressed: () => context.go('/login'),
+                  onPressed: () => _handleNavigation(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
                     foregroundColor: Colors.white,

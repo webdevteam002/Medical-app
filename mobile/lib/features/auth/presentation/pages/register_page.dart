@@ -1,11 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/device/device_id_service.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../../core/storage/secure_storage_service.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../data/datasources/auth_remote_datasource.dart';
 import '../widgets/auth_form_field.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  final AuthRemoteDataSource? authRemoteDataSource;
+  final SecureStorageService? secureStorageService;
+  final DeviceIdService? deviceIdService;
+
+  const RegisterPage({
+    super.key,
+    this.authRemoteDataSource,
+    this.secureStorageService,
+    this.deviceIdService,
+  });
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -13,14 +26,33 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  late final AuthRemoteDataSource _authRemoteDataSource;
+  late final SecureStorageService _secureStorageService;
+  late final DeviceIdService _deviceIdService;
+
+  @override
+  void initState() {
+    super.initState();
+    _authRemoteDataSource =
+        widget.authRemoteDataSource ?? AuthRemoteDataSource();
+    _secureStorageService =
+        widget.secureStorageService ?? SecureStorageService();
+    _deviceIdService = widget.deviceIdService ?? DeviceIdService();
+  }
 
   @override
   void dispose() {
+    _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -58,14 +90,61 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  void _handleRegister() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Registration validation passed (Day 3 UI foundation)'),
-          backgroundColor: AppTheme.secondaryColor,
-        ),
+  Future<void> _handleRegister() async {
+    if (_isLoading) return;
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final deviceId = await _deviceIdService.getOrCreateDeviceId();
+      final deviceName = await _deviceIdService.getDeviceName();
+
+      final fullName = _fullNameController.text.trim().isNotEmpty
+          ? _fullNameController.text.trim()
+          : 'Medical Student';
+
+      final tokens = await _authRemoteDataSource.register(
+        email: _emailController.text,
+        password: _passwordController.text,
+        fullName: fullName,
+        deviceId: deviceId,
+        deviceName: deviceName,
       );
+
+      await _secureStorageService.saveAccessToken(tokens.accessToken);
+      await _secureStorageService.saveRefreshToken(tokens.refreshToken);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully! Credentials secured.'),
+            backgroundColor: AppTheme.secondaryColor,
+          ),
+        );
+        context.go('/home');
+      }
+    } on Failure catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.message;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'An unexpected error occurred. Please try again.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -100,6 +179,44 @@ class _RegisterPageState extends State<RegisterPage> {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: AppTheme.spacingXl),
+                  if (_errorMessage != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(AppTheme.spacingMd),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF2F2),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusSm),
+                        border: Border.all(color: const Color(0xFFFCA5A5)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline,
+                              color: Colors.redAccent, size: 20),
+                          const SizedBox(width: AppTheme.spacingSm),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                color: Color(0xFF991B1B),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingMd),
+                  ],
+                  AuthFormField(
+                    controller: _fullNameController,
+                    label: 'Full Name',
+                    hint: 'Ali Khan',
+                    keyboardType: TextInputType.name,
+                    prefixIcon: const Icon(Icons.person_outline,
+                        color: AppTheme.textSecondaryColor),
+                  ),
+                  const SizedBox(height: AppTheme.spacingMd),
                   AuthFormField(
                     controller: _emailController,
                     label: 'Email Address',
@@ -159,10 +276,12 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: AppTheme.spacingLg),
                   ElevatedButton(
-                    onPressed: _handleRegister,
+                    onPressed: _isLoading ? null : _handleRegister,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor:
+                          AppTheme.primaryColor.withValues(alpha: 0.6),
                       padding: const EdgeInsets.symmetric(
                           vertical: AppTheme.spacingMd),
                       shape: RoundedRectangleBorder(
@@ -171,13 +290,23 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      'Register',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text(
+                            'Register',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                   const SizedBox(height: AppTheme.spacingLg),
                   Row(
