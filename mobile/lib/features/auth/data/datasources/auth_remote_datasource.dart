@@ -12,6 +12,8 @@ class AuthRemoteDataSource {
   Future<AuthTokens> login({
     required String email,
     required String password,
+    required String deviceId,
+    required String deviceName,
   }) async {
     try {
       final response = await _apiClient.client.post(
@@ -19,9 +21,14 @@ class AuthRemoteDataSource {
         data: {
           'email': email.trim(),
           'password': password,
-          'deviceId': 'temp-device-id-day4',
-          'deviceName': 'Flutter Mobile App',
+          'deviceId': deviceId,
+          'deviceName': deviceName,
         },
+        options: Options(
+          headers: {
+            'X-Device-Id': deviceId,
+          },
+        ),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/device/device_id_service.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/storage/secure_storage_service.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -10,11 +11,13 @@ import '../widgets/auth_form_field.dart';
 class LoginPage extends StatefulWidget {
   final AuthRemoteDataSource? authRemoteDataSource;
   final SecureStorageService? secureStorageService;
+  final DeviceIdService? deviceIdService;
 
   const LoginPage({
     super.key,
     this.authRemoteDataSource,
     this.secureStorageService,
+    this.deviceIdService,
   });
 
   @override
@@ -31,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
 
   late final AuthRemoteDataSource _authRemoteDataSource;
   late final SecureStorageService _secureStorageService;
+  late final DeviceIdService _deviceIdService;
 
   @override
   void initState() {
@@ -39,6 +43,7 @@ class _LoginPageState extends State<LoginPage> {
         widget.authRemoteDataSource ?? AuthRemoteDataSource();
     _secureStorageService =
         widget.secureStorageService ?? SecureStorageService();
+    _deviceIdService = widget.deviceIdService ?? DeviceIdService();
   }
 
   @override
@@ -79,9 +84,14 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
+      final deviceId = await _deviceIdService.getOrCreateDeviceId();
+      final deviceName = await _deviceIdService.getDeviceName();
+
       final tokens = await _authRemoteDataSource.login(
         email: _emailController.text,
         password: _passwordController.text,
+        deviceId: deviceId,
+        deviceName: deviceName,
       );
 
       await _secureStorageService.saveAccessToken(tokens.accessToken);

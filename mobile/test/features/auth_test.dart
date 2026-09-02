@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:medstudy/core/device/device_id_service.dart';
 import 'package:medstudy/core/errors/failures.dart';
 import 'package:medstudy/core/storage/secure_storage_service.dart';
 import 'package:medstudy/features/auth/data/datasources/auth_remote_datasource.dart';
@@ -21,11 +22,38 @@ class FakeSecureStorageService extends SecureStorageService {
   }
 }
 
+class FakeDeviceIdService extends DeviceIdService {
+  final String fakeId;
+  final String fakeName;
+  final SecureStorageService _storage;
+
+  FakeDeviceIdService({
+    this.fakeId = 'fake-device-uuid-1234',
+    this.fakeName = 'Test Device Name',
+    super.secureStorageService,
+  })  : _storage = secureStorageService ?? SecureStorageService();
+
+  @override
+  Future<String> getOrCreateDeviceId() async {
+    final existing = await _storage.getDeviceId();
+    if (existing != null && existing.isNotEmpty) return existing;
+    await _storage.saveDeviceId(fakeId);
+    return fakeId;
+  }
+
+  @override
+  Future<String> getDeviceName() async {
+    return fakeName;
+  }
+}
+
 class FakeAuthRemoteDataSource extends AuthRemoteDataSource {
   final bool shouldFail;
   final String? errorMessage;
   final AuthTokens tokens;
   int callCount = 0;
+  String? lastDeviceId;
+  String? lastDeviceName;
 
   FakeAuthRemoteDataSource({
     this.shouldFail = false,
@@ -41,8 +69,13 @@ class FakeAuthRemoteDataSource extends AuthRemoteDataSource {
   Future<AuthTokens> login({
     required String email,
     required String password,
+    required String deviceId,
+    required String deviceName,
   }) async {
     callCount++;
+    lastDeviceId = deviceId;
+    lastDeviceName = deviceName;
+
     if (shouldFail) {
       throw NetworkFailure(errorMessage ?? 'Invalid email or password');
     }
@@ -57,7 +90,7 @@ void main() {
     );
   }
 
-  group('LoginPage Day 4 Integration & Unit Tests', () {
+  group('LoginPage Day 6 Integration & Unit Tests', () {
     testWidgets('1. Login screen renders expected branding and fields',
         (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest(const LoginPage()));
@@ -74,11 +107,14 @@ void main() {
         (WidgetTester tester) async {
       final fakeDataSource = FakeAuthRemoteDataSource();
       final fakeStorage = FakeSecureStorageService();
+      final deviceIdService =
+          FakeDeviceIdService(secureStorageService: fakeStorage);
 
       await tester.pumpWidget(createWidgetUnderTest(
         LoginPage(
           authRemoteDataSource: fakeDataSource,
           secureStorageService: fakeStorage,
+          deviceIdService: deviceIdService,
         ),
       ));
 
@@ -86,19 +122,22 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(fakeDataSource.callCount, equals(0));
-      expect(fakeStorage.storage, isEmpty);
+      expect(fakeStorage.storage[SecureStorageService.accessTokenKey], isNull);
       expect(find.text('Email is required'), findsOneWidget);
     });
 
-    testWidgets('3. Successful login stores access token securely',
+    testWidgets('3. Successful login obtains real device ID and stores tokens',
         (WidgetTester tester) async {
       final fakeDataSource = FakeAuthRemoteDataSource();
       final fakeStorage = FakeSecureStorageService();
+      final deviceIdService =
+          FakeDeviceIdService(secureStorageService: fakeStorage);
 
       await tester.pumpWidget(createWidgetUnderTest(
         LoginPage(
           authRemoteDataSource: fakeDataSource,
           secureStorageService: fakeStorage,
+          deviceIdService: deviceIdService,
         ),
       ));
 
@@ -107,10 +146,14 @@ void main() {
       await tester.enterText(find.byType(TextFormField).at(1), 'password123');
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
-      await tester.pump(); // Start async operation
-      await tester.pumpAndSettle(); // Finish async operation
+      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(fakeDataSource.callCount, equals(1));
+      expect(fakeDataSource.lastDeviceId, equals('fake-device-uuid-1234'));
+      expect(fakeDataSource.lastDeviceName, equals('Test Device Name'));
+      expect(fakeStorage.storage[SecureStorageService.deviceIdKey],
+          equals('fake-device-uuid-1234'));
       expect(fakeStorage.storage[SecureStorageService.accessTokenKey],
           equals('fake_access_token_123'));
       expect(fakeStorage.storage[SecureStorageService.refreshTokenKey],
@@ -124,11 +167,14 @@ void main() {
         errorMessage: 'Invalid email or password',
       );
       final fakeStorage = FakeSecureStorageService();
+      final deviceIdService =
+          FakeDeviceIdService(secureStorageService: fakeStorage);
 
       await tester.pumpWidget(createWidgetUnderTest(
         LoginPage(
           authRemoteDataSource: fakeDataSource,
           secureStorageService: fakeStorage,
+          deviceIdService: deviceIdService,
         ),
       ));
 
@@ -141,7 +187,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(fakeDataSource.callCount, equals(1));
-      expect(fakeStorage.storage, isEmpty);
+      expect(fakeStorage.storage[SecureStorageService.accessTokenKey], isNull);
       expect(find.text('Invalid email or password'), findsOneWidget);
     });
   });

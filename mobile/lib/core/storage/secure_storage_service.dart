@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class SecureStorageService {
   static const String accessTokenKey = 'auth_access_token';
   static const String refreshTokenKey = 'auth_refresh_token';
+  static const String deviceIdKey = 'device_id';
 
   final FlutterSecureStorage _storage;
 
@@ -39,5 +40,13 @@ class SecureStorageService {
 
   Future<String?> getRefreshToken() async {
     return await read(key: refreshTokenKey);
+  }
+
+  Future<void> saveDeviceId(String deviceId) async {
+    await write(key: deviceIdKey, value: deviceId);
+  }
+
+  Future<String?> getDeviceId() async {
+    return await read(key: deviceIdKey);
   }
 }
