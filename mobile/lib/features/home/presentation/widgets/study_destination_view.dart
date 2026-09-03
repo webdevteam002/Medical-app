@@ -94,11 +94,22 @@ class _StudyDestinationViewState extends State<StudyDestinationView> {
                     ],
                   ),
                 ),
-                IconButton.outlined(
-                  tooltip: 'Offline Downloads',
-                  icon: const Icon(Icons.download_for_offline_outlined,
-                      color: AppTheme.primaryColor),
-                  onPressed: () => context.push('/offline-materials'),
+                Row(
+                  children: [
+                    IconButton.outlined(
+                      tooltip: 'Bookmarks',
+                      icon: const Icon(Icons.bookmark_outline_rounded,
+                          color: AppTheme.primaryColor),
+                      onPressed: () => context.push('/bookmarks'),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton.outlined(
+                      tooltip: 'Offline Downloads',
+                      icon: const Icon(Icons.download_for_offline_outlined,
+                          color: AppTheme.primaryColor),
+                      onPressed: () => context.push('/offline-materials'),
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medstudy/core/errors/failures.dart';
 import 'package:medstudy/core/storage/offline_material_storage.dart';
 import 'package:medstudy/features/study/data/datasources/study_remote_datasource.dart';
+import 'package:medstudy/features/study/data/models/bookmarked_material_model.dart';
 import 'package:medstudy/features/study/data/models/material_access_model.dart';
 import 'package:medstudy/features/study/data/models/material_model.dart';
 import 'package:medstudy/features/study/data/models/offline_material_model.dart';
@@ -23,9 +25,14 @@ class FakeMaterialAccessStudyRemoteDataSource extends StudyRemoteDataSource {
   });
 
   @override
+  Future<List<BookmarkedMaterialModel>> getBookmarks() async => [];
+
+  @override
   Future<List<MaterialModel>> getMaterials({
     required String subjectId,
     String? topicId,
+    String? searchQuery,
+    bool? pastPapersOnly,
   }) async {
     if (shouldFailMaterials) {
       throw NetworkFailure(
@@ -69,6 +76,17 @@ class FakeTestOfflineMaterialStorage extends OfflineMaterialStorage {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('com.medstudy/security'),
+      (MethodCall methodCall) async {
+        return true;
+      },
+    );
+  });
   Widget createWidgetUnderTest(Widget child) {
     return MaterialApp(
       home: child,

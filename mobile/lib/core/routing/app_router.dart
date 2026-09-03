@@ -3,6 +3,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/splash/presentation/splash_screen.dart';
+import '../../features/study/presentation/pages/bookmarks_page.dart';
 import '../../features/study/presentation/pages/materials_page.dart';
 import '../../features/study/presentation/pages/offline_materials_page.dart';
 import '../../features/study/presentation/pages/pdf_viewer_page.dart';
@@ -34,6 +35,11 @@ class AppRouter {
         path: '/home',
         name: 'home',
         builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: '/bookmarks',
+        name: 'bookmarks',
+        builder: (context, state) => const BookmarksPage(),
       ),
       GoRoute(
         path: '/offline-materials',

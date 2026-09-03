@@ -34,6 +34,7 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
   }
 
   Future<void> _loadOfflineMaterials() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -60,6 +61,7 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
   Future<void> _openOfflineMaterial(OfflineMaterialModel item) async {
     if (_isOpening) return;
 
+    if (!mounted) return;
     setState(() {
       _isOpening = true;
     });
@@ -106,22 +108,70 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
           },
         );
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isOpening = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to decrypt and open offline material.'),
-            backgroundColor: Colors.redAccent,
+
+        // Corrupted file / Decryption failure recovery dialog
+        showDialog(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Corrupted Offline File'),
+            content: Text(
+              'Failed to decrypt "${item.title}". The encrypted file may be corrupted or key state changed. Would you like to remove this corrupted copy?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  _performDelete(item.materialId);
+                },
+                child: const Text(
+                  'Remove File',
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+              ),
+            ],
           ),
         );
       }
     }
   }
 
-  Future<void> _deleteMaterial(String materialId) async {
+  Future<void> _confirmDelete(OfflineMaterialModel item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove Offline Material'),
+        content: Text('Remove "${item.title}" from offline storage?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text(
+              'Remove',
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _performDelete(item.materialId);
+    }
+  }
+
+  Future<void> _performDelete(String materialId) async {
     try {
       await _storage.deleteMaterial(materialId);
       await _loadOfflineMaterials();
@@ -265,71 +315,77 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
       );
     }
 
-    return ListView.separated(
-      itemCount: _offlineMaterials.length,
-      separatorBuilder: (context, index) =>
-          const SizedBox(height: AppTheme.spacingMd),
-      itemBuilder: (context, index) {
-        final item = _offlineMaterials[index];
-        final sizeFormatted = _formatFileSize(item.fileSizeBytes);
-        final dateFormatted = _formatDate(item.downloadedAt);
+    return RefreshIndicator(
+      onRefresh: _loadOfflineMaterials,
+      child: ListView.separated(
+        itemCount: _offlineMaterials.length,
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: AppTheme.spacingMd),
+        itemBuilder: (context, index) {
+          final item = _offlineMaterials[index];
+          final sizeFormatted = _formatFileSize(item.fileSizeBytes);
+          final dateFormatted = _formatDate(item.downloadedAt);
 
-        return Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-            side: const BorderSide(color: Color(0xFFE2E8F0)),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spacingLg,
-              vertical: AppTheme.spacingSm,
+          return Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+              side: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
-            leading: const CircleAvatar(
-              backgroundColor: Color(0xFFE2E8F0),
-              child: Icon(
-                Icons.lock_clock_rounded,
-                color: AppTheme.primaryColor,
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLg,
+                vertical: AppTheme.spacingSm,
               ),
-            ),
-            title: Text(
-              item.title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-            subtitle: Row(
-              children: [
-                Text(
-                  'Downloaded $dateFormatted',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textSecondaryColor,
-                  ),
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFFE2E8F0),
+                child: Icon(
+                  Icons.lock_clock_rounded,
+                  color: AppTheme.primaryColor,
                 ),
-                if (sizeFormatted.isNotEmpty) ...[
-                  const SizedBox(width: 8),
+              ),
+              title: Text(
+                item.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
+              subtitle: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
                   Text(
-                    '($sizeFormatted)',
+                    'Downloaded $dateFormatted',
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppTheme.textSecondaryColor,
                     ),
                   ),
+                  if (sizeFormatted.isNotEmpty) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      '($sizeFormatted)',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete_outline_rounded,
+                    color: Colors.redAccent),
+                onPressed: () => _confirmDelete(item),
+              ),
+              onTap: () => _openOfflineMaterial(item),
             ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline_rounded,
-                  color: Colors.redAccent),
-              onPressed: () => _deleteMaterial(item.materialId),
-            ),
-            onTap: () => _openOfflineMaterial(item),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

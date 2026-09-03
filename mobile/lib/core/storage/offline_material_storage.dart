@@ -50,13 +50,34 @@ class OfflineMaterialStorage {
       }
 
       final content = await indexFile.readAsString();
-      if (content.isEmpty) return [];
+      if (content.trim().isEmpty) return [];
 
-      final List jsonList = jsonDecode(content) as List;
-      return jsonList
-          .map((item) =>
-              OfflineMaterialModel.fromJson(item as Map<String, dynamic>))
-          .toList();
+      dynamic jsonObject;
+      try {
+        jsonObject = jsonDecode(content);
+      } catch (_) {
+        // Malformed JSON protection: return empty list without crashing
+        return [];
+      }
+
+      if (jsonObject is! List) return [];
+
+      final validItems = <OfflineMaterialModel>[];
+      for (final item in jsonObject) {
+        if (item is Map<String, dynamic>) {
+          try {
+            final model = OfflineMaterialModel.fromJson(item);
+            if (model.materialId.trim().isNotEmpty) {
+              if (model.localPath.isEmpty || await File(model.localPath).exists()) {
+                validItems.add(model);
+              }
+            }
+          } catch (_) {
+            // Ignore malformed individual items
+          }
+        }
+      }
+      return validItems;
     } catch (_) {
       return [];
     }
@@ -72,28 +93,51 @@ class OfflineMaterialStorage {
     required List<int> rawBytes,
   }) async {
     final dir = await _getStorageDir();
-    final filePath = path.join(dir.path, '${model.materialId}.enc');
+    final tempPath = path.join(dir.path, '${model.materialId}.tmp_enc');
+    final finalPath = path.join(dir.path, '${model.materialId}.enc');
 
-    final encryptedBytes = await _encryptionService.encryptBytes(rawBytes);
-    final file = File(filePath);
-    await file.writeAsBytes(encryptedBytes, flush: true);
+    final tempFile = File(tempPath);
+    final finalFile = File(finalPath);
 
-    final updatedModel = OfflineMaterialModel(
-      materialId: model.materialId,
-      title: model.title,
-      type: model.type,
-      topicId: model.topicId,
-      fileSizeBytes: rawBytes.length.toString(),
-      downloadedAt: model.downloadedAt,
-      localPath: filePath,
-      isEncrypted: true,
-    );
+    try {
+      final encryptedBytes = await _encryptionService.encryptBytes(rawBytes);
+      await tempFile.writeAsBytes(encryptedBytes, flush: true);
 
-    final currentList = await listMaterials();
-    currentList.removeWhere((item) => item.materialId == model.materialId);
-    currentList.add(updatedModel);
+      // Atomic rename/move to final file path after complete write
+      if (await tempFile.exists()) {
+        await tempFile.rename(finalPath);
+      }
 
-    await _saveIndex(currentList);
+      final updatedModel = OfflineMaterialModel(
+        materialId: model.materialId,
+        title: model.title,
+        type: model.type,
+        topicId: model.topicId,
+        fileSizeBytes: rawBytes.length.toString(),
+        downloadedAt: model.downloadedAt,
+        localPath: finalPath,
+        isEncrypted: true,
+      );
+
+      final currentList = await listMaterials();
+      currentList.removeWhere((item) => item.materialId == model.materialId);
+      currentList.add(updatedModel);
+
+      await _saveIndex(currentList);
+    } catch (e) {
+      // Clean up temporary file if download or encryption was interrupted
+      if (await tempFile.exists()) {
+        try {
+          await tempFile.delete();
+        } catch (_) {}
+      }
+      if (await finalFile.exists() && !(await exists(model.materialId))) {
+        try {
+          await finalFile.delete();
+        } catch (_) {}
+      }
+      rethrow;
+    }
   }
 
   Future<List<int>> readDecryptedBytes(String materialId) async {
@@ -112,26 +156,20 @@ class OfflineMaterialStorage {
   }
 
   Future<void> deleteMaterial(String materialId) async {
-    final currentList = await listMaterials();
-    final target = currentList.firstWhere(
-      (item) => item.materialId == materialId,
-      orElse: () => OfflineMaterialModel(
-        materialId: '',
-        title: '',
-        type: '',
-        fileSizeBytes: '0',
-        downloadedAt: DateTime.now(),
-        localPath: '',
-      ),
-    );
+    final dir = await _getStorageDir();
+    final finalFile = File(path.join(dir.path, '$materialId.enc'));
+    final tempFile = File(path.join(dir.path, '$materialId.tmp_enc'));
 
-    if (target.materialId.isNotEmpty && target.localPath.isNotEmpty) {
-      final file = File(target.localPath);
-      if (await file.exists()) {
-        await file.delete();
+    try {
+      if (await finalFile.exists()) {
+        await finalFile.delete();
       }
-    }
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
+    } catch (_) {}
 
+    final currentList = await listMaterials();
     currentList.removeWhere((item) => item.materialId == materialId);
     await _saveIndex(currentList);
   }

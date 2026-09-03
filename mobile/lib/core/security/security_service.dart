@@ -12,6 +12,8 @@ class SecurityService {
       final bool? result =
           await channel.invokeMethod<bool>('enableSecureScreen');
       return result ?? false;
+    } on MissingPluginException catch (_) {
+      return false;
     } catch (_) {
       return false;
     }
@@ -22,6 +24,8 @@ class SecurityService {
       final bool? result =
           await channel.invokeMethod<bool>('disableSecureScreen');
       return result ?? false;
+    } on MissingPluginException catch (_) {
+      return false;
     } catch (_) {
       return false;
     }

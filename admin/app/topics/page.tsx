@@ -2,58 +2,67 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
-import ExamQuestionPickerModal from "@/components/ExamQuestionPickerModal";
 import { Subject, fetchAdminSubjects } from "@/lib/subjects";
 import {
-  Exam,
-  CreateExamPayload,
-  fetchAdminExams,
-  createAdminExam,
-  updateAdminExam,
-  deleteAdminExam,
-  validateExamPayload,
-} from "@/lib/exams";
+  Topic,
+  CreateTopicPayload,
+  fetchAdminTopics,
+  createAdminTopic,
+  validateTopicPayload,
+} from "@/lib/topics";
 
-export default function ExamsManagementPage() {
-  const [exams, setExams] = useState<Exam[]>([]);
+export default function TopicsManagementPage() {
+  const [topics, setTopics] = useState<Topic[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>("");
-
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const [pendingPublishId, setPendingPublishId] = useState<string | null>(null);
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [activePickerExam, setActivePickerExam] = useState<Exam | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [modalError, setModalError] = useState<string | null>(null);
 
   // Form Fields
-  const [formTitle, setFormTitle] = useState<string>("");
   const [formSubjectId, setFormSubjectId] = useState<string>("");
-  const [formDurationMinutes, setFormDurationMinutes] = useState<number>(60);
-  const [formShuffleQuestions, setFormShuffleQuestions] = useState<boolean>(true);
-  const [formShuffleOptions, setFormShuffleOptions] = useState<boolean>(false);
+  const [formName, setFormName] = useState<string>("");
+  const [formSortOrder, setFormSortOrder] = useState<number>(1);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let isMounted = true;
-    Promise.all([fetchAdminExams(), fetchAdminSubjects()])
-      .then(([examsData, subjectsData]) => {
+    fetchAdminSubjects()
+      .then((subjectsData) => {
         if (isMounted) {
-          setExams(examsData);
           setSubjects(subjectsData);
-          setIsLoading(false);
+          if (subjectsData.length > 0) {
+            const firstSubjectId = subjectsData[0].id;
+            setSelectedSubjectId(firstSubjectId);
+            fetchAdminTopics(firstSubjectId)
+              .then((topicsData) => {
+                if (isMounted) {
+                  setTopics(topicsData);
+                  setIsLoading(false);
+                }
+              })
+              .catch((err: unknown) => {
+                if (isMounted) {
+                  setErrorMessage(
+                    err instanceof Error ? err.message : "Failed to load topics."
+                  );
+                  setIsLoading(false);
+                }
+              });
+          } else {
+            setIsLoading(false);
+          }
         }
       })
       .catch((err: unknown) => {
         if (isMounted) {
           setErrorMessage(
-            err instanceof Error ? err.message : "Failed to load exams or subjects."
+            err instanceof Error ? err.message : "Failed to load subjects list."
           );
           setIsLoading(false);
         }
@@ -64,30 +73,35 @@ export default function ExamsManagementPage() {
   }, []);
 
   const handleRefresh = useCallback(async () => {
+    if (!selectedSubjectId) return;
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const data = await fetchAdminExams(selectedSubjectFilter || undefined);
-      setExams(data);
+      const data = await fetchAdminTopics(selectedSubjectId);
+      setTopics(data);
     } catch (err: unknown) {
       setErrorMessage(
-        err instanceof Error ? err.message : "Failed to load exams."
+        err instanceof Error ? err.message : "Failed to load topics."
       );
     } finally {
       setIsLoading(false);
     }
-  }, [selectedSubjectFilter]);
+  }, [selectedSubjectId]);
 
   const handleSubjectFilterChange = async (subjectIdFilter: string) => {
-    setSelectedSubjectFilter(subjectIdFilter);
+    setSelectedSubjectId(subjectIdFilter);
+    if (!subjectIdFilter) {
+      setTopics([]);
+      return;
+    }
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const data = await fetchAdminExams(subjectIdFilter || undefined);
-      setExams(data);
+      const data = await fetchAdminTopics(subjectIdFilter);
+      setTopics(data);
     } catch (err: unknown) {
       setErrorMessage(
-        err instanceof Error ? err.message : "Failed to filter exams."
+        err instanceof Error ? err.message : "Failed to load topics for selected subject."
       );
     } finally {
       setIsLoading(false);
@@ -95,29 +109,34 @@ export default function ExamsManagementPage() {
   };
 
   const handleOpenModal = () => {
-    const defaultSubjectId = selectedSubjectFilter || (subjects.length > 0 ? subjects[0].id : "");
-    setFormTitle("");
+    const defaultSubjectId = selectedSubjectId || (subjects.length > 0 ? subjects[0].id : "");
+    const nextOrder = topics.length > 0 ? Math.max(...topics.map((t) => t.sortOrder)) + 1 : 1;
+
     setFormSubjectId(defaultSubjectId);
-    setFormDurationMinutes(60);
-    setFormShuffleQuestions(true);
-    setFormShuffleOptions(false);
+    setFormName("");
+    setFormSortOrder(nextOrder);
     setFieldErrors({});
     setModalError(null);
     setIsModalOpen(true);
   };
 
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormName(e.target.value);
+    if (fieldErrors.name) {
+      setFieldErrors((prev) => ({ ...prev, name: "" }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload: CreateExamPayload = {
-      title: formTitle.trim(),
+    const payload: CreateTopicPayload = {
       subjectId: formSubjectId,
-      durationMinutes: Number(formDurationMinutes),
-      shuffleQuestions: formShuffleQuestions,
-      shuffleOptions: formShuffleOptions,
+      name: formName.trim(),
+      sortOrder: Number(formSortOrder),
     };
 
-    const validation = validateExamPayload(payload);
+    const validation = validateTopicPayload(payload);
     if (!validation.isValid) {
       setFieldErrors(validation.errors);
       return;
@@ -127,66 +146,34 @@ export default function ExamsManagementPage() {
     setModalError(null);
 
     try {
-      const created = await createAdminExam(payload);
-      const updatedList = await fetchAdminExams(selectedSubjectFilter || undefined);
-      setExams(updatedList);
+      const created = await createAdminTopic(payload);
+      if (created.subjectId === selectedSubjectId) {
+        setTopics((prev) => [...prev, created].sort((a, b) => a.sortOrder - b.sortOrder));
+      } else {
+        // If created topic is in another subject, switch filter to that subject
+        setSelectedSubjectId(created.subjectId);
+        const updatedList = await fetchAdminTopics(created.subjectId);
+        setTopics(updatedList);
+      }
       setIsModalOpen(false);
-      setSuccessMessage(`Exam "${created.title}" created successfully.`);
+      setSuccessMessage(`Topic "${created.name}" created successfully.`);
       setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err: unknown) {
       setModalError(
-        err instanceof Error ? err.message : "Failed to create exam."
+        err instanceof Error ? err.message : "Failed to create topic."
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleTogglePublish = async (exam: Exam) => {
-    setPendingPublishId(exam.id);
-    try {
-      const updated = await updateAdminExam(exam.id, {
-        isPublished: !exam.isPublished,
-      });
-      setExams((prev) =>
-        prev.map((e) => (e.id === exam.id ? { ...e, isPublished: updated.isPublished } : e))
-      );
-      setSuccessMessage(
-        `Exam "${exam.title}" is now ${updated.isPublished ? "PUBLISHED (Student Visible)" : "UNPUBLISHED (Draft)"}.`
-      );
-      setTimeout(() => setSuccessMessage(null), 4000);
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to update publish state.");
-    } finally {
-      setPendingPublishId(null);
-    }
-  };
-
-  const handleDelete = async (exam: Exam) => {
-    if (!confirm(`Are you sure you want to delete exam "${exam.title}"?`)) {
-      return;
-    }
-
-    setPendingDeleteId(exam.id);
-    try {
-      await deleteAdminExam(exam.id);
-      setExams((prev) => prev.filter((e) => e.id !== exam.id));
-      setSuccessMessage(`Exam "${exam.title}" deleted.`);
-      setTimeout(() => setSuccessMessage(null), 4000);
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to delete exam.");
-    } finally {
-      setPendingDeleteId(null);
-    }
-  };
-
-  const handleQuestionSaveSuccess = (updatedExam: Exam) => {
-    setExams((prev) =>
-      prev.map((e) => (e.id === updatedExam.id ? { ...e, questionCount: updatedExam.questionCount } : e))
+  const handleActionDeferred = (actionName: string) => {
+    alert(
+      `${actionName} action is deferred pending Person 1 NestJS backend API implementation (PATCH/DELETE /admin/topics/:id).`
     );
-    setSuccessMessage(`Exam questions updated (${updatedExam.questionCount} total questions).`);
-    setTimeout(() => setSuccessMessage(null), 4000);
   };
+
+  const selectedSubjectObj = subjects.find((s) => s.id === selectedSubjectId);
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -196,10 +183,10 @@ export default function ExamsManagementPage() {
         <header className="bg-white border-b border-slate-200 px-8 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Exams Management
+              Topics Management
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Configure examination papers, duration, assign questions, and publication status
+              Manage medical study topics, sequence ordering, and parent subject assignments
             </p>
           </div>
 
@@ -211,24 +198,27 @@ export default function ExamsManagementPage() {
               </label>
               <select
                 id="subjectFilter"
-                value={selectedSubjectFilter}
+                value={selectedSubjectId}
                 onChange={(e) => handleSubjectFilterChange(e.target.value)}
                 className="px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
               >
-                <option value="">All Subjects ({subjects.length})</option>
-                {subjects.map((subject) => (
-                  <option key={subject.id} value={subject.id}>
-                    {subject.name} ({subject.year?.name || subject.slug})
-                  </option>
-                ))}
+                {subjects.length === 0 ? (
+                  <option value="">No Subjects Available</option>
+                ) : (
+                  subjects.map((subject) => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.name} ({subject.year?.name || subject.slug})
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 
             <button
               onClick={handleRefresh}
-              disabled={isLoading}
+              disabled={isLoading || !selectedSubjectId}
               className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 rounded-lg transition-colors border border-slate-200 flex items-center gap-1.5"
-              aria-label="Refresh exams list"
+              aria-label="Refresh topics list"
             >
               <svg
                 className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`}
@@ -264,13 +254,24 @@ export default function ExamsManagementPage() {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Create Exam
+              Add Topic
             </button>
           </div>
         </header>
 
         {/* Content Area */}
-        <div className="p-8 max-w-7xl space-y-6">
+        <div className="p-8 max-w-6xl space-y-6">
+          {/* Deferred Action Notice */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 text-xs text-amber-900 shadow-sm">
+            <span className="text-amber-600 text-base">ℹ️</span>
+            <div>
+              <p className="font-semibold">Backend API Contract Notice</p>
+              <p className="mt-0.5 text-amber-800 leading-relaxed">
+                Person 1 NestJS backend provides <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono">GET /v1/admin/subjects/:subjectId/topics</code> (List) and <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono">POST /v1/admin/topics</code> (Create). Edit and Delete endpoints are not available on the backend yet and are deferred.
+              </p>
+            </div>
+          </div>
+
           {/* Success Banner */}
           {successMessage && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3 text-xs text-emerald-900 shadow-sm">
@@ -284,7 +285,7 @@ export default function ExamsManagementPage() {
             <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-sm">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-teal-600 mb-3"></div>
               <p className="text-sm font-medium text-slate-600">
-                Loading examination papers...
+                Loading study topics...
               </p>
             </div>
           ) : errorMessage ? (
@@ -293,7 +294,7 @@ export default function ExamsManagementPage() {
                 ⚠️
               </div>
               <h3 className="text-base font-semibold text-slate-900 mb-1">
-                Failed to Load Exams
+                Failed to Load Topics
               </h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto mb-5">
                 {errorMessage}
@@ -305,116 +306,93 @@ export default function ExamsManagementPage() {
                 Retry Request
               </button>
             </div>
-          ) : exams.length === 0 ? (
+          ) : !selectedSubjectId ? (
             <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-sm">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 text-slate-400 text-2xl mb-4">
-                📝
+                📂
               </div>
               <h3 className="text-base font-semibold text-slate-900 mb-1">
-                No Examination Papers Found
+                Select a Parent Subject
+              </h3>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Please select a parent subject from the dropdown above to view and manage its study topics.
+              </p>
+            </div>
+          ) : topics.length === 0 ? (
+            <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-sm">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 text-slate-400 text-2xl mb-4">
+                📖
+              </div>
+              <h3 className="text-base font-semibold text-slate-900 mb-1">
+                No Topics Found for Selected Subject
               </h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto mb-6">
-                There are currently no exams created in the system. Click below to create the first exam paper.
+                There are currently no topics configured for &ldquo;{selectedSubjectObj?.name || "Selected Subject"}&rdquo;. Click below to add the first topic.
               </p>
               <button
                 onClick={handleOpenModal}
                 className="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors inline-flex items-center gap-1.5"
               >
-                + Create First Exam
+                + Add First Topic
               </button>
             </div>
           ) : (
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                 <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-                  Exams List ({exams.length})
+                  Topics ({topics.length}) — {selectedSubjectObj?.name}
                 </h2>
                 <span className="text-xs text-slate-500 font-medium">
-                  {selectedSubjectFilter
-                    ? `Filtered by Subject ID: ${selectedSubjectFilter}`
-                    : "Showing All Subjects"}
+                  Parent Subject: {selectedSubjectObj?.name} ({selectedSubjectObj?.year?.name || selectedSubjectObj?.slug})
                 </span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                      <th className="py-3.5 px-6">Exam Title</th>
+                      <th className="py-3.5 px-6">Order</th>
+                      <th className="py-3.5 px-6">Topic Name</th>
                       <th className="py-3.5 px-6">Parent Subject</th>
-                      <th className="py-3.5 px-6">Duration</th>
-                      <th className="py-3.5 px-6">Questions</th>
-                      <th className="py-3.5 px-6">Shuffle Rules</th>
-                      <th className="py-3.5 px-6">Publication Status</th>
                       <th className="py-3.5 px-6 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 text-xs">
-                    {exams.map((exam) => (
-                      <tr key={exam.id} className="hover:bg-slate-50/80 transition-colors">
+                    {topics.map((topic) => (
+                      <tr key={topic.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-4 px-6 font-semibold text-slate-700">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-xs font-mono">
+                            #{topic.sortOrder}
+                          </span>
+                        </td>
                         <td className="py-4 px-6 font-semibold text-slate-900">
-                          {exam.title}
+                          {topic.name}
                         </td>
                         <td className="py-4 px-6">
                           <div className="flex flex-col">
                             <span className="font-semibold text-slate-800">
-                              {exam.subject?.name || "Subject"}
+                              {selectedSubjectObj?.name || "Parent Subject"}
                             </span>
-                            {exam.subject?.year?.name && (
+                            {selectedSubjectObj?.slug && (
                               <span className="text-[10px] text-slate-500 font-mono">
-                                ({exam.subject.year.name})
+                                ({selectedSubjectObj.slug})
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="py-4 px-6 font-mono text-slate-700">
-                          ⏱ {exam.durationMinutes} mins
-                        </td>
-                        <td className="py-4 px-6 font-mono font-bold text-slate-800">
-                          {exam.questionCount || exam._count?.examQuestions || 0} Questions
-                        </td>
-                        <td className="py-4 px-6 text-[10px] text-slate-500 space-y-0.5">
-                          <p>Questions: {exam.shuffleQuestions ? "🔀 Shuffled" : "Sequential"}</p>
-                          <p>Options: {exam.shuffleOptions ? "🔀 Shuffled" : "Fixed"}</p>
-                        </td>
-                        <td className="py-4 px-6">
-                          {exam.isPublished ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              ● Published (Student Visible)
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                              ○ Draft (Unpublished)
-                            </span>
-                          )}
-                        </td>
                         <td className="py-4 px-6 text-right space-x-2">
                           <button
-                            onClick={() => setActivePickerExam(exam)}
-                            className="px-2.5 py-1 text-[11px] font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded transition-colors"
+                            onClick={() => handleActionDeferred("Edit")}
+                            className="px-2.5 py-1 text-[11px] font-medium text-slate-400 bg-slate-50 border border-slate-200 rounded hover:text-slate-600 transition-colors cursor-not-allowed"
+                            title="Edit action deferred until NestJS backend provides PATCH /admin/topics/:id"
                           >
-                            Manage Questions
+                            Edit
                           </button>
                           <button
-                            onClick={() => handleTogglePublish(exam)}
-                            disabled={pendingPublishId === exam.id}
-                            className={`px-2.5 py-1 text-[11px] font-semibold rounded border transition-colors ${
-                              exam.isPublished
-                                ? "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
-                                : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                            }`}
+                            onClick={() => handleActionDeferred("Delete")}
+                            className="px-2.5 py-1 text-[11px] font-medium text-slate-400 bg-slate-50 border border-slate-200 rounded hover:text-slate-600 transition-colors cursor-not-allowed"
+                            title="Delete action deferred until NestJS backend provides DELETE /admin/topics/:id"
                           >
-                            {pendingPublishId === exam.id
-                              ? "Updating..."
-                              : exam.isPublished
-                              ? "Unpublish"
-                              : "Publish"}
-                          </button>
-                          <button
-                            onClick={() => handleDelete(exam)}
-                            disabled={pendingDeleteId === exam.id}
-                            className="px-2.5 py-1 text-[11px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded transition-colors"
-                          >
-                            {pendingDeleteId === exam.id ? "Deleting..." : "Delete"}
+                            Delete
                           </button>
                         </td>
                       </tr>
@@ -427,27 +405,17 @@ export default function ExamsManagementPage() {
         </div>
       </main>
 
-      {/* Exam Question Picker Modal */}
-      {activePickerExam && (
-        <ExamQuestionPickerModal
-          exam={activePickerExam}
-          isOpen={Boolean(activePickerExam)}
-          onClose={() => setActivePickerExam(null)}
-          onSaveSuccess={handleQuestionSaveSuccess}
-        />
-      )}
-
-      {/* Create Exam Modal */}
+      {/* Create Topic Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-100">
             <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div>
                 <h3 className="text-base font-bold text-slate-900">
-                  Create Examination Paper
+                  Add Study Topic
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Configure exam title, parent subject, duration, and shuffling rules
+                  Assign topic to parent subject and configure sequence ordering
                 </p>
               </div>
               <button
@@ -466,26 +434,6 @@ export default function ExamsManagementPage() {
             )}
 
             <form onSubmit={handleSubmit} noValidate className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Exam Title <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="e.g. Gross Anatomy Annual Examination 2024"
-                  className={`w-full px-3.5 py-2.5 text-xs rounded-lg border text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                    fieldErrors.title ? "border-red-500 ring-1 ring-red-500" : "border-slate-300"
-                  }`}
-                />
-                {fieldErrors.title && (
-                  <p className="mt-1 text-[11px] text-red-600 font-medium">
-                    {fieldErrors.title}
-                  </p>
-                )}
-              </div>
-
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                   Parent Subject <span className="text-red-500">*</span>
@@ -513,44 +461,42 @@ export default function ExamsManagementPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Duration (Minutes) <span className="text-red-500">*</span>
+                  Topic Name <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="number"
-                  min="1"
-                  value={formDurationMinutes}
-                  onChange={(e) => setFormDurationMinutes(parseInt(e.target.value) || 1)}
-                  className={`w-full px-3.5 py-2.5 text-xs rounded-lg border text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                    fieldErrors.durationMinutes ? "border-red-500 ring-1 ring-red-500" : "border-slate-300"
+                  type="text"
+                  value={formName}
+                  onChange={handleNameChange}
+                  placeholder="e.g. Brachial Plexus"
+                  className={`w-full px-3.5 py-2.5 text-xs rounded-lg border text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                    fieldErrors.name ? "border-red-500 ring-1 ring-red-500" : "border-slate-300"
                   }`}
                 />
-                {fieldErrors.durationMinutes && (
+                {fieldErrors.name && (
                   <p className="mt-1 text-[11px] text-red-600 font-medium">
-                    {fieldErrors.durationMinutes}
+                    {fieldErrors.name}
                   </p>
                 )}
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-slate-200">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-800">
-                  <input
-                    type="checkbox"
-                    checked={formShuffleQuestions}
-                    onChange={(e) => setFormShuffleQuestions(e.target.checked)}
-                    className="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 border-slate-300"
-                  />
-                  <span>Shuffle Questions Order per Attempt</span>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Sort Order <span className="text-red-500">*</span>
                 </label>
-
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-800">
-                  <input
-                    type="checkbox"
-                    checked={formShuffleOptions}
-                    onChange={(e) => setFormShuffleOptions(e.target.checked)}
-                    className="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 border-slate-300"
-                  />
-                  <span>Shuffle Option Choices (A, B, C, D) per Question</span>
-                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formSortOrder}
+                  onChange={(e) => setFormSortOrder(parseInt(e.target.value) || 0)}
+                  className={`w-full px-3.5 py-2.5 text-xs rounded-lg border text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                    fieldErrors.sortOrder ? "border-red-500 ring-1 ring-red-500" : "border-slate-300"
+                  }`}
+                />
+                {fieldErrors.sortOrder && (
+                  <p className="mt-1 text-[11px] text-red-600 font-medium">
+                    {fieldErrors.sortOrder}
+                  </p>
+                )}
               </div>
 
               <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
@@ -567,7 +513,7 @@ export default function ExamsManagementPage() {
                   disabled={isSubmitting}
                   className="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 rounded-lg transition-colors shadow-sm flex items-center gap-1.5"
                 >
-                  {isSubmitting ? "Creating..." : "Create Exam"}
+                  {isSubmitting ? "Creating..." : "Create Topic"}
                 </button>
               </div>
             </form>

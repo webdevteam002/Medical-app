@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
@@ -45,6 +46,14 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   @override
   void dispose() {
     _securityService.disableSecureScreen();
+    if (!widget.pdfUrl.startsWith('http') && widget.pdfUrl.isNotEmpty) {
+      try {
+        final file = File(widget.pdfUrl);
+        if (file.existsSync()) {
+          file.deleteSync();
+        }
+      } catch (_) {}
+    }
     super.dispose();
   }
 

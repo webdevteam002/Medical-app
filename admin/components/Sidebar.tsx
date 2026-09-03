@@ -6,9 +6,14 @@ import { clearAdminSession } from "@/lib/auth";
 
 const navigationItems = [
   { name: "Dashboard", href: "/" },
+  { name: "Years", href: "/years" },
+  { name: "Subjects", href: "/subjects" },
+  { name: "Topics", href: "/topics" },
+  { name: "Materials", href: "/materials" },
+  { name: "Questions", href: "/questions" },
+  { name: "Exams", href: "/exams" },
   { name: "Users", href: "/users" },
   { name: "Content", href: "/content" },
-  { name: "Exams", href: "/exams" },
   { name: "Subscriptions", href: "/subscriptions" },
 ];
 

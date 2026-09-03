@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:medstudy/core/errors/failures.dart';
 import 'package:medstudy/core/storage/offline_material_storage.dart';
 import 'package:medstudy/features/study/data/datasources/study_remote_datasource.dart';
+import 'package:medstudy/features/study/data/models/bookmarked_material_model.dart';
 import 'package:medstudy/features/study/data/models/material_model.dart';
 import 'package:medstudy/features/study/data/models/offline_material_model.dart';
 import 'package:medstudy/features/study/presentation/pages/materials_page.dart';
@@ -22,9 +23,14 @@ class FakeMaterialsStudyRemoteDataSource extends StudyRemoteDataSource {
   });
 
   @override
+  Future<List<BookmarkedMaterialModel>> getBookmarks() async => [];
+
+  @override
   Future<List<MaterialModel>> getMaterials({
     required String subjectId,
     String? topicId,
+    String? searchQuery,
+    bool? pastPapersOnly,
   }) async {
     getMaterialsCallCount++;
     lastSubjectId = subjectId;
@@ -179,6 +185,59 @@ void main() {
       await tester.pump();
 
       expect(fakeDataSource.getMaterialsCallCount, equals(2));
+    });
+
+    testWidgets(
+        '5. MaterialsPage search input updates query and triggers search fetch',
+        (WidgetTester tester) async {
+      final fakeDataSource = FakeMaterialsStudyRemoteDataSource();
+      final fakeStorage = FakeMaterialsOfflineStorage();
+
+      await tester.pumpWidget(createWidgetUnderTest(
+        MaterialsPage(
+          subjectId: 'sub1',
+          topicId: 'top1',
+          studyRemoteDataSource: fakeDataSource,
+          offlineMaterialStorage: fakeStorage,
+        ),
+      ));
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'Brachial');
+      await tester.pump(const Duration(milliseconds: 350));
+
+      expect(fakeDataSource.getMaterialsCallCount, greaterThan(1));
+    });
+
+    testWidgets(
+        '6. Day 38/39 Hardening: Clearing search input resets query and refetches materials',
+        (WidgetTester tester) async {
+      final fakeDataSource = FakeMaterialsStudyRemoteDataSource();
+      final fakeStorage = FakeMaterialsOfflineStorage();
+
+      await tester.pumpWidget(createWidgetUnderTest(
+        MaterialsPage(
+          subjectId: 'sub1',
+          topicId: 'top1',
+          studyRemoteDataSource: fakeDataSource,
+          offlineMaterialStorage: fakeStorage,
+        ),
+      ));
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'Brachial');
+      await tester.pump(const Duration(milliseconds: 350));
+
+      expect(find.byIcon(Icons.clear_rounded), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.clear_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Brachial Plexus Notes & Diagrams'), findsOneWidget);
     });
   });
 }

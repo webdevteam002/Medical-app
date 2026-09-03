@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -35,12 +36,19 @@ class _MaterialsPageState extends State<MaterialsPage> {
   late final StudyRemoteDataSource _dataSource;
   late final OfflineMaterialStorage _offlineStorage;
   late final ApiClient _apiClient;
+  late final TextEditingController _searchController;
+
+  Timer? _searchDebounceTimer;
+  int _activeSearchRequestId = 0;
 
   bool _isLoading = true;
   String? _errorMessage;
+  String _searchQuery = '';
   List<MaterialModel> _materials = [];
   Set<String> _downloadedMaterialIds = {};
   final Set<String> _downloadingMaterialIds = {};
+  Set<String> _bookmarkedMaterialIds = {};
+  final Set<String> _bookmarkingMaterialIds = {};
   bool _isRequestingAccess = false;
 
   @override
@@ -49,10 +57,34 @@ class _MaterialsPageState extends State<MaterialsPage> {
     _dataSource = widget.studyRemoteDataSource ?? StudyRemoteDataSource();
     _offlineStorage = widget.offlineMaterialStorage ?? OfflineMaterialStorage();
     _apiClient = widget.apiClient ?? ApiClient();
+    _searchController = TextEditingController();
     _fetchMaterials();
   }
 
+  @override
+  void dispose() {
+    _searchDebounceTimer?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchQueryChanged(String query) {
+    _searchDebounceTimer?.cancel();
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _searchQuery = query;
+        });
+        _fetchMaterials();
+      }
+    });
+  }
+
   Future<void> _fetchMaterials() async {
+    if (!mounted) return;
+
+    final currentRequestId = ++_activeSearchRequestId;
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -62,19 +94,33 @@ class _MaterialsPageState extends State<MaterialsPage> {
       final materials = await _dataSource.getMaterials(
         subjectId: widget.subjectId,
         topicId: widget.topicId,
+        searchQuery: _searchQuery.isNotEmpty ? _searchQuery : null,
       );
 
       final offlineList = await _offlineStorage.listMaterials();
       final downloadedIds = offlineList.map((e) => e.materialId).toSet();
 
+      Set<String> bookmarkedIds = {};
+      try {
+        final bookmarks = await _dataSource.getBookmarks();
+        bookmarkedIds = bookmarks.map((b) => b.id).toSet();
+      } catch (_) {
+        // Non-blocking fallback if bookmarks fail during offline mode
+      }
+
+      // Ignore stale responses from older search requests
+      if (currentRequestId != _activeSearchRequestId) return;
+
       if (mounted) {
         setState(() {
           _materials = materials;
           _downloadedMaterialIds = downloadedIds;
+          _bookmarkedMaterialIds = bookmarkedIds;
           _isLoading = false;
         });
       }
     } on Failure catch (e) {
+      if (currentRequestId != _activeSearchRequestId) return;
       if (mounted) {
         setState(() {
           _errorMessage = e.message;
@@ -82,6 +128,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
         });
       }
     } catch (_) {
+      if (currentRequestId != _activeSearchRequestId) return;
       if (mounted) {
         setState(() {
           _errorMessage =
@@ -92,9 +139,98 @@ class _MaterialsPageState extends State<MaterialsPage> {
     }
   }
 
+  Future<void> _toggleBookmark(MaterialModel material) async {
+    if (_bookmarkingMaterialIds.contains(material.id)) return;
+
+    final wasBookmarked = _bookmarkedMaterialIds.contains(material.id);
+
+    if (!mounted) return;
+    setState(() {
+      _bookmarkingMaterialIds.add(material.id);
+      if (wasBookmarked) {
+        _bookmarkedMaterialIds.remove(material.id);
+      } else {
+        _bookmarkedMaterialIds.add(material.id);
+      }
+    });
+
+    try {
+      if (wasBookmarked) {
+        await _dataSource.removeBookmark(material.id);
+      } else {
+        await _dataSource.addBookmark(material.id);
+      }
+
+      if (mounted) {
+        setState(() {
+          _bookmarkingMaterialIds.remove(material.id);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              wasBookmarked
+                  ? '"${material.title}" removed from bookmarks.'
+                  : '"${material.title}" added to bookmarks.',
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } on Failure catch (e) {
+      if (mounted) {
+        setState(() {
+          _bookmarkingMaterialIds.remove(material.id);
+          // Rollback state on failure
+          if (wasBookmarked) {
+            _bookmarkedMaterialIds.add(material.id);
+          } else {
+            _bookmarkedMaterialIds.remove(material.id);
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _bookmarkingMaterialIds.remove(material.id);
+          // Rollback state on failure
+          if (wasBookmarked) {
+            _bookmarkedMaterialIds.add(material.id);
+          } else {
+            _bookmarkedMaterialIds.remove(material.id);
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to update bookmark.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _downloadMaterial(MaterialModel material) async {
+    if (!material.isDownloadable) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Offline download is unavailable for this material.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
     if (_downloadingMaterialIds.contains(material.id)) return;
 
+    if (!mounted) return;
     setState(() {
       _downloadingMaterialIds.add(material.id);
     });
@@ -179,6 +315,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
   Future<void> _onMaterialTap(MaterialModel material) async {
     if (_isRequestingAccess) return;
 
+    if (!mounted) return;
     setState(() {
       _isRequestingAccess = true;
     });
@@ -306,11 +443,53 @@ class _MaterialsPageState extends State<MaterialsPage> {
                 'Topic ID: ${widget.topicId}',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
-              const SizedBox(height: AppTheme.spacingLg),
+              const SizedBox(height: AppTheme.spacingMd),
+              _buildSearchBar(),
+              const SizedBox(height: AppTheme.spacingSm),
               Expanded(
                 child: _buildBody(),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: _onSearchQueryChanged,
+        decoration: InputDecoration(
+          hintText: 'Search materials by title...',
+          hintStyle:
+              const TextStyle(fontSize: 14, color: AppTheme.textSecondaryColor),
+          prefixIcon:
+              const Icon(Icons.search_rounded, color: AppTheme.primaryColor),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded,
+                      color: AppTheme.textSecondaryColor),
+                  onPressed: () {
+                    _searchController.clear();
+                    _searchDebounceTimer?.cancel();
+                    setState(() {
+                      _searchQuery = '';
+                    });
+                    _fetchMaterials();
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spacingMd,
+            vertical: AppTheme.spacingSm,
           ),
         ),
       ),
@@ -364,137 +543,195 @@ class _MaterialsPageState extends State<MaterialsPage> {
             const Icon(Icons.folder_open_rounded,
                 size: 64, color: AppTheme.textSecondaryColor),
             const SizedBox(height: AppTheme.spacingMd),
-            const Text(
-              'No materials available for this topic',
-              style: TextStyle(
+            Text(
+              _searchQuery.isNotEmpty
+                  ? 'No materials found matching "$_searchQuery"'
+                  : 'No materials available for this topic',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textPrimaryColor,
               ),
             ),
             const SizedBox(height: AppTheme.spacingXs),
-            const Text(
-              'Check back later for updated study materials.',
-              style: TextStyle(
+            Text(
+              _searchQuery.isNotEmpty
+                  ? 'Try searching for another keyword.'
+                  : 'Check back later for updated study materials.',
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppTheme.textSecondaryColor,
               ),
             ),
             const SizedBox(height: AppTheme.spacingLg),
             OutlinedButton(
-              onPressed: _fetchMaterials,
-              child: const Text('Refresh'),
+              onPressed: () {
+                _searchController.clear();
+                _searchDebounceTimer?.cancel();
+                setState(() {
+                  _searchQuery = '';
+                });
+                _fetchMaterials();
+              },
+              child: Text(_searchQuery.isNotEmpty ? 'Clear Search' : 'Refresh'),
             ),
           ],
         ),
       );
     }
 
-    return ListView.separated(
-      itemCount: _materials.length,
-      separatorBuilder: (context, index) =>
-          const SizedBox(height: AppTheme.spacingMd),
-      itemBuilder: (context, index) {
-        final material = _materials[index];
-        final sizeFormatted = _formatFileSize(material.fileSizeBytes);
-        final isDownloaded = _downloadedMaterialIds.contains(material.id);
-        final isDownloading = _downloadingMaterialIds.contains(material.id);
+    return RefreshIndicator(
+      onRefresh: _fetchMaterials,
+      child: ListView.separated(
+        itemCount: _materials.length,
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: AppTheme.spacingMd),
+        itemBuilder: (context, index) {
+          final material = _materials[index];
+          final sizeFormatted = _formatFileSize(material.fileSizeBytes);
+          final isDownloaded = _downloadedMaterialIds.contains(material.id);
+          final isDownloading = _downloadingMaterialIds.contains(material.id);
+          final isBookmarked = _bookmarkedMaterialIds.contains(material.id);
+          final isBookmarking = _bookmarkingMaterialIds.contains(material.id);
 
-        return Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-            side: const BorderSide(color: Color(0xFFE2E8F0)),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spacingLg,
-              vertical: AppTheme.spacingSm,
+          return Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+              side: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
-            leading: CircleAvatar(
-              backgroundColor:
-                  _getMaterialColor(material.type).withValues(alpha: 0.1),
-              child: Icon(
-                _getMaterialIcon(material.type),
-                color: _getMaterialColor(material.type),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLg,
+                vertical: AppTheme.spacingSm,
               ),
-            ),
-            title: Text(
-              material.title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-            subtitle: Row(
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    material.type,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                  ),
+              leading: CircleAvatar(
+                backgroundColor:
+                    _getMaterialColor(material.type).withValues(alpha: 0.1),
+                child: Icon(
+                  _getMaterialIcon(material.type),
+                  color: _getMaterialColor(material.type),
                 ),
-                if (sizeFormatted.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    sizeFormatted,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondaryColor,
+              ),
+              title: Text(
+                material.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
+              subtitle: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      material.type,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textSecondaryColor,
+                      ),
                     ),
                   ),
-                ],
-                if (isDownloaded) ...[
-                  const SizedBox(width: 8),
-                  const Text(
-                    '• Offline',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.green,
-                      fontWeight: FontWeight.w600,
+                  if (sizeFormatted.isNotEmpty) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      sizeFormatted,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondaryColor,
+                      ),
                     ),
-                  ),
+                  ],
+                  if (isDownloaded) ...[
+                    const SizedBox(width: 6),
+                    const Text(
+                      '• Offline',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.green,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (material.isDownloadable) ...[
-                  if (isDownloading)
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isBookmarking)
                     const SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  else if (isDownloaded)
-                    const Icon(Icons.check_circle_rounded, color: Colors.green)
                   else
                     IconButton(
-                      icon: const Icon(Icons.download_for_offline_outlined,
-                          color: AppTheme.primaryColor),
-                      onPressed: () => _downloadMaterial(material),
+                      icon: Icon(
+                        isBookmarked
+                            ? Icons.bookmark_rounded
+                            : Icons.bookmark_outline_rounded,
+                        color: AppTheme.primaryColor,
+                      ),
+                      tooltip:
+                          isBookmarked ? 'Remove Bookmark' : 'Add Bookmark',
+                      onPressed: () => _toggleBookmark(material),
                     ),
+                  const SizedBox(width: 4),
+                  if (material.isDownloadable) ...[
+                    if (isDownloading)
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    else if (isDownloaded)
+                      const Icon(Icons.check_circle_rounded, color: Colors.green)
+                    else
+                      IconButton(
+                        icon: const Icon(Icons.download_for_offline_outlined,
+                            color: AppTheme.primaryColor),
+                        onPressed: () => _downloadMaterial(material),
+                      ),
+                  ] else ...[
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: const Text(
+                        'Online Only',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textSecondaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 4),
+                  const Icon(Icons.chevron_right_rounded,
+                      color: AppTheme.textSecondaryColor),
                 ],
-                const Icon(Icons.chevron_right_rounded,
-                    color: AppTheme.textSecondaryColor),
-              ],
+              ),
+              onTap: () => _onMaterialTap(material),
             ),
-            onTap: () => _onMaterialTap(material),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
