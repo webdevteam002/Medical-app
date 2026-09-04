@@ -35,7 +35,8 @@ class FakeBookmarkStudyRemoteDataSource extends StudyRemoteDataSource {
   @override
   Future<List<BookmarkedMaterialModel>> getBookmarks() async {
     if (shouldFailList) {
-      throw NetworkFailure(errorMessage ?? 'Failed to load bookmarked materials');
+      throw NetworkFailure(
+          errorMessage ?? 'Failed to load bookmarked materials');
     }
     return bookmarks;
   }
@@ -99,7 +100,9 @@ void main() {
   }
 
   group('Day 33 Mobile Bookmarks Unit & Widget Tests', () {
-    test('1. BookmarkedMaterialModel parses exact NestJS JSON contract correctly', () {
+    test(
+        '1. BookmarkedMaterialModel parses exact NestJS JSON contract correctly',
+        () {
       final json = {
         'id': 'mat_bm1',
         'title': 'Cardiology Essentials',
@@ -118,7 +121,8 @@ void main() {
       expect(model.subjectId, equals('sub_cardio'));
       expect(model.isPastPaper, isFalse);
       expect(model.fileSizeBytes, equals('2048576'));
-      expect(model.bookmarkedAt, equals(DateTime.parse('2026-09-03T08:00:00.000Z')));
+      expect(model.bookmarkedAt,
+          equals(DateTime.parse('2026-09-03T08:00:00.000Z')));
 
       final backToJson = model.toJson();
       expect(backToJson['id'], equals('mat_bm1'));
@@ -128,7 +132,8 @@ void main() {
 
     testWidgets('2. BookmarksPage displays empty state when no bookmarks exist',
         (WidgetTester tester) async {
-      final fakeDataSource = FakeBookmarkStudyRemoteDataSource(initialBookmarks: []);
+      final fakeDataSource =
+          FakeBookmarkStudyRemoteDataSource(initialBookmarks: []);
 
       await tester.pumpWidget(createWidgetUnderTest(
         BookmarksPage(studyRemoteDataSource: fakeDataSource),
@@ -164,7 +169,8 @@ void main() {
       expect(find.byIcon(Icons.bookmark_rounded), findsOneWidget);
     });
 
-    testWidgets('4. Tapping remove bookmark invokes API and removes item from list',
+    testWidgets(
+        '4. Tapping remove bookmark invokes API and removes item from list',
         (WidgetTester tester) async {
       final item = BookmarkedMaterialModel(
         id: 'bm_101',
@@ -273,7 +279,8 @@ void main() {
       expect(find.byType(RefreshIndicator), findsOneWidget);
     });
 
-    testWidgets('9. Day 35 Regression: Bookmark remove failure displays error banner',
+    testWidgets(
+        '9. Day 35 Regression: Bookmark remove failure displays error banner',
         (WidgetTester tester) async {
       final item = BookmarkedMaterialModel(
         id: 'bm_101',

@@ -170,8 +170,7 @@ class StudyRemoteDataSource {
 
   Future<bool> addBookmark(String materialId) async {
     try {
-      final response =
-          await _apiClient.client.post('/bookmarks/$materialId');
+      final response = await _apiClient.client.post('/bookmarks/$materialId');
 
       if (response.data is Map<String, dynamic>) {
         final success = response.data['success'];
@@ -194,8 +193,7 @@ class StudyRemoteDataSource {
 
   Future<bool> removeBookmark(String materialId) async {
     try {
-      final response =
-          await _apiClient.client.delete('/bookmarks/$materialId');
+      final response = await _apiClient.client.delete('/bookmarks/$materialId');
 
       if (response.data is Map<String, dynamic>) {
         final success = response.data['success'];

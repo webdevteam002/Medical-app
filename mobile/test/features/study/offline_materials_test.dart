@@ -207,8 +207,7 @@ void main() {
       );
     });
 
-    test('5. Missing encrypted file is omitted from listMaterials()',
-        () async {
+    test('5. Missing encrypted file is omitted from listMaterials()', () async {
       final missingModel = OfflineMaterialModel(
         materialId: 'mat_missing',
         title: 'Missing File PDF',
@@ -229,7 +228,8 @@ void main() {
       expect(list, isEmpty);
     });
 
-    test('6. Malformed JSON in materials_index.json handled gracefully without crash',
+    test(
+        '6. Malformed JSON in materials_index.json handled gracefully without crash',
         () async {
       final indexFile = File('${tempTestDir.path}/materials_index.json');
       await indexFile.writeAsString('{ invalid_json: true, ');

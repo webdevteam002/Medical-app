@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medstudy/core/storage/secure_storage_service.dart';
+import 'package:medstudy/features/exams/data/datasources/exams_remote_datasource.dart';
+import 'package:medstudy/features/exams/data/models/exam_model.dart';
 import 'package:medstudy/features/home/presentation/pages/home_page.dart';
 import 'package:medstudy/features/study/data/datasources/study_remote_datasource.dart';
 import 'package:medstudy/features/study/data/models/year_model.dart';
@@ -38,6 +40,21 @@ class FakeStudyRemoteDataSource extends StudyRemoteDataSource {
   }
 }
 
+class FakeExamsRemoteDataSource extends ExamsRemoteDataSource {
+  @override
+  Future<List<ExamModel>> getExams(
+      {String? yearSlug, String? subjectId}) async {
+    return const [
+      ExamModel(
+        id: 'exam_1',
+        title: 'Anatomy Midterm Mock Exam 2026',
+        durationMinutes: 60,
+        questionCount: 50,
+      ),
+    ];
+  }
+}
+
 void main() {
   Widget createWidgetUnderTest(Widget child) {
     return MaterialApp(
@@ -49,8 +66,12 @@ void main() {
     testWidgets('1. Renders Home Shell with Study destination by default',
         (WidgetTester tester) async {
       final fakeStudyDs = FakeStudyRemoteDataSource();
+      final fakeExamsDs = FakeExamsRemoteDataSource();
       await tester.pumpWidget(createWidgetUnderTest(
-        HomePage(studyRemoteDataSource: fakeStudyDs),
+        HomePage(
+          studyRemoteDataSource: fakeStudyDs,
+          examsRemoteDataSource: fakeExamsDs,
+        ),
       ));
 
       await tester.pump();
@@ -67,8 +88,12 @@ void main() {
     testWidgets('2. NavigationBar switches to Exams destination',
         (WidgetTester tester) async {
       final fakeStudyDs = FakeStudyRemoteDataSource();
+      final fakeExamsDs = FakeExamsRemoteDataSource();
       await tester.pumpWidget(createWidgetUnderTest(
-        HomePage(studyRemoteDataSource: fakeStudyDs),
+        HomePage(
+          studyRemoteDataSource: fakeStudyDs,
+          examsRemoteDataSource: fakeExamsDs,
+        ),
       ));
 
       await tester.pump();
@@ -78,14 +103,18 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('QBank & Exams'), findsOneWidget);
-      expect(find.text('Practice Exams & Question Bank'), findsOneWidget);
+      expect(find.text('Anatomy Midterm Mock Exam 2026'), findsOneWidget);
     });
 
     testWidgets('3. NavigationBar switches to Profile destination',
         (WidgetTester tester) async {
       final fakeStudyDs = FakeStudyRemoteDataSource();
+      final fakeExamsDs = FakeExamsRemoteDataSource();
       await tester.pumpWidget(createWidgetUnderTest(
-        HomePage(studyRemoteDataSource: fakeStudyDs),
+        HomePage(
+          studyRemoteDataSource: fakeStudyDs,
+          examsRemoteDataSource: fakeExamsDs,
+        ),
       ));
 
       await tester.pump();

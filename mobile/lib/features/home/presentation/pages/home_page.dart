@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/storage/auth_session_service.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../exams/data/datasources/exams_remote_datasource.dart';
 import '../../../study/data/datasources/study_remote_datasource.dart';
 import '../widgets/exams_destination_view.dart';
 import '../widgets/profile_destination_view.dart';
@@ -10,11 +11,13 @@ import '../widgets/study_destination_view.dart';
 class HomePage extends StatefulWidget {
   final AuthSessionService? authSessionService;
   final StudyRemoteDataSource? studyRemoteDataSource;
+  final ExamsRemoteDataSource? examsRemoteDataSource;
 
   const HomePage({
     super.key,
     this.authSessionService,
     this.studyRemoteDataSource,
+    this.examsRemoteDataSource,
   });
 
   @override
@@ -30,7 +33,9 @@ class _HomePageState extends State<HomePage> {
       StudyDestinationView(
         studyRemoteDataSource: widget.studyRemoteDataSource,
       ),
-      const ExamsDestinationView(),
+      ExamsDestinationView(
+        examsRemoteDataSource: widget.examsRemoteDataSource,
+      ),
       ProfileDestinationView(
         authSessionService: widget.authSessionService,
       ),

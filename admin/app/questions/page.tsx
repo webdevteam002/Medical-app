@@ -9,6 +9,7 @@ import {
   Difficulty,
   QuestionOption,
   CreateQuestionPayload,
+  UpdateQuestionPayload,
   fetchAdminQuestions,
   createAdminQuestion,
   updateAdminQuestion,
@@ -31,6 +32,7 @@ export default function QuestionsManagementPage() {
 
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [modalError, setModalError] = useState<string | null>(null);
@@ -102,7 +104,8 @@ export default function QuestionsManagementPage() {
     }
   };
 
-  const handleOpenModal = () => {
+  const handleOpenAddModal = () => {
+    setEditingQuestion(null);
     const defaultSubjectId = selectedSubjectFilter || (subjects.length > 0 ? subjects[0].id : "");
     setFormSubjectId(defaultSubjectId);
     setFormStem("");
@@ -114,6 +117,32 @@ export default function QuestionsManagementPage() {
     setFormCorrectOptionId("a");
     setFormExplanation("");
     setFormDifficulty(Difficulty.MEDIUM);
+    setFieldErrors({});
+    setModalError(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (question: Question) => {
+    setEditingQuestion(question);
+    setFormSubjectId(question.subjectId);
+    setFormStem(question.stem);
+
+    const optA = question.options.find((o) => o.id.toLowerCase() === "a")?.text || "";
+    const optB = question.options.find((o) => o.id.toLowerCase() === "b")?.text || "";
+    const optC = question.options.find((o) => o.id.toLowerCase() === "c")?.text || "";
+    const optD = question.options.find((o) => o.id.toLowerCase() === "d")?.text || "";
+    const optE = question.options.find((o) => o.id.toLowerCase() === "e")?.text || "";
+
+    setFormOptionA(optA);
+    setFormOptionB(optB);
+    setFormOptionC(optC);
+    setFormOptionD(optD);
+    setFormOptionE(optE);
+    setFormCorrectOptionId(question.correctOptionId.toLowerCase());
+    setFormExplanation(question.explanation);
+    setFormDifficulty(
+      (question.difficulty as Difficulty) || Difficulty.MEDIUM
+    );
     setFieldErrors({});
     setModalError(null);
     setIsModalOpen(true);
@@ -152,15 +181,28 @@ export default function QuestionsManagementPage() {
     setModalError(null);
 
     try {
-      await createAdminQuestion(payload);
+      if (editingQuestion) {
+        const updatePayload: UpdateQuestionPayload = {
+          stem: formStem.trim(),
+          options,
+          correctOptionId: formCorrectOptionId,
+          explanation: formExplanation.trim(),
+          difficulty: formDifficulty,
+        };
+        await updateAdminQuestion(editingQuestion.id, updatePayload);
+        setSuccessMessage("Question updated successfully.");
+      } else {
+        await createAdminQuestion(payload);
+        setSuccessMessage("Question created successfully.");
+      }
+
       const updatedList = await fetchAdminQuestions(selectedSubjectFilter || undefined);
       setQuestions(updatedList);
       setIsModalOpen(false);
-      setSuccessMessage(`Question created successfully.`);
       setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err: unknown) {
       setModalError(
-        err instanceof Error ? err.message : "Failed to create question."
+        err instanceof Error ? err.message : "Failed to save question."
       );
     } finally {
       setIsSubmitting(false);
@@ -196,7 +238,7 @@ export default function QuestionsManagementPage() {
     try {
       await deleteAdminQuestion(question.id);
       setQuestions((prev) => prev.filter((q) => q.id !== question.id));
-      setSuccessMessage(`Question deleted.`);
+      setSuccessMessage("Question deleted.");
       setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Failed to delete question.");
@@ -221,7 +263,7 @@ export default function QuestionsManagementPage() {
               Question Bank Management
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Create, bulk import, and manage medical MCQs, option choices, explanations, and difficulty
+              Create, edit, bulk import, and manage medical MCQs, option choices, explanations, and difficulty
             </p>
           </div>
 
@@ -295,7 +337,7 @@ export default function QuestionsManagementPage() {
             </button>
 
             <button
-              onClick={handleOpenModal}
+              onClick={handleOpenAddModal}
               disabled={subjects.length === 0}
               className="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 rounded-lg transition-colors shadow-sm flex items-center gap-1.5"
             >
@@ -372,7 +414,7 @@ export default function QuestionsManagementPage() {
                   Import CSV
                 </button>
                 <button
-                  onClick={handleOpenModal}
+                  onClick={handleOpenAddModal}
                   className="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors inline-flex items-center gap-1.5"
                 >
                   + Add First Question
@@ -439,6 +481,12 @@ export default function QuestionsManagementPage() {
                         </td>
                         <td className="py-4 px-6 text-right space-x-2">
                           <button
+                            onClick={() => handleOpenEditModal(question)}
+                            className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
                             onClick={() => handleTogglePublish(question)}
                             disabled={pendingPublishId === question.id}
                             className={`px-2.5 py-1 text-[11px] font-semibold rounded border transition-colors ${
@@ -482,14 +530,14 @@ export default function QuestionsManagementPage() {
         }}
       />
 
-      {/* Create Question Modal */}
+      {/* Add / Edit Question Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
             <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50 flex-shrink-0">
               <div>
                 <h3 className="text-base font-bold text-slate-900">
-                  Add MCQ Question
+                  {editingQuestion ? "Edit MCQ Question" : "Add MCQ Question"}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Configure question stem, 4-5 option choices, correct answer, and explanation
@@ -518,6 +566,7 @@ export default function QuestionsManagementPage() {
                 <select
                   value={formSubjectId}
                   onChange={(e) => setFormSubjectId(e.target.value)}
+                  disabled={Boolean(editingQuestion)}
                   className={`w-full px-3.5 py-2.5 text-xs rounded-lg border text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 ${
                     fieldErrors.subjectId ? "border-red-500 ring-1 ring-red-500" : "border-slate-300"
                   }`}
@@ -653,7 +702,11 @@ export default function QuestionsManagementPage() {
                   disabled={isSubmitting}
                   className="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 rounded-lg transition-colors shadow-sm flex items-center gap-1.5"
                 >
-                  {isSubmitting ? "Saving..." : "Create Question"}
+                  {isSubmitting
+                    ? "Saving..."
+                    : editingQuestion
+                    ? "Save Changes"
+                    : "Create Question"}
                 </button>
               </div>
             </form>

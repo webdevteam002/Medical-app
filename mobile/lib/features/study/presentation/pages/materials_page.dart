@@ -361,10 +361,22 @@ class _MaterialsPageState extends State<MaterialsPage> {
         setState(() {
           _isRequestingAccess = false;
         });
+        final isSubError = e.message.toLowerCase().contains('subscription') ||
+            e.message.toLowerCase().contains('access') ||
+            e.message.toLowerCase().contains('forbidden') ||
+            e.message.toLowerCase().contains('403');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.message),
             backgroundColor: Colors.redAccent,
+            action: isSubError
+                ? SnackBarAction(
+                    label: 'Upgrade',
+                    textColor: Colors.yellow,
+                    onPressed: () => context.push('/subscriptions'),
+                  )
+                : null,
           ),
         );
       }
@@ -696,7 +708,8 @@ class _MaterialsPageState extends State<MaterialsPage> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     else if (isDownloaded)
-                      const Icon(Icons.check_circle_rounded, color: Colors.green)
+                      const Icon(Icons.check_circle_rounded,
+                          color: Colors.green)
                     else
                       IconButton(
                         icon: const Icon(Icons.download_for_offline_outlined,
@@ -705,8 +718,8 @@ class _MaterialsPageState extends State<MaterialsPage> {
                       ),
                   ] else ...[
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(4),

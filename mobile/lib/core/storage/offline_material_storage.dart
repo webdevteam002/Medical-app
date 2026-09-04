@@ -68,7 +68,8 @@ class OfflineMaterialStorage {
           try {
             final model = OfflineMaterialModel.fromJson(item);
             if (model.materialId.trim().isNotEmpty) {
-              if (model.localPath.isEmpty || await File(model.localPath).exists()) {
+              if (model.localPath.isEmpty ||
+                  await File(model.localPath).exists()) {
                 validItems.add(model);
               }
             }
