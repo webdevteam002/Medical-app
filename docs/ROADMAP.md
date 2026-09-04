@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-MedStudy is a subscription-based medical education platform for MBBS students (Year 1–5) and FCPS candidates (Part 1 & 2). Students use a **Flutter mobile app** to study PDF materials, take timed MCQ exams, and receive instant grading with explanations. Admins manage content via a **Next.js panel**. All infrastructure starts on **Oracle Cloud free tier** with **Cloudflare R2** for PDF storage.
+MedStudy is a subscription-based medical education platform for MBBS students (Year 1–5) and FCPS candidates (Part 1 & 2). Students use a **Flutter mobile and desktop app** to study PDF materials, take timed MCQ exams, and receive instant grading with explanations. Admins manage content via a **Next.js panel**. All infrastructure starts on **Oracle Cloud free tier** with **Cloudflare R2** for PDF storage.
 
 ### Business Model
 
@@ -18,7 +18,7 @@ MedStudy is a subscription-based medical education platform for MBBS students (Y
 
 ### Core Requirements (Non-Negotiable)
 
-1. Single-device login (one active session per user)
+1. 2-device login limit (e.g. 1 mobile + 1 desktop)
 2. In-app-only downloads (encrypted, never to gallery/Downloads)
 3. Subscription-gated content access
 4. MCQ exams with auto-grading + per-question explanations
@@ -30,7 +30,7 @@ MedStudy is a subscription-based medical education platform for MBBS students (Y
 
 | Layer | Technology | Why |
 |-------|------------|-----|
-| **Mobile** | Flutter (Dart) | Near-native performance; unified PDF viewer + watermarks; Android screenshot block; one codebase for iOS + Android |
+| **Mobile & Desktop** | Flutter (Dart) | Near-native performance; unified PDF viewer + watermarks; Android/Windows/macOS screenshot block; one codebase for iOS, Android, macOS, Windows |
 | **Admin** | Next.js 15 + TypeScript | Fast dashboards, file uploads, question editor; same language family as backend |
 | **API** | NestJS + TypeScript | Modular architecture; JWT auth; guards for roles/subscriptions |
 | **ORM** | Prisma | Type-safe PostgreSQL migrations |
@@ -58,7 +58,7 @@ MedStudy is a subscription-based medical education platform for MBBS students (Y
 ```mermaid
 flowchart TB
     subgraph clients [Clients]
-        FlutterApp["Flutter Mobile App\nAndroid + iOS"]
+        FlutterApp["Flutter App\nAndroid, iOS, Windows, macOS"]
         AdminPanel["Next.js Admin Panel"]
     end
 
@@ -98,11 +98,11 @@ flowchart TB
 4. App streams PDF in secure viewer with **user watermark overlay**
 5. Optional: user taps Download → API returns encrypted blob → stored in app sandbox
 
-### Request Flow — Single Device Login
+### Request Flow — 2-Device Login Limit
 
-1. User logs in on Device B with email + password + `deviceId`
-2. API revokes Device A session in DB/Redis
-3. Device A receives 401 on next request → forced logout
+1. User logs in on Device C with email + password + `deviceId` (exceeding limit)
+2. API revokes oldest session in DB
+3. Revoked device receives 401 on next request → forced logout
 4. Admin can reset device binding via admin panel
 
 ---
@@ -111,14 +111,12 @@ flowchart TB
 
 **Critical:** No platform can achieve 100% screenshot protection on iPhone. Plan and market accordingly.
 
-| Feature | Android | iOS | Implementation |
-|---------|---------|-----|----------------|
-| **Block screenshots** | YES | NO | Android: `FLAG_SECURE` via `flutter_windowmanager`. iOS: detect only + warn |
-| **Block screen recording** | YES | NO | Same as above on Android |
-| **In-app-only downloads** | YES | YES | Encrypted files in app sandbox; `flutter_secure_storage` for keys |
-| **Encrypted offline storage** | YES | YES | AES-encrypted blobs; key revoked on subscription expiry |
-| **Dynamic watermark** | YES | YES | User email + ID + timestamp on every PDF page |
-| **Single-device login** | YES | YES | Server-side session; JWT bound to `deviceId` |
+| **Block screenshots** | YES | NO | YES | Android: `FLAG_SECURE`. Desktop: OS plugins. iOS: detect only + warn |
+| **Block screen recording** | YES | NO | YES | Same as above |
+| **In-app-only downloads** | YES | YES | YES | Encrypted files in app sandbox; secure storage for keys |
+| **Encrypted offline storage** | YES | YES | YES | AES-encrypted blobs; key revoked on subscription expiry |
+| **Dynamic watermark** | YES | YES | YES | User email + ID + timestamp on every PDF page |
+| **2-device limit login** | YES | YES | YES | Server-side session; JWT bound to hardware `deviceId` |
 | **Subscription gating** | YES | YES | Middleware checks active plan before content/exams |
 | **Blur on app background** | YES | YES | Hide/blur sensitive screens when app inactive |
 | **Root/jailbreak detection** | YES | YES | Warn or block premium content |

@@ -190,9 +190,9 @@ Ask Person 1 for batch upload script if you have hundreds of files.
 |------|--------|
 | Walk every screen | Written UX audit (Google Doc or Issues) |
 | Visual consistency | Figma v2: colors, fonts, spacing, icons |
-| Mobile polish | Onboarding, empty states, loading, errors |
-| Exam UX | Timer, palette, results, review screens |
-| PDF viewer | Watermark position, readability, dark mode |
+| **Cross-platform polish** | Onboarding, responsive empty states, loading, errors, keyboard navigation |
+| Exam UX | Timer, palette, results, review screens (mobile and multi-column desktop) |
+| PDF viewer | Watermark position, readability on large monitors, dark mode |
 | Admin panel | Cleaner forms, upload feedback |
 | Accessibility | Font size, contrast, button size |
 | Store assets | Screenshots, feature graphic, icon refinements |
@@ -209,8 +209,8 @@ Ask Person 1 for batch upload script if you have hundreds of files.
 ### Week-by-week (design phase)
 
 #### Weeks 10–11
-- [ ] Install beta APK / TestFlight
-- [ ] Complete UX audit (all student screens)
+- [ ] Install beta APK / TestFlight / Desktop builds (Win/macOS)
+- [ ] Complete UX audit (all student screens on mobile + desktop)
 - [ ] Share audit with Person 2
 
 #### Weeks 12–13

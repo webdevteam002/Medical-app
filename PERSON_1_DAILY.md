@@ -29,14 +29,14 @@
 
 ---
 
-## Week 3 — Single-device login
+## Week 3 — 2-Device Limit (Mobile + Desktop)
 
 | Day | Tasks |
 |-----|-------|
-| **Day 11** | On login: save `device_id`, `device_name`, refresh token hash in `device_sessions` |
-| **Day 12** | Revoke previous active session when new device logs in; return clear error codes |
+| **Day 11** | On login: save `device_id`, `device_name`, `device_type` (mobile/desktop) in `device_sessions` |
+| **Day 12** | Enforce 2-device limit (e.g. 1 mobile, 1 desktop max); revoke oldest if limit exceeded |
 | **Day 13** | Middleware: validate `X-Device-Id` matches active session on every request |
-| **Day 14** | Return `SESSION_REVOKED` / `DEVICE_MISMATCH` errors; test two-device scenario |
+| **Day 14** | Return `SESSION_REVOKED` / `DEVICE_MISMATCH` errors; test 3-device scenario |
 | **Day 15** | Role enum + `@Roles()` decorator; STUDENT vs ADMIN guards |
 
 ---

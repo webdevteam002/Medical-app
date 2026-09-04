@@ -23,7 +23,7 @@ flowchart LR
     end
 
     subgraph team2 [Team 2 Apps]
-        Mobile["Flutter student app"]
+        Mobile["Flutter app (Mobile+Desktop)"]
         Admin["Next.js admin panel"]
     end
 
@@ -51,7 +51,7 @@ flowchart LR
 |------|-------|
 | **Infrastructure** | Oracle VM setup, Nginx, SSL, env config, backups |
 | **Database** | Prisma schema, migrations, seed data (years, subjects, plans) |
-| **Auth** | Register, login, JWT, refresh tokens, single-device sessions |
+| **Auth** | Register, login, JWT, refresh tokens, 2-device limit sessions (mobile+desktop) |
 | **Users** | Profiles, ban, device reset (admin endpoints) |
 | **Subscriptions** | Plans, RevenueCat webhooks, access guards |
 | **Content API** | Years/subjects/topics/materials CRUD, R2 upload, presigned URLs |
@@ -88,9 +88,9 @@ flowchart LR
 
 | Area | Tasks |
 |------|-------|
-| **Flutter app** | Auth screens, navigation, theme shell |
-| **Study flow** | Browse years/subjects, material list, search, bookmarks |
-| **PDF viewer** | Secure viewer, watermark overlay, Android `FLAG_SECURE` |
+| **Flutter app** | Auth screens, navigation, theme shell, cross-platform build (Windows/macOS) |
+| **Study flow** | Browse years/subjects, material list, search, bookmarks, responsive layout |
+| **PDF viewer** | Secure viewer, watermark overlay, Android `FLAG_SECURE`, Windows/macOS OS screenshot block |
 | **Offline** | Encrypted in-app downloads |
 | **Exams** | Exam list, timed UI, submit, results, review with explanations |
 | **Payments** | RevenueCat SDK, paywall, subscription status |
@@ -199,9 +199,9 @@ qbanks/year-3-pathology.csv,Pathology MCQ Bank,year-3,pathology,general,year-3;p
 |------|-------|
 | **UI/UX audit** | Walk every screen; list friction, inconsistency, clutter |
 | **Visual design** | Colors, typography, spacing, icons (provide Figma updates) |
-| **Mobile polish** | Onboarding, empty states, loading skeletons, error messages |
+| **Cross-platform polish** | Responsive empty states, loading skeletons, error messages, keyboard navigation |
 | **Exam UX** | Timer visibility, question palette, results celebration, review layout |
-| **PDF viewer** | Watermark placement, readability, dark mode |
+| **PDF viewer** | Watermark placement, readability on large monitors, dark mode |
 | **Admin polish** | Forms, tables, upload progress, bulk import feedback |
 | **Accessibility** | Font sizes, contrast, tap targets |
 | **App store assets** | Screenshots, feature graphics, short description copy |

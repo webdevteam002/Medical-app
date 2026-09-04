@@ -6,7 +6,7 @@ Subscription-based medical education app for MBBS (Year 1–5) and FCPS (Part 1 
 
 | Layer | Technology | Hosting |
 |-------|------------|---------|
-| **Mobile** | Flutter (Android + iOS) | App Store + Play Store |
+| **Mobile & Desktop** | Flutter (Android, iOS, Windows, macOS) | App Store, Play Store, Direct Download |
 | **Admin** | Next.js 15 (TypeScript) | Oracle VM or Vercel |
 | **API** | NestJS (TypeScript) | Oracle free VM |
 | **Database** | PostgreSQL | Oracle free VM |

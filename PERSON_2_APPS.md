@@ -18,11 +18,11 @@ Build everything **students and admins see and touch** — the Flutter study/exa
 
 | Area | Your responsibility |
 |------|---------------------|
-| **Flutter app** | Full student experience |
+| **Flutter app** | Full student experience (Mobile + Desktop) |
 | **Next.js admin** | Content upload, users, questions, exams |
 | Auth UI | Login, register, session handling |
 | Study flow | Browse years/subjects, PDF viewer, bookmarks |
-| Security (client) | Secure storage, device ID, FLAG_SECURE (Android), watermarks |
+| Security (client) | Secure storage, device ID, FLAG_SECURE (Android), OS-level screen capture plugins (Windows/macOS), watermarks |
 | Offline | Encrypted in-app PDF downloads |
 | Exams UI | Timer, questions, submit, results, review |
 | Payments | RevenueCat SDK, paywall |
@@ -72,7 +72,7 @@ admin/                   ← YOU
 - [ ] Flutter: show “Logged in elsewhere” message
 - [ ] Admin: user list table (`GET /admin/users`)
 - [ ] Admin: ban user, reset device buttons
-- [ ] Flutter: basic home shell (tabs or drawer)
+- [ ] Flutter: basic home shell (responsive drawer/sidebar for desktop)
 
 **Exit:** Single-device login works in app.
 
@@ -84,6 +84,7 @@ admin/                   ← YOU
 - [ ] Watermark overlay (user email + ID)
 - [ ] Android: `FLAG_SECURE` on PDF screens (`flutter_windowmanager`)
 - [ ] iOS: screenshot detection + blur on background
+- [ ] Desktop (Win/macOS): install OS screenshot blocking plugins (`window_manager`, `screen_retriever`)
 - [ ] Admin: year/subject/topic CRUD pages
 - [ ] Admin: PDF upload with progress bar
 
@@ -131,6 +132,7 @@ admin/                   ← YOU
 ### Weeks 13–14 — Beta builds
 - [ ] Android APK / AAB for internal testing
 - [ ] iOS TestFlight build (needs Apple Developer account)
+- [ ] Windows/macOS release builds for testing
 - [ ] Fix bugs from Person 3 beta testing
 - [ ] Share build links with Person 3
 
@@ -187,9 +189,10 @@ admin/                   ← YOU
 |---------|-----|
 | `go_router` | Navigation |
 | `flutter_secure_storage` | Tokens |
-| `device_info_plus` | Device fingerprint |
+| `device_info_plus` | Device fingerprint (Hardware UUID for Desktop) |
 | `pdfx` | PDF viewer |
 | `flutter_windowmanager` | Android FLAG_SECURE |
+| `window_manager` / `screen_retriever` | Windows/macOS secure flags |
 | `purchases_flutter` | RevenueCat |
 | `dio` or `http` | API client |
 

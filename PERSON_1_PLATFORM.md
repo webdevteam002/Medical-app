@@ -22,7 +22,7 @@ Build and run the **server brain** — auth, subscriptions, content access, exam
 | PostgreSQL + Prisma | Schema, migrations, seeds |
 | Cloudflare R2 | Upload, storage, presigned URLs |
 | Oracle VM | Deploy API, DB, Nginx, SSL, backups |
-| Auth | Register, login, JWT, refresh, **single-device sessions** |
+| Auth | Register, login, JWT, refresh, **2-device limit (mobile+desktop)** |
 | Subscriptions | Plans, RevenueCat webhooks, access guards |
 | Content API | Years, subjects, materials, topics |
 | Exams API | Questions, CSV import, exams, grading |

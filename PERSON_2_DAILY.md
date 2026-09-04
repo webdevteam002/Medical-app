@@ -9,9 +9,9 @@
 
 | Day | Tasks |
 |-----|-------|
-| **Day 1** | Create Flutter project in `mobile/`; folder structure (features, core, shared); add `go_router`, `dio`, `flutter_secure_storage` |
+| **Day 1** | Create Flutter project in `mobile/`; folder structure (features, core, shared); add `go_router`, `dio`, `flutter_secure_storage`; configure Windows/macOS build targets |
 | **Day 2** | Create Next.js admin in `admin/`; TypeScript; Tailwind; login page layout |
-| **Day 3** | Flutter: login + register UI screens; form validation |
+| **Day 3** | Flutter: login + register UI screens; form validation (responsive layout) |
 | **Day 4** | Wire Flutter login to Person 1 `POST /auth/login`; store tokens securely |
 | **Day 5** | Wire admin login; dashboard shell + sidebar navigation |
 
@@ -41,11 +41,11 @@
 
 ---
 
-## Week 4 — Navigation & admin polish
+## Week 4 — Navigation, admin & responsive polish
 
 | Day | Tasks |
 |-----|-------|
-| **Day 16** | Flutter: empty states for home tabs |
+| **Day 16** | Flutter: empty states for home tabs; responsive layout breakpoints for Desktop |
 | **Day 17** | Admin: dashboard stats cards (user count placeholder) |
 | **Day 18** | Error handling UI: network error, wrong password |
 | **Day 19** | Loading states on login and lists |
@@ -72,7 +72,7 @@
 | **Day 26** | Integrate `pdfx` (or chosen viewer); open presigned URL from API |
 | **Day 27** | Watermark overlay widget (user email + ID from profile) |
 | **Day 28** | Android: `FLAG_SECURE` on PDF screen (`flutter_windowmanager`) |
-| **Day 29** | iOS: screenshot detection listener + user warning snackbar |
+| **Day 29** | iOS: screenshot detection listener. Desktop: setup OS screenshot block plugins |
 | **Day 30** | **Gate 2 prep:** open real PDF from Person 3 upload |
 
 ---
@@ -153,7 +153,7 @@
 
 | Day | Tasks |
 |-----|-------|
-| **Day 61** | Android release APK/AAB; internal testing track |
+| **Day 61** | Android release APK/AAB; Windows/macOS desktop release builds |
 | **Day 62** | iOS TestFlight build (Apple Developer account) |
 | **Day 63** | Point app to Person 1 staging API |
 | **Day 64** | Send builds to Person 3; list all screen names for their audit |
@@ -199,6 +199,6 @@
 
 ## Daily routine (every day)
 
-- [ ] Test on **both** Android and iOS (or simulator) before EOD
+- [ ] Test on **Mobile (Android/iOS)** and **Desktop (macOS/Windows)** before EOD
 - [ ] Note any missing API endpoints for Person 1
 - [ ] Push code; tag Person 3 when admin/upload ready for content

@@ -120,9 +120,9 @@
 |-----|-------|
 | **Day 46** | Upload Year 2 full batch via admin |
 | **Day 47** | Reach 500 MCQs/subject target OR document gap plan |
-| **Day 48** | Install Person 2 TestFlight/APK — **start Part B design** |
-| **Day 49** | UX audit: login, home, PDF viewer — write issues doc |
-| **Day 50** | UX audit: exam flow, results, review — write issues doc |
+| **Day 48** | Install Person 2 TestFlight/APK/Desktop builds — **start Part B design** |
+| **Day 49** | UX audit: login, home, PDF viewer (Mobile + Desktop) — write issues doc |
+| **Day 50** | UX audit: exam flow, results, review (Mobile + Desktop) — write issues doc |
 
 ---
 
@@ -166,7 +166,7 @@
 
 | Day | Tasks |
 |-----|-------|
-| **Day 66** | App Store screenshots (6.7" iPhone) with real content |
+| **Day 66** | App Store screenshots (6.7" iPhone) and Desktop screenshots with real content |
 | **Day 67** | Play Store screenshots + feature graphic |
 | **Day 68** | Write app description + short promo text |
 | **Day 69** | Beta round 2 with 10 more students |

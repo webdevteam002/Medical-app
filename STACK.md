@@ -4,7 +4,7 @@
 
 | Layer | Technology | Version target |
 |-------|------------|----------------|
-| Mobile | Flutter | 3.x |
+| Mobile/Desktop | Flutter | 3.x |
 | Admin | Next.js | 15.x |
 | API | NestJS | 10.x |
 | Language | TypeScript | 5.x (backend + admin) |
@@ -18,12 +18,12 @@
 
 ## Security by Platform
 
-| Feature | Android | iOS |
-|---------|---------|-----|
-| Screenshot block | YES | NO |
-| Watermark | YES | YES |
-| Encrypted offline | YES | YES |
-| Single device | YES | YES |
+| Feature | Android | iOS | Windows/macOS |
+|---------|---------|-----|---------------|
+| Screenshot block | YES | NO | YES (via OS plugin) |
+| Watermark | YES | YES | YES |
+| Encrypted offline | YES | YES | YES |
+| 2-Device Limit | YES | YES | YES (HW UUID) |
 
 ## Monthly Cost (Startup)
 
