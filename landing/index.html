@@ -1,115 +1,374 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedStudy - Student Portal</title>
+    <title>MedStudy - Master Your Medical Journey</title>
+    <!-- Tailwind & Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- AOS Animation CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        medical: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            400: '#2dd4bf',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            900: '#134e4a',
+                            950: '#042f2e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
-            font-family: 'Outfit', sans-serif;
-            background-color: #0f172a; /* Slate 900 */
+            background-color: #020617;
             color: #f8fafc;
             overflow-x: hidden;
         }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #2dd4bf, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
         
-        .bg-blob {
+        /* Animated Mesh Background */
+        .mesh-bg {
             position: absolute;
-            filter: blur(100px);
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            background: radial-gradient(circle at 15% 50%, rgba(20, 184, 166, 0.15), transparent 25%),
+                        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15), transparent 25%);
+            background-size: 200% 200%;
+            animation: mesh-movement 15s ease infinite alternate;
+        }
+        @keyframes mesh-movement {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+
+        .blob {
+            position: absolute;
+            filter: blur(80px);
             z-index: -1;
-            opacity: 0.5;
-            animation: float 10s infinite ease-in-out alternate;
-        }
-
-        .blob-1 {
-            width: 400px;
-            height: 400px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            top: -100px;
-            left: -100px;
+            opacity: 0.3;
             border-radius: 50%;
-        }
-
-        .blob-2 {
-            width: 500px;
-            height: 500px;
-            background: linear-gradient(135deg, #10b981, #06b6d4);
-            bottom: -150px;
-            right: -100px;
-            border-radius: 50%;
-            animation-delay: -5s;
-        }
-
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(30px, 50px) scale(1.1); }
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-        }
-        
-        .btn-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .btn-hover:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
         }
     </style>
 </head>
-<body class="min-h-screen relative flex items-center justify-center p-6">
-    <!-- Animated Background Blobs -->
-    <div class="bg-blob blob-1"></div>
-    <div class="bg-blob blob-2"></div>
+<body class="antialiased min-h-screen flex flex-col relative">
+    
+    <div class="mesh-bg"></div>
+    <div class="blob bg-medical-600 w-[500px] h-[500px] top-0 left-0 -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="blob bg-blue-600 w-[500px] h-[500px] top-1/4 right-0 translate-x-1/3"></div>
 
-    <main class="glass-card w-full max-w-4xl p-8 md:p-12 text-center relative z-10 overflow-hidden shadow-2xl">
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-teal-400"></div>
-        
-        <div class="mb-10">
-            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-                MedStudy
-            </h1>
-            <p class="text-xl md:text-2xl text-slate-300 font-light max-w-2xl mx-auto">
-                Your ultimate medical examination preparation platform. Download the app to get started.
-            </p>
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-panel border-b border-white/5 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-2" data-aos="fade-down">
+                <i data-lucide="activity" class="text-medical-400 w-8 h-8"></i>
+                <span class="text-2xl font-bold tracking-tight">Med<span class="text-medical-400">Study</span></span>
+            </div>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300" data-aos="fade-down" data-aos-delay="100">
+                <a href="#features" class="hover:text-white transition-colors">Features</a>
+                <a href="#testimonials" class="hover:text-white transition-colors">Testimonials</a>
+                <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+                <a href="#faq" class="hover:text-white transition-colors">FAQ</a>
+            </div>
+            <div data-aos="fade-down" data-aos-delay="200">
+                <a href="#download" class="px-5 py-2.5 bg-white text-slate-900 text-sm font-semibold rounded-full hover:bg-slate-200 transition-colors shadow-lg shadow-white/10">Get the App</a>
+            </div>
         </div>
+    </nav>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <!-- Windows Download -->
-            <a href="MedStudy_Windows.zip" class="btn-hover glass-card p-8 flex flex-col items-center justify-center group cursor-pointer bg-blue-900/20 hover:bg-blue-800/40 border border-blue-500/20">
-                <svg class="w-16 h-16 text-blue-400 mb-4 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.951-1.801"/></svg>
-                <h3 class="text-2xl font-semibold mb-2">Windows</h3>
-                <p class="text-sm text-slate-400 mb-4">Windows 10 & 11 (64-bit)</p>
-                <span class="px-6 py-2 rounded-full bg-blue-500 text-white font-medium shadow-lg shadow-blue-500/30">Download .exe</span>
-            </a>
+    <!-- Hero Section -->
+    <section class="pt-40 pb-20 px-6 max-w-7xl mx-auto relative">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            
+            <div data-aos="fade-right">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-medical-500/30 bg-medical-500/10 text-medical-300 text-sm font-medium mb-8">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-medical-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-medical-500"></span>
+                    </span>
+                    Now Available on Desktop & Mobile
+                </div>
+                <h1 class="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
+                    Master Medicine with <span class="gradient-text">Absolute Precision.</span>
+                </h1>
+                <p class="text-lg md:text-xl text-slate-400 max-w-2xl mb-10 leading-relaxed">
+                    The ultimate secure study platform. Interactive flashcards, expert video lectures, and mock board exams—everything you need in one beautiful app.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="#download" class="px-8 py-4 bg-medical-500 hover:bg-medical-600 text-white font-semibold rounded-full transition-all hover:scale-105 shadow-xl shadow-medical-500/20 flex items-center justify-center gap-2">
+                        Download Now
+                        <i data-lucide="arrow-down" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
 
-            <!-- Android Download -->
-            <a href="MedStudy_Android.apk" class="btn-hover glass-card p-8 flex flex-col items-center justify-center group cursor-pointer bg-green-900/20 hover:bg-green-800/40 border border-green-500/20">
-                <svg class="w-16 h-16 text-green-400 mb-4 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4483-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993.0001.5511-.4482.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.2428 13.8533 7.8546 12 7.8546c-1.8533 0-3.5902.3882-5.1367 1.0963L4.841 5.4477a.416.416 0 00-.5676-.1521.416.416 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3435-4.1021-2.6892-7.5743-6.1185-9.4396"/></svg>
-                <h3 class="text-2xl font-semibold mb-2">Android</h3>
-                <p class="text-sm text-slate-400 mb-4">Android 8.0 or newer</p>
-                <span class="px-6 py-2 rounded-full bg-green-500 text-white font-medium shadow-lg shadow-green-500/30">Download .apk</span>
-            </a>
+            <!-- App Mockup Image -->
+            <div data-aos="fade-left" data-aos-delay="200" class="relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-medical-500/20 to-blue-500/20 blur-3xl -z-10 rounded-full"></div>
+                <img src="mockup.jpg" alt="MedStudy App Mockup" class="w-full rounded-3xl border border-white/10 shadow-2xl shadow-medical-900/50">
+            </div>
 
-            <!-- macOS Download -->
-            <a href="MedStudy_macOS.zip" class="btn-hover glass-card p-8 flex flex-col items-center justify-center group cursor-pointer bg-white/10 hover:bg-white/20 border border-white/20">
-                <svg class="w-16 h-16 text-white mb-4 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                <h3 class="text-2xl font-semibold mb-2 text-white">macOS</h3>
-                <p class="text-sm text-slate-300 mb-4">macOS 10.14 or newer</p>
-                <span class="px-6 py-2 rounded-full bg-slate-100 text-slate-900 font-medium shadow-lg shadow-white/10">Download .zip</span>
-            </a>
         </div>
-        
-        <div class="mt-12 text-slate-500 text-sm">
-            <p>&copy; 2026 MedStudy Platform. All rights reserved.</p>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24 px-6 relative">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Everything You Need to Succeed</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">Built specifically for the rigorous demands of modern medical school.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="glass-panel p-8 rounded-3xl hover:-translate-y-2 transition-transform duration-300 border border-white/5" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-14 h-14 bg-blue-500/10 text-blue-400 rounded-2xl flex items-center justify-center mb-6">
+                        <i data-lucide="layers" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Interactive Flashcards</h3>
+                    <p class="text-slate-400 leading-relaxed">Advanced spaced-repetition algorithms to guarantee long-term retention of pharmacology and anatomy.</p>
+                </div>
+                
+                <div class="glass-panel p-8 rounded-3xl hover:-translate-y-2 transition-transform duration-300 border border-white/5" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-14 h-14 bg-medical-500/10 text-medical-400 rounded-2xl flex items-center justify-center mb-6">
+                        <i data-lucide="play-circle" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Expert Video Lectures</h3>
+                    <p class="text-slate-400 leading-relaxed">High-yield, cinematic video breakdowns of complex clinical topics from board-certified doctors.</p>
+                </div>
+                
+                <div class="glass-panel p-8 rounded-3xl hover:-translate-y-2 transition-transform duration-300 border border-white/5" data-aos="fade-up" data-aos-delay="300">
+                    <div class="w-14 h-14 bg-purple-500/10 text-purple-400 rounded-2xl flex items-center justify-center mb-6">
+                        <i data-lucide="shield-check" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Enterprise Security</h3>
+                    <p class="text-slate-400 leading-relaxed">Native applications guarantee strict content protection, preventing screenshots and piracy.</p>
+                </div>
+            </div>
         </div>
-    </main>
+    </section>
+
+    <!-- Testimonials / Wall of Love -->
+    <section id="testimonials" class="py-24 px-6 bg-slate-900/30 border-y border-white/5">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Loved by Medical Students</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">See why thousands trust MedStudy for their board prep.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Testimonial 1 -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/5" data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex items-center gap-2 mb-4 text-yellow-400">
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                    </div>
+                    <p class="text-slate-300 italic mb-6">"This app completely changed how I studied for Step 1. The native desktop app is blazingly fast and the flashcards synced instantly with my phone."</p>
+                    <div class="flex items-center gap-4">
+                        <img src="avatar1.jpg" alt="Sarah J." class="w-12 h-12 rounded-full object-cover">
+                        <div>
+                            <h4 class="font-bold text-white">Sarah Jenkins</h4>
+                            <p class="text-xs text-medical-400">M3 Student</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/5" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center gap-2 mb-4 text-yellow-400">
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                    </div>
+                    <p class="text-slate-300 italic mb-6">"The UI is gorgeous. As someone who appreciates good design, staring at MedStudy for 8 hours a day is an absolute pleasure."</p>
+                    <div class="flex items-center gap-4">
+                        <img src="avatar2.jpg" alt="Dr. Chen" class="w-12 h-12 rounded-full object-cover">
+                        <div>
+                            <h4 class="font-bold text-white">Dr. Alex Chen</h4>
+                            <p class="text-xs text-medical-400">Internal Medicine Resident</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testimonial 3 -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/5" data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex items-center gap-2 mb-4 text-yellow-400">
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                        <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                    </div>
+                    <p class="text-slate-300 italic mb-6">"I've tried every study platform out there. Nothing comes close to the performance and quality of the video lectures here."</p>
+                    <div class="flex items-center gap-4">
+                        <img src="avatar3.jpg" alt="Emily T." class="w-12 h-12 rounded-full object-cover">
+                        <div>
+                            <h4 class="font-bold text-white">Emily Thompson</h4>
+                            <p class="text-xs text-medical-400">M2 Student</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="py-24 px-6 relative">
+        <div class="blob bg-purple-600 w-96 h-96 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">Choose the plan that fits your study schedule. Cancel anytime.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div class="glass-panel p-10 rounded-3xl border border-white/5 relative flex flex-col" data-aos="fade-right">
+                    <h3 class="text-2xl font-bold mb-2">Monthly</h3>
+                    <p class="text-slate-400 mb-6">Perfect for focused cramming sessions.</p>
+                    <div class="mb-8">
+                        <span class="text-5xl font-bold">$19</span>
+                        <span class="text-slate-400">/month</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-grow">
+                        <li class="flex items-center gap-3 text-slate-300"><i data-lucide="check" class="text-medical-400 w-5 h-5"></i> Full access to Flashcards</li>
+                        <li class="flex items-center gap-3 text-slate-300"><i data-lucide="check" class="text-medical-400 w-5 h-5"></i> All Video Lectures</li>
+                    </ul>
+                    <a href="#download" class="w-full py-4 glass-panel border border-white/10 hover:bg-white/5 rounded-xl font-semibold transition-colors text-center">Start Free Trial</a>
+                </div>
+
+                <div class="glass-panel p-10 rounded-3xl border border-medical-500/50 relative flex flex-col bg-medical-900/20" data-aos="fade-left">
+                    <div class="absolute top-0 right-0 bg-medical-500 text-white text-xs font-bold px-4 py-1 rounded-bl-xl">POPULAR</div>
+                    <h3 class="text-2xl font-bold mb-2 text-medical-300">Yearly</h3>
+                    <p class="text-slate-400 mb-6">Best value for long-term clinical prep.</p>
+                    <div class="mb-8">
+                        <span class="text-5xl font-bold">$149</span>
+                        <span class="text-slate-400">/year</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-grow">
+                        <li class="flex items-center gap-3 text-slate-300"><i data-lucide="check" class="text-medical-400 w-5 h-5"></i> Full access to Flashcards</li>
+                        <li class="flex items-center gap-3 text-slate-300"><i data-lucide="check" class="text-medical-400 w-5 h-5"></i> All Video Lectures</li>
+                        <li class="flex items-center gap-3 text-medical-300 font-medium"><i data-lucide="star" class="text-medical-400 w-5 h-5"></i> Save over 30%</li>
+                    </ul>
+                    <a href="#download" class="w-full py-4 bg-medical-500 hover:bg-medical-600 text-white rounded-xl font-semibold transition-colors text-center shadow-lg shadow-medical-500/20">Start Free Trial</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-24 px-6 bg-slate-900/30 border-y border-white/5">
+        <div class="max-w-3xl mx-auto">
+            <div class="text-center mb-12" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Frequently Asked Questions</h2>
+            </div>
+            <div class="space-y-6">
+                <div class="glass-panel p-6 rounded-2xl border border-white/5" data-aos="fade-up" data-aos-delay="100">
+                    <h3 class="text-xl font-bold mb-2 flex items-center gap-2"><i data-lucide="help-circle" class="text-medical-400 w-5 h-5"></i> Do I need an internet connection?</h3>
+                    <p class="text-slate-400">Once you download the app and sync your study decks, you can review flashcards completely offline. Videos require an active connection.</p>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border border-white/5" data-aos="fade-up" data-aos-delay="200">
+                    <h3 class="text-xl font-bold mb-2 flex items-center gap-2"><i data-lucide="help-circle" class="text-medical-400 w-5 h-5"></i> Are my stats synced across devices?</h3>
+                    <p class="text-slate-400">Yes! If you do 50 flashcards on your phone on the train, your desktop app will perfectly reflect that progress the moment you log in.</p>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border border-white/5" data-aos="fade-up" data-aos-delay="300">
+                    <h3 class="text-xl font-bold mb-2 flex items-center gap-2"><i data-lucide="help-circle" class="text-medical-400 w-5 h-5"></i> Why isn't there a Web version?</h3>
+                    <p class="text-slate-400">We take content security seriously. Native applications ensure our high-quality medical content cannot be easily pirated, which allows us to keep subscription costs incredibly low for you.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="py-24 px-6">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 class="text-3xl md:text-5xl font-bold mb-6" data-aos="fade-up">Ready to Ace Your Exams?</h2>
+            <p class="text-slate-400 max-w-2xl mx-auto mb-16 text-lg" data-aos="fade-up" data-aos-delay="100">Download our highly-secure native application for your operating system.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <!-- Windows -->
+                <a href="MedStudy_Windows.zip" class="glass-panel p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all group flex flex-col items-center" data-aos="fade-up" data-aos-delay="100">
+                    <i data-lucide="monitor" class="w-16 h-16 text-blue-400 mb-6 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-2xl font-bold mb-2">Windows</h3>
+                    <p class="text-slate-400 mb-6">Windows 10 or newer</p>
+                    <span class="px-6 py-2.5 rounded-full bg-blue-500/10 text-blue-400 font-semibold w-full group-hover:bg-blue-500 group-hover:text-white transition-colors">Download .exe</span>
+                </a>
+
+                <!-- macOS -->
+                <a href="MedStudy_macOS.zip" class="glass-panel p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all group flex flex-col items-center" data-aos="fade-up" data-aos-delay="200">
+                    <svg class="w-16 h-16 text-white mb-6 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                    <h3 class="text-2xl font-bold mb-2">macOS</h3>
+                    <p class="text-slate-400 mb-6">macOS 10.14 or newer</p>
+                    <span class="px-6 py-2.5 rounded-full bg-white/10 text-white font-semibold w-full group-hover:bg-white group-hover:text-slate-900 transition-colors">Download .zip</span>
+                </a>
+
+                <!-- Android -->
+                <a href="MedStudy_Android.apk" class="glass-panel p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all group flex flex-col items-center" data-aos="fade-up" data-aos-delay="300">
+                    <i data-lucide="smartphone" class="w-16 h-16 text-green-400 mb-6 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-2xl font-bold mb-2">Android</h3>
+                    <p class="text-slate-400 mb-6">Android 8.0 or newer</p>
+                    <span class="px-6 py-2.5 rounded-full bg-green-500/10 text-green-400 font-semibold w-full group-hover:bg-green-500 group-hover:text-white transition-colors">Download .apk</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-white/5 py-12 px-6 glass-panel">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-2">
+                <i data-lucide="activity" class="text-medical-400 w-6 h-6"></i>
+                <span class="text-xl font-bold tracking-tight">MedStudy</span>
+            </div>
+            <p class="text-slate-500 text-sm">© 2026 MedStudy Platform. All rights reserved.</p>
+            <div class="flex gap-6 text-sm text-slate-400">
+                <a href="#" class="hover:text-white">Privacy Policy</a>
+                <a href="#" class="hover:text-white">Terms of Service</a>
+                <a href="#" class="hover:text-white">Contact Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+        // Initialize Animations
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 50,
+        });
+    </script>
 </body>
 </html>
