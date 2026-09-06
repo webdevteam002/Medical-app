@@ -107,6 +107,35 @@ export class SubscriptionsService {
     });
   }
 
+  async createManualIntent(userId: string, planType: PlanType) {
+    const plan = await this.prisma.subscriptionPlan.findUnique({
+      where: { planType },
+    });
+    if (!plan) {
+      throw new NotFoundException({ code: 'NOT_FOUND', message: `Plan not found: ${planType}` });
+    }
+
+    // Cancel any existing pending intents for this user so they don't stack up indefinitely
+    await this.prisma.subscription.updateMany({
+      where: { userId, status: SubscriptionStatus.PENDING },
+      data: { status: SubscriptionStatus.CANCELLED },
+    });
+
+    const sub = await this.prisma.subscription.create({
+      data: {
+        userId,
+        planId: plan.id,
+        status: SubscriptionStatus.PENDING,
+      },
+      include: { plan: true },
+    });
+
+    return {
+      subscription: sub,
+      instructions: this.getPaymentInstructions(),
+    };
+  }
+
   listPlans() {
     return this.prisma.subscriptionPlan.findMany({
       where: { isActive: true },

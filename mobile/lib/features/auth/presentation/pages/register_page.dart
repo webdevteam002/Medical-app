@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/device/device_id_service.dart';
@@ -103,6 +104,11 @@ class _RegisterPageState extends State<RegisterPage> {
       final deviceId = await _deviceIdService.getOrCreateDeviceId();
       final deviceName = await _deviceIdService.getDeviceName();
 
+      String deviceType = 'MOBILE';
+      if (kIsWeb || defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.linux) {
+        deviceType = 'DESKTOP';
+      }
+
       final fullName = _fullNameController.text.trim().isNotEmpty
           ? _fullNameController.text.trim()
           : 'Medical Student';
@@ -113,6 +119,7 @@ class _RegisterPageState extends State<RegisterPage> {
         fullName: fullName,
         deviceId: deviceId,
         deviceName: deviceName,
+        deviceType: deviceType,
       );
 
       await _secureStorageService.saveAccessToken(tokens.accessToken);

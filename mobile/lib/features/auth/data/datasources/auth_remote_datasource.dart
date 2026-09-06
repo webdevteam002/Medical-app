@@ -14,6 +14,7 @@ class AuthRemoteDataSource {
     required String password,
     required String deviceId,
     required String deviceName,
+    required String deviceType,
   }) async {
     try {
       final response = await _apiClient.client.post(
@@ -23,6 +24,7 @@ class AuthRemoteDataSource {
           'password': password,
           'deviceId': deviceId,
           'deviceName': deviceName,
+          'deviceType': deviceType,
         },
         options: Options(
           headers: {
@@ -77,6 +79,7 @@ class AuthRemoteDataSource {
     required String fullName,
     required String deviceId,
     required String deviceName,
+    required String deviceType,
   }) async {
     try {
       final response = await _apiClient.client.post(
@@ -87,6 +90,7 @@ class AuthRemoteDataSource {
           'fullName': fullName.trim().isEmpty ? 'Student' : fullName.trim(),
           'deviceId': deviceId,
           'deviceName': deviceName,
+          'deviceType': deviceType,
         },
         options: Options(
           headers: {

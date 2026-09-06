@@ -52,3 +52,16 @@ backend/uploads/
 **/serviceAccountKey.json
 **/GoogleService-Info.plist
 **/google-services.json
+ssh-key-*.key
+ssh-key-*.key.pub
+payload.json
+
+# Binaries and scripts
+landing/*.zip
+landing/*.apk
+landing/*.exe
+*.tar.gz
+*.zip
+*.ps1
+deploy*.sh
+debug.js

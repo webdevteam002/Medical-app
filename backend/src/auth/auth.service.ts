@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
-import { User, UserRole } from '@prisma/client';
+import { User, UserRole, DeviceType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto, RefreshDto, RegisterDto } from './dto/auth.dto';
 import { JwtPayloadUser } from '../common/decorators/current-user.decorator';
@@ -47,7 +47,7 @@ export class AuthService {
       },
     });
 
-    return this.createSessionAndTokens(user, dto.deviceId, dto.deviceName);
+    return this.createSessionAndTokens(user, dto.deviceId, dto.deviceName, dto.deviceType);
   }
 
   async login(dto: LoginDto): Promise<AuthTokensResponse> {
@@ -74,7 +74,7 @@ export class AuthService {
       });
     }
 
-    return this.createSessionAndTokens(user, dto.deviceId, dto.deviceName);
+    return this.createSessionAndTokens(user, dto.deviceId, dto.deviceName, dto.deviceType);
   }
 
   async refresh(dto: RefreshDto): Promise<AuthTokensResponse> {
@@ -128,7 +128,7 @@ export class AuthService {
       });
     }
 
-    return this.createSessionAndTokens(user, dto.deviceId, session.deviceName, session.id);
+    return this.createSessionAndTokens(user, dto.deviceId, session.deviceName, session.deviceType, session.id);
   }
 
   async logout(userId: string, deviceId: string): Promise<void> {
@@ -159,10 +159,11 @@ export class AuthService {
     user: User,
     deviceId: string,
     deviceName: string,
+    deviceType: DeviceType,
     existingSessionId?: string,
   ): Promise<AuthTokensResponse> {
     await this.prisma.deviceSession.updateMany({
-      where: { userId: user.id, isActive: true },
+      where: { userId: user.id, deviceType, isActive: true },
       data: { isActive: false },
     });
 
@@ -184,6 +185,7 @@ export class AuthService {
           userId: user.id,
           deviceId,
           deviceName,
+          deviceType,
           refreshTokenHash,
           isActive: true,
         },

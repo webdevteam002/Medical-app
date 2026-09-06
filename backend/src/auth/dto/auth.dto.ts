@@ -1,5 +1,6 @@
-import { IsEmail, IsString, MinLength, MaxLength } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { DeviceType } from '@prisma/client';
 
 export class RegisterDto {
   @ApiProperty({ example: 'student@example.com' })
@@ -29,6 +30,10 @@ export class RegisterDto {
   @MinLength(2)
   @MaxLength(255)
   deviceName!: string;
+
+  @ApiProperty({ enum: DeviceType, example: DeviceType.MOBILE })
+  @IsEnum(DeviceType)
+  deviceType!: DeviceType;
 }
 
 export class LoginDto {
@@ -50,6 +55,10 @@ export class LoginDto {
   @IsString()
   @MinLength(2)
   deviceName!: string;
+
+  @ApiProperty({ enum: DeviceType, example: DeviceType.MOBILE })
+  @IsEnum(DeviceType)
+  deviceType!: DeviceType;
 }
 
 export class RefreshDto {

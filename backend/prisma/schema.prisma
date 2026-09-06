@@ -13,6 +13,11 @@ enum UserRole {
   SUPER_ADMIN
 }
 
+enum DeviceType {
+  MOBILE
+  DESKTOP
+}
+
 enum SubscriptionStatus {
   ACTIVE
   EXPIRED
@@ -70,11 +75,12 @@ model User {
 }
 
 model DeviceSession {
-  id               String   @id @default(uuid())
-  userId           String   @map("user_id")
-  deviceId         String   @map("device_id")
-  deviceName       String   @map("device_name")
-  refreshTokenHash String   @map("refresh_token_hash")
+  id               String     @id @default(uuid())
+  userId           String     @map("user_id")
+  deviceId         String     @map("device_id")
+  deviceName       String     @map("device_name")
+  deviceType       DeviceType @default(MOBILE) @map("device_type")
+  refreshTokenHash String     @map("refresh_token_hash")
   isActive         Boolean  @default(true) @map("is_active")
   lastActiveAt     DateTime @default(now()) @map("last_active_at")
   createdAt        DateTime @default(now()) @map("created_at")

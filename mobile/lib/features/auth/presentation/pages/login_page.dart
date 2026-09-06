@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/device/device_id_service.dart';
@@ -87,11 +88,17 @@ class _LoginPageState extends State<LoginPage> {
       final deviceId = await _deviceIdService.getOrCreateDeviceId();
       final deviceName = await _deviceIdService.getDeviceName();
 
+      String deviceType = 'MOBILE';
+      if (kIsWeb || defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.linux) {
+        deviceType = 'DESKTOP';
+      }
+
       final tokens = await _authRemoteDataSource.login(
         email: _emailController.text,
         password: _passwordController.text,
         deviceId: deviceId,
         deviceName: deviceName,
+        deviceType: deviceType,
       );
 
       await _secureStorageService.saveAccessToken(tokens.accessToken);

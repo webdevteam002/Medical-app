@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiHeader, ApiOperation } from '@nestjs/swagger';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -6,6 +6,7 @@ import { DeviceSessionGuard } from '../common/guards/device-session.guard';
 import { CurrentUser, JwtPayloadUser } from '../common/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateManualIntentDto } from './dto/manual-intent.dto';
 
 @ApiTags('subscriptions')
 @ApiBearerAuth()
@@ -43,5 +44,14 @@ export class SubscriptionsController {
       })),
       accessibleYears,
     };
+  }
+
+  @Post('manual-intent')
+  @ApiOperation({ summary: 'Register intent for manual payment (e.g. JazzCash)' })
+  async createManualIntent(
+    @CurrentUser() user: JwtPayloadUser,
+    @Body() dto: CreateManualIntentDto,
+  ) {
+    return this.subscriptionsService.createManualIntent(user.sub, dto.planType);
   }
 }

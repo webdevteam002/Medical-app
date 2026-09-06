@@ -65,6 +65,7 @@ export default function LoginPage() {
           password,
           deviceId: "admin-web-dashboard",
           deviceName: "MedStudy Admin Web",
+          deviceType: "DESKTOP",
         }),
       });
 
