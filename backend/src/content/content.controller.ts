@@ -36,6 +36,12 @@ export class ContentController {
     return this.contentService.listSubjects(yearSlug, user);
   }
 
+  @Get('subjects/:subjectId/topics')
+  @ApiOperation({ summary: 'List topics for a subject' })
+  listTopics(@Param('subjectId') subjectId: string, @CurrentUser() user: JwtPayloadUser) {
+    return this.contentService.listStudentTopics(subjectId, user);
+  }
+
   @Get('subjects/:subjectId/materials')
   @ApiOperation({ summary: 'List published materials for a subject' })
   @ApiQuery({ name: 'topicId', required: false })

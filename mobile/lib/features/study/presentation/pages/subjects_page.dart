@@ -34,6 +34,14 @@ class _SubjectsPageState extends State<SubjectsPage> {
     _fetchSubjects();
   }
 
+  @override
+  void didUpdateWidget(covariant SubjectsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.yearSlug != widget.yearSlug) {
+      _fetchSubjects();
+    }
+  }
+
   Future<void> _fetchSubjects() async {
     setState(() {
       _isLoading = true;
@@ -82,6 +90,13 @@ class _SubjectsPageState extends State<SubjectsPage> {
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            tooltip: 'Refresh subjects',
+            onPressed: _isLoading ? null : _fetchSubjects,
+            icon: const Icon(Icons.refresh_rounded),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Padding(
@@ -185,55 +200,59 @@ class _SubjectsPageState extends State<SubjectsPage> {
       );
     }
 
-    return ListView.separated(
-      itemCount: _subjects.length,
-      separatorBuilder: (context, index) =>
-          const SizedBox(height: AppTheme.spacingMd),
-      itemBuilder: (context, index) {
-        final subject = _subjects[index];
-        return Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-            side: const BorderSide(color: Color(0xFFE2E8F0)),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spacingLg,
-              vertical: AppTheme.spacingSm,
+    return RefreshIndicator(
+      onRefresh: _fetchSubjects,
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: _subjects.length,
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: AppTheme.spacingMd),
+        itemBuilder: (context, index) {
+          final subject = _subjects[index];
+          return Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+              side: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
-            leading: CircleAvatar(
-              backgroundColor: AppTheme.secondaryColor.withValues(alpha: 0.1),
-              child: Text(
-                'S${subject.sortOrder}',
-                style: const TextStyle(
-                  color: AppTheme.secondaryColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLg,
+                vertical: AppTheme.spacingSm,
+              ),
+              leading: CircleAvatar(
+                backgroundColor: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                child: Text(
+                  'S${index + 1}',
+                  style: const TextStyle(
+                    color: AppTheme.secondaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               ),
-            ),
-            title: Text(
-              subject.name,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
+              title: Text(
+                subject.name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimaryColor,
+                ),
               ),
-            ),
-            subtitle: Text(
-              'Slug: ${subject.slug}',
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppTheme.textSecondaryColor,
+              subtitle: Text(
+                'Slug: ${subject.slug}',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppTheme.textSecondaryColor,
+                ),
               ),
+              trailing: const Icon(Icons.chevron_right_rounded,
+                  color: AppTheme.textSecondaryColor),
+              onTap: () => _onSubjectTap(subject),
             ),
-            trailing: const Icon(Icons.chevron_right_rounded,
-                color: AppTheme.textSecondaryColor),
-            onTap: () => _onSubjectTap(subject),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

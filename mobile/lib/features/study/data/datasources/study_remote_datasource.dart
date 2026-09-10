@@ -66,17 +66,9 @@ class StudyRemoteDataSource {
 
   Future<List<TopicModel>> getTopics(String subjectId) async {
     try {
-      Response response;
-      try {
-        response = await _apiClient.client.get('/subjects/$subjectId/topics');
-      } on DioException catch (e) {
-        if (e.response?.statusCode == 404) {
-          response =
-              await _apiClient.client.get('/admin/subjects/$subjectId/topics');
-        } else {
-          rethrow;
-        }
-      }
+      // Student endpoint only — never call /admin/* (that returns Insufficient permissions).
+      final response =
+          await _apiClient.client.get('/subjects/$subjectId/topics');
 
       if (response.data is List) {
         final list = response.data as List;

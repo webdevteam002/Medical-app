@@ -57,6 +57,17 @@ export class ContentService {
     });
   }
 
+  async listStudentTopics(subjectId: string, user: JwtPayloadUser) {
+    const subject = await this.getSubjectWithYear(subjectId);
+    await this.assertYearAccess(user, subject.year.slug);
+
+    return this.prisma.topic.findMany({
+      where: { subjectId },
+      orderBy: { sortOrder: 'asc' },
+      select: { id: true, name: true, sortOrder: true, subjectId: true },
+    });
+  }
+
   async listMaterials(
     subjectId: string,
     user: JwtPayloadUser,
