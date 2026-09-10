@@ -22,6 +22,12 @@ export interface AuthTokensResponse {
 
 @Injectable()
 export class AuthService {
+  /** Allows one concurrent refresh loser to succeed for ~10s after rotation. */
+  private readonly previousRefreshHashes = new Map<
+    string,
+    { hash: string; expiresAt: number }
+  >();
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -114,10 +120,18 @@ export class AuthService {
 
     const tokenHash = this.hashToken(dto.refreshToken);
     if (session.refreshTokenHash !== tokenHash) {
-      throw new UnauthorizedException({
-        code: 'SESSION_REVOKED',
-        message: 'Session revoked. Log in again.',
-      });
+      const previous = this.previousRefreshHashes.get(session.id);
+      const previousStillValid =
+        previous != null &&
+        previous.expiresAt > Date.now() &&
+        previous.hash === tokenHash;
+
+      if (!previousStillValid) {
+        throw new UnauthorizedException({
+          code: 'SESSION_REVOKED',
+          message: 'Session revoked. Log in again.',
+        });
+      }
     }
 
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
@@ -171,6 +185,16 @@ export class AuthService {
     const refreshTokenHash = this.hashToken(refreshToken);
 
     if (existingSessionId) {
+      const existing = await this.prisma.deviceSession.findUnique({
+        where: { id: existingSessionId },
+      });
+      if (existing?.refreshTokenHash) {
+        this.previousRefreshHashes.set(existingSessionId, {
+          hash: existing.refreshTokenHash,
+          expiresAt: Date.now() + 10_000,
+        });
+      }
+
       await this.prisma.deviceSession.update({
         where: { id: existingSessionId },
         data: {

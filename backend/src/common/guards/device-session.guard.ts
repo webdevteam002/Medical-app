@@ -30,22 +30,27 @@ export class DeviceSessionGuard implements CanActivate {
       });
     }
 
+    // Match this device explicitly (MOBILE + DESKTOP can both be active).
     const session = await this.prisma.deviceSession.findFirst({
-      where: { userId: user.sub, isActive: true },
-      orderBy: { lastActiveAt: 'desc' },
+      where: { userId: user.sub, deviceId, isActive: true },
     });
 
     if (!session) {
+      const otherActive = await this.prisma.deviceSession.findFirst({
+        where: { userId: user.sub, isActive: true },
+        orderBy: { lastActiveAt: 'desc' },
+      });
+
+      if (otherActive) {
+        throw new UnauthorizedException({
+          code: 'DEVICE_MISMATCH',
+          message: 'This account is active on another device.',
+        });
+      }
+
       throw new UnauthorizedException({
         code: 'SESSION_REVOKED',
         message: 'Session expired. Please log in again.',
-      });
-    }
-
-    if (session.deviceId !== deviceId) {
-      throw new UnauthorizedException({
-        code: 'DEVICE_MISMATCH',
-        message: 'This account is active on another device.',
       });
     }
 

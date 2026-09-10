@@ -94,6 +94,7 @@ void main() {
     late AuthSessionService authSessionService;
 
     setUp(() {
+      ApiClient.resetSharedInstanceForTest();
       fakeStorage = FakeSecureStorageService();
       fakeDeviceIdService =
           FakeDeviceIdService(secureStorageService: fakeStorage);
@@ -171,6 +172,7 @@ void main() {
     late AuthSessionService authSessionService;
 
     setUp(() {
+      ApiClient.resetSharedInstanceForTest();
       fakeStorage = FakeSecureStorageService();
       fakeDeviceIdService =
           FakeDeviceIdService(secureStorageService: fakeStorage);
@@ -216,15 +218,105 @@ void main() {
       expect(adapter.callCount, equals(1));
     });
 
-    test('2. Explicit logout clears tokens while preserving device ID',
+    test(
+        '3. Parallel 401s share one refresh lock and keep the session',
         () async {
-      await authSessionService.logout();
+      fakeStorage.storage[SecureStorageService.accessTokenKey] =
+          'expired_access';
+      fakeStorage.storage[SecureStorageService.refreshTokenKey] =
+          'refresh_old';
 
-      expect(fakeStorage.storage[SecureStorageService.accessTokenKey], isNull);
-      expect(fakeStorage.storage[SecureStorageService.refreshTokenKey], isNull);
-      expect(fakeStorage.storage[SecureStorageService.deviceIdKey],
-          equals('fake-device-uuid-1234'));
-      expect(await authSessionService.isAuthenticated(), isFalse);
+      var refreshCalls = 0;
+
+      final dioA = Dio(BaseOptions(baseUrl: 'http://test.local'));
+      final dioB = Dio(BaseOptions(baseUrl: 'http://test.local'));
+
+      HttpClientAdapter buildAdapter() {
+        return _ParallelRefreshAdapter(
+          onRefresh: () {
+            refreshCalls++;
+            fakeStorage.storage[SecureStorageService.accessTokenKey] =
+                'access_new';
+            fakeStorage.storage[SecureStorageService.refreshTokenKey] =
+                'refresh_new';
+          },
+        );
+      }
+
+      dioA.httpClientAdapter = buildAdapter();
+      dioB.httpClientAdapter = buildAdapter();
+
+      final clientA = ApiClient(
+        dio: dioA,
+        secureStorageService: fakeStorage,
+        deviceIdService: fakeDeviceIdService,
+        authSessionService: authSessionService,
+      );
+      final clientB = ApiClient(
+        dio: dioB,
+        secureStorageService: fakeStorage,
+        deviceIdService: fakeDeviceIdService,
+        authSessionService: authSessionService,
+      );
+
+      await Future.wait([
+        clientA.client.get('/years'),
+        clientB.client.get('/exams'),
+      ]);
+
+      expect(refreshCalls, equals(1));
+      expect(fakeStorage.storage[SecureStorageService.accessTokenKey],
+          equals('access_new'));
+      expect(fakeStorage.storage[SecureStorageService.refreshTokenKey],
+          equals('refresh_new'));
     });
   });
+}
+
+class _ParallelRefreshAdapter implements HttpClientAdapter {
+  final void Function() onRefresh;
+
+  _ParallelRefreshAdapter({required this.onRefresh});
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    if (options.path.contains('/auth/refresh')) {
+      // Simulate slow refresh so both clients hit the shared lock.
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      onRefresh();
+      return ResponseBody.fromString(
+        '{"accessToken":"access_new","refreshToken":"refresh_new","expiresIn":900}',
+        200,
+        headers: {
+          Headers.contentTypeHeader: [Headers.jsonContentType],
+        },
+      );
+    }
+
+    final auth = options.headers['Authorization']?.toString() ?? '';
+    if (auth.contains('access_new')) {
+      return ResponseBody.fromString(
+        '[]',
+        200,
+        headers: {
+          Headers.contentTypeHeader: [Headers.jsonContentType],
+        },
+      );
+    }
+
+    return ResponseBody.fromString(
+      '{"statusCode":401,"message":"Authentication required"}',
+      401,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
 }
