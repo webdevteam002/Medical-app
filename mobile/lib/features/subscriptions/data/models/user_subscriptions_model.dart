@@ -17,19 +17,25 @@ class UserSubscriptionItem {
 
   factory UserSubscriptionItem.fromJson(Map<String, dynamic> json) {
     DateTime parseDate(dynamic val) {
-      if (val is String) {
-        return DateTime.parse(val);
+      if (val is String && val.isNotEmpty) {
+        return DateTime.tryParse(val) ?? DateTime.now();
       }
-      return DateTime.now();
+      // PENDING intents have no start/end yet — use a safe sentinel.
+      return DateTime.fromMillisecondsSinceEpoch(0);
     }
+
+    final status = (json['status'] as String? ?? 'ACTIVE').toUpperCase();
+    final endDate = parseDate(json['endDate']);
 
     return UserSubscriptionItem(
       id: json['id'] as String? ?? '',
       planName: json['planName'] as String? ?? 'Subscription Plan',
       planType: json['planType'] as String? ?? 'YEAR_1',
-      status: json['status'] as String? ?? 'ACTIVE',
+      status: status,
       startDate: parseDate(json['startDate']),
-      endDate: parseDate(json['endDate']),
+      endDate: status == 'PENDING' && (json['endDate'] == null)
+          ? DateTime.now().add(const Duration(days: 365))
+          : endDate,
     );
   }
 
@@ -44,7 +50,10 @@ class UserSubscriptionItem {
     };
   }
 
-  bool get isActive => status == 'ACTIVE' && endDate.isAfter(DateTime.now());
+  bool get isActive {
+    if (status.toUpperCase() != 'ACTIVE') return false;
+    return endDate.isAfter(DateTime.now());
+  }
 }
 
 class UserSubscriptionsModel {

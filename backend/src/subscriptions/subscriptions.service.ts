@@ -90,8 +90,15 @@ export class SubscriptionsService {
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + days);
 
+    // Replace any currently active plan
     await this.prisma.subscription.updateMany({
       where: { userId, status: SubscriptionStatus.ACTIVE },
+      data: { status: SubscriptionStatus.CANCELLED },
+    });
+
+    // Clear leftover "Continue to Payment" intents so admin list stays clean
+    await this.prisma.subscription.updateMany({
+      where: { userId, status: SubscriptionStatus.PENDING },
       data: { status: SubscriptionStatus.CANCELLED },
     });
 

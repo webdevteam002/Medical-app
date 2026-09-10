@@ -127,7 +127,7 @@ export default function UsersManagementPage() {
               Student Users Management
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Manage registered student accounts, active device bindings, and manual subscription grants
+              Students self-register in the app. After JazzCash/Easypaisa payment + WhatsApp screenshot, search their email and click Grant Plan.
             </p>
           </div>
 

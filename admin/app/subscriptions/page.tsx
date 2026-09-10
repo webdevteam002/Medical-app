@@ -2,26 +2,36 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
+import GrantSubscriptionModal from "@/components/GrantSubscriptionModal";
 import {
   Subscription,
   SubscriptionStatus,
+  PlanType,
   fetchAdminSubscriptions,
   revokeAdminSubscription,
 } from "@/lib/subscriptions";
 
 export default function SubscriptionsManagementPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>("");
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>(
+    SubscriptionStatus.PENDING
+  );
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const [pendingRevokeId, setPendingRevokeId] = useState<string | null>(null);
+  const [grantTarget, setGrantTarget] = useState<{
+    userId: string;
+    userEmail: string;
+    userName: string;
+    planType?: PlanType | string;
+  } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    fetchAdminSubscriptions()
+    fetchAdminSubscriptions(SubscriptionStatus.PENDING)
       .then((data) => {
         if (isMounted) {
           setSubscriptions(data);
@@ -85,7 +95,11 @@ export default function SubscriptionsManagementPage() {
     try {
       const updated = await revokeAdminSubscription(sub.id);
       setSubscriptions((prev) =>
-        prev.map((s) => (s.id === sub.id ? { ...s, status: updated.status, endDate: updated.endDate } : s))
+        prev.map((s) =>
+          s.id === sub.id
+            ? { ...s, status: updated.status, endDate: updated.endDate }
+            : s
+        )
       );
       setSuccessMessage(`Subscription for "${sub.user?.email}" revoked.`);
       setTimeout(() => setSuccessMessage(null), 4000);
@@ -100,19 +114,18 @@ export default function SubscriptionsManagementPage() {
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar />
       <main className="flex-1 flex flex-col min-w-0">
-        {/* Top Header */}
         <header className="bg-white border-b border-slate-200 px-8 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
               Subscriptions Management
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Track student subscription records, status transitions, and administrative revocations
+              Defaults to PENDING payment intents. After WhatsApp proof, click Grant Plan
+              on the row to activate access.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Status Filter Select */}
             <div className="flex items-center gap-2">
               <label htmlFor="statusFilter" className="text-xs font-semibold text-slate-600">
                 Status:
@@ -124,10 +137,10 @@ export default function SubscriptionsManagementPage() {
                 className="px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
               >
                 <option value="">All Statuses</option>
+                <option value={SubscriptionStatus.PENDING}>Pending payment</option>
                 <option value={SubscriptionStatus.ACTIVE}>Active</option>
                 <option value={SubscriptionStatus.CANCELLED}>Cancelled</option>
                 <option value={SubscriptionStatus.EXPIRED}>Expired</option>
-                <option value={SubscriptionStatus.PENDING}>Pending</option>
               </select>
             </div>
 
@@ -155,9 +168,7 @@ export default function SubscriptionsManagementPage() {
           </div>
         </header>
 
-        {/* Content Area */}
         <div className="p-8 max-w-7xl space-y-6">
-          {/* Success Banner */}
           {successMessage && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3 text-xs text-emerald-900 shadow-sm">
               <span className="text-emerald-600 text-base">✅</span>
@@ -165,7 +176,6 @@ export default function SubscriptionsManagementPage() {
             </div>
           )}
 
-          {/* Main Table / State Render */}
           {isLoading ? (
             <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-sm">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-teal-600 mb-3"></div>
@@ -279,7 +289,22 @@ export default function SubscriptionsManagementPage() {
                             ? new Date(sub.endDate).toLocaleDateString()
                             : "N/A"}
                         </td>
-                        <td className="py-4 px-6 text-right">
+                        <td className="py-4 px-6 text-right space-x-2">
+                          {sub.status === SubscriptionStatus.PENDING && sub.user?.id && (
+                            <button
+                              onClick={() =>
+                                setGrantTarget({
+                                  userId: sub.user!.id,
+                                  userEmail: sub.user!.email,
+                                  userName: sub.user!.fullName || sub.user!.email,
+                                  planType: sub.plan?.planType,
+                                })
+                              }
+                              className="px-2.5 py-1 text-[11px] font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded transition-colors"
+                            >
+                              Grant Plan
+                            </button>
+                          )}
                           {sub.status === SubscriptionStatus.ACTIVE && (
                             <button
                               onClick={() => handleRevoke(sub)}
@@ -299,6 +324,22 @@ export default function SubscriptionsManagementPage() {
           )}
         </div>
       </main>
+
+      {grantTarget && (
+        <GrantSubscriptionModal
+          userId={grantTarget.userId}
+          userEmail={grantTarget.userEmail}
+          userName={grantTarget.userName}
+          initialPlanType={grantTarget.planType}
+          isOpen={Boolean(grantTarget)}
+          onClose={() => setGrantTarget(null)}
+          onGrantSuccess={() => {
+            handleRefresh();
+            setSuccessMessage(`Subscription granted to ${grantTarget.userEmail}.`);
+            setTimeout(() => setSuccessMessage(null), 4000);
+          }}
+        />
+      )}
     </div>
   );
 }

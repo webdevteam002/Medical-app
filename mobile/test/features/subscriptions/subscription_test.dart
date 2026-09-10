@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medstudy/core/errors/failures.dart';
 import 'package:medstudy/features/subscriptions/data/datasources/subscriptions_remote_datasource.dart';
+import 'package:medstudy/features/subscriptions/data/models/payment_instructions_model.dart';
 import 'package:medstudy/features/subscriptions/data/models/subscription_plan_model.dart';
 import 'package:medstudy/features/subscriptions/data/models/user_subscriptions_model.dart';
 import 'package:medstudy/features/subscriptions/domain/services/subscription_service.dart';
@@ -12,6 +13,8 @@ class FakeSubscriptionsRemoteDataSource extends SubscriptionsRemoteDataSource {
   final String? errorMessage;
   int getUserSubscriptionsCallCount = 0;
   int getAvailablePlansCallCount = 0;
+  int getPaymentInstructionsCallCount = 0;
+  int createManualIntentCallCount = 0;
 
   FakeSubscriptionsRemoteDataSource({
     this.shouldFail = false,
@@ -66,6 +69,37 @@ class FakeSubscriptionsRemoteDataSource extends SubscriptionsRemoteDataSource {
         durationDays: 365,
       ),
     ];
+  }
+
+  @override
+  Future<PaymentInstructionsModel> getPaymentInstructions() async {
+    getPaymentInstructionsCallCount++;
+    if (shouldFail) {
+      throw NetworkFailure(
+          errorMessage ?? 'Failed to load payment instructions.');
+    }
+    return const PaymentInstructionsModel(
+      methods: ['jazzcash', 'easypaisa', 'bank'],
+      jazzcashNumber: '0300-1111111',
+      easypaisaNumber: '0300-2222222',
+      bankDetails: 'HBL · MedStudy · PK00TEST',
+      whatsappNumber: '923001111111',
+      instructions: 'Send payment then WhatsApp screenshot.',
+    );
+  }
+
+  @override
+  Future<ManualPaymentIntentResult> createManualIntent(String planType) async {
+    createManualIntentCallCount++;
+    if (shouldFail) {
+      throw NetworkFailure(errorMessage ?? 'Failed to start payment process.');
+    }
+    return ManualPaymentIntentResult(
+      subscriptionId: 'pending_1',
+      planType: planType,
+      status: 'PENDING',
+      instructions: await getPaymentInstructions(),
+    );
   }
 }
 
@@ -150,6 +184,7 @@ void main() {
 
       expect(fakeDataSource.getUserSubscriptionsCallCount, equals(1));
       expect(fakeDataSource.getAvailablePlansCallCount, equals(1));
+      expect(fakeDataSource.getPaymentInstructionsCallCount, equals(1));
 
       expect(find.text('Active Subscription'), findsOneWidget);
       expect(find.text('YEAR-1'), findsOneWidget);
@@ -158,11 +193,12 @@ void main() {
       expect(find.text('Rs. 5000'), findsOneWidget);
       expect(find.text('Ultimate Medical Bundle'), findsOneWidget);
       expect(find.text('Rs. 20000'), findsOneWidget);
-      expect(find.text('Restore'), findsOneWidget);
-      expect(find.text('Subscribe Now'), findsOneWidget);
+      expect(find.text('Refresh'), findsOneWidget);
+      expect(find.text('Continue to Payment'), findsOneWidget);
+      expect(find.text('How to pay & get access'), findsOneWidget);
     });
 
-    testWidgets('5. Tapping Restore Purchases triggers synchronization',
+    testWidgets('5. Tapping Refresh reloads subscription access',
         (WidgetTester tester) async {
       final fakeDataSource = FakeSubscriptionsRemoteDataSource();
 
@@ -174,13 +210,33 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Restore'));
+      await tester.tap(find.text('Refresh'));
       await tester.pump();
       await tester.pumpAndSettle();
 
       expect(fakeDataSource.getUserSubscriptionsCallCount, equals(2));
-      expect(find.text('Purchases restored and synchronized successfully.'),
-          findsOneWidget);
+      expect(
+        find.text('Access updated. Your subscription is active.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('6. Continue to Payment creates manual intent',
+        (WidgetTester tester) async {
+      final fakeDataSource = FakeSubscriptionsRemoteDataSource();
+
+      await tester.pumpWidget(createWidgetUnderTest(
+        SubscriptionPage(
+          remoteDataSource: fakeDataSource,
+        ),
+      ));
+
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue to Payment'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(fakeDataSource.createManualIntentCallCount, equals(1));
     });
   });
 }
