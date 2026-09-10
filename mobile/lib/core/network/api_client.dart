@@ -252,7 +252,11 @@ class ApiClient {
 
     // Tokens changed → another refresh already succeeded.
     if (attemptedRefreshToken != null && refresh != attemptedRefreshToken) {
-      return AuthTokens(accessToken: access, refreshToken: refresh);
+      return AuthTokens(
+        accessToken: access,
+        refreshToken: refresh,
+        expiresIn: 900,
+      );
     }
 
     return null;
