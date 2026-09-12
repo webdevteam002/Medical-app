@@ -228,6 +228,9 @@ class _HistoryButton extends StatelessWidget {
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(12),
+          hoverColor: AppTheme.primaryColor.withValues(alpha: 0.05),
+          focusColor: AppTheme.primaryColor.withValues(alpha: 0.10),
+          mouseCursor: SystemMouseCursors.click,
           child: const SizedBox(
             width: 42,
             height: 42,

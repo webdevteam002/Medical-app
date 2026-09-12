@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -26,6 +27,7 @@ class ExamSessionPage extends StatefulWidget {
 class _ExamSessionPageState extends State<ExamSessionPage>
     with WidgetsBindingObserver {
   late final ExamsRemoteDataSource _dataSource;
+  late final FocusNode _pageFocusNode;
   int _currentIndex = 0;
   final Map<String, String> _selectedAnswers = {};
   final Set<String> _flaggedQuestionIds = {};
@@ -39,8 +41,15 @@ class _ExamSessionPageState extends State<ExamSessionPage>
   void initState() {
     super.initState();
     _dataSource = widget.examsRemoteDataSource ?? ExamsRemoteDataSource();
+    _pageFocusNode = FocusNode(debugLabel: 'ExamSessionPageFocusNode');
     WidgetsBinding.instance.addObserver(this);
     _initTimer();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _pageFocusNode.requestFocus();
+      }
+    });
   }
 
   void _initTimer() {
@@ -80,7 +89,76 @@ class _ExamSessionPageState extends State<ExamSessionPage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    _pageFocusNode.dispose();
     super.dispose();
+  }
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) {
+      return KeyEventResult.ignored;
+    }
+
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    if (primaryFocus != null && primaryFocus.context?.widget is EditableText) {
+      return KeyEventResult.ignored;
+    }
+
+    final key = event.logicalKey;
+
+    if (key == LogicalKeyboardKey.arrowLeft || key == LogicalKeyboardKey.keyP) {
+      _previousQuestion();
+      return KeyEventResult.handled;
+    }
+
+    if (key == LogicalKeyboardKey.arrowRight ||
+        key == LogicalKeyboardKey.keyN) {
+      _nextQuestion();
+      return KeyEventResult.handled;
+    }
+
+    if (key == LogicalKeyboardKey.keyF) {
+      if (widget.session.questions.isNotEmpty) {
+        final currentQ = widget.session.questions[_currentIndex];
+        _toggleFlagQuestion(currentQ.id);
+      }
+      return KeyEventResult.handled;
+    }
+
+    int? targetIndex;
+    if (key == LogicalKeyboardKey.digit1 ||
+        key == LogicalKeyboardKey.numpad1 ||
+        key == LogicalKeyboardKey.keyA) {
+      targetIndex = 0;
+    } else if (key == LogicalKeyboardKey.digit2 ||
+        key == LogicalKeyboardKey.numpad2 ||
+        key == LogicalKeyboardKey.keyB) {
+      targetIndex = 1;
+    } else if (key == LogicalKeyboardKey.digit3 ||
+        key == LogicalKeyboardKey.numpad3 ||
+        key == LogicalKeyboardKey.keyC) {
+      targetIndex = 2;
+    } else if (key == LogicalKeyboardKey.digit4 ||
+        key == LogicalKeyboardKey.numpad4 ||
+        key == LogicalKeyboardKey.keyD) {
+      targetIndex = 3;
+    } else if (key == LogicalKeyboardKey.digit5 ||
+        key == LogicalKeyboardKey.numpad5 ||
+        key == LogicalKeyboardKey.keyE) {
+      targetIndex = 4;
+    }
+
+    if (targetIndex != null) {
+      if (widget.session.questions.isNotEmpty) {
+        final currentQ = widget.session.questions[_currentIndex];
+        if (targetIndex < currentQ.options.length) {
+          final option = currentQ.options[targetIndex];
+          _onOptionSelected(currentQ.id, option.id);
+        }
+      }
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
   }
 
   String _formatDuration(Duration duration) {
@@ -139,15 +217,6 @@ class _ExamSessionPageState extends State<ExamSessionPage>
     setState(() {
       _isSubmitting = true;
     });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Submitting exam… scoring answers'),
-          duration: Duration(seconds: 8),
-        ),
-      );
-    }
 
     final answerDtos = widget.session.questions.map((q) {
       return SubmitAnswerDto(
@@ -497,12 +566,137 @@ class _ExamSessionPageState extends State<ExamSessionPage>
     );
   }
 
+  Widget _buildDesktopQuestionPalette() {
+    final totalQuestions = widget.session.questions.length;
+    final answeredCount = _selectedAnswers.length;
+    final flaggedCount = _flaggedQuestionIds.length;
+    final unansweredCount = totalQuestions - answeredCount;
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(AppTheme.spacingLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Question Palette',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: AppTheme.spacingMd),
+          Wrap(
+            spacing: 12,
+            runSpacing: 6,
+            children: [
+              _buildLegendBadge(
+                label: 'Answered ($answeredCount)',
+                color: Colors.green,
+                icon: Icons.check_circle_rounded,
+              ),
+              _buildLegendBadge(
+                label: 'Flagged ($flaggedCount)',
+                color: Colors.orange,
+                icon: Icons.flag_rounded,
+              ),
+              _buildLegendBadge(
+                label: 'Unanswered ($unansweredCount)',
+                color: AppTheme.textSecondaryColor,
+                icon: Icons.circle_outlined,
+              ),
+            ],
+          ),
+          const Divider(height: 24),
+          Expanded(
+            child: GridView.builder(
+              itemCount: totalQuestions,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 5,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1.1,
+              ),
+              itemBuilder: (context, index) {
+                final question = widget.session.questions[index];
+                final isCurrent = index == _currentIndex;
+                final isAnswered = _selectedAnswers.containsKey(question.id);
+                final isFlagged = _flaggedQuestionIds.contains(question.id);
+
+                Color tileBg = const Color(0xFFF1F5F9);
+                Color textColor = AppTheme.textPrimaryColor;
+                Border border = Border.all(color: const Color(0xFFE2E8F0));
+
+                if (isCurrent) {
+                  border = Border.all(
+                    color: AppTheme.primaryColor,
+                    width: 2.5,
+                  );
+                }
+
+                if (isAnswered) {
+                  tileBg = Colors.green.withValues(alpha: 0.15);
+                  textColor = Colors.green.shade800;
+                }
+
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                  },
+                  focusColor: AppTheme.primaryColor.withValues(alpha: 0.25),
+                  hoverColor: AppTheme.primaryColor.withValues(alpha: 0.12),
+                  mouseCursor: SystemMouseCursors.click,
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: tileBg,
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusSm),
+                      border: border,
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight:
+                                isCurrent ? FontWeight.bold : FontWeight.w600,
+                            color: textColor,
+                          ),
+                        ),
+                        if (isFlagged)
+                          const Positioned(
+                            top: 2,
+                            right: 2,
+                            child: Icon(
+                              Icons.flag_rounded,
+                              size: 11,
+                              color: Colors.orange,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLegendBadge({
     required String label,
     required Color color,
     required IconData icon,
   }) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 4),
@@ -522,6 +716,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
   Widget build(BuildContext context) {
     if (widget.session.questions.isEmpty) {
       return Scaffold(
+        backgroundColor: AppTheme.backgroundColor,
         appBar: AppBar(title: Text(widget.examTitle)),
         body: const Center(
           child: Text('No questions available in this exam.'),
@@ -535,210 +730,243 @@ class _ExamSessionPageState extends State<ExamSessionPage>
     final isFlagged = _flaggedQuestionIds.contains(currentQuestion.id);
     final isUrgent = _remainingDuration.inMinutes < 5;
 
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: Text(
-          widget.examTitle,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        actions: [
-          IconButton(
-            onPressed: () => _openQuestionPalette(context),
-            icon: const Icon(Icons.grid_view_rounded),
-            tooltip: 'Question Palette',
+    return Focus(
+      focusNode: _pageFocusNode,
+      autofocus: true,
+      onKeyEvent: _handleKeyEvent,
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundColor,
+        appBar: AppBar(
+          title: Text(
+            widget.examTitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: AppTheme.spacingMd),
-            child: Center(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isUrgent ? AppTheme.errorSoft : AppTheme.surfaceMuted,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isUrgent
-                        ? AppTheme.errorColor.withValues(alpha: 0.35)
-                        : AppTheme.borderColor,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.timer_rounded,
-                      size: 16,
+          actions: [
+            Builder(
+              builder: (context) {
+                final isDesktopExam = MediaQuery.of(context).size.width >= 900;
+                if (isDesktopExam) return const SizedBox.shrink();
+                return IconButton(
+                  onPressed: () => _openQuestionPalette(context),
+                  icon: const Icon(Icons.grid_view_rounded),
+                  tooltip: 'Question Palette',
+                );
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: AppTheme.spacingMd),
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isUrgent ? AppTheme.errorSoft : AppTheme.surfaceMuted,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
                       color: isUrgent
-                          ? AppTheme.errorColor
-                          : AppTheme.primaryColor,
+                          ? AppTheme.errorColor.withValues(alpha: 0.35)
+                          : AppTheme.borderColor,
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _formatDuration(_remainingDuration),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.timer_rounded,
+                        size: 16,
                         color: isUrgent
                             ? AppTheme.errorColor
                             : AppTheme.primaryColor,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            LinearProgressIndicator(
-              value: (totalQuestions > 0)
-                  ? (_currentIndex + 1) / totalQuestions
-                  : 0,
-              backgroundColor: AppTheme.borderColor,
-              color: AppTheme.primaryColor,
-              minHeight: 3,
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppTheme.spacingLg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Question ${_currentIndex + 1} of $totalQuestions',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primaryColor,
-                          ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDuration(_remainingDuration),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: isUrgent
+                              ? AppTheme.errorColor
+                              : AppTheme.primaryColor,
                         ),
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: () =>
-                                  _toggleFlagQuestion(currentQuestion.id),
-                              icon: Icon(
-                                isFlagged
-                                    ? Icons.flag_rounded
-                                    : Icons.flag_outlined,
-                                color: isFlagged
-                                    ? AppTheme.warningColor
-                                    : AppTheme.textSecondaryColor,
-                                size: 20,
-                              ),
-                              tooltip: isFlagged
-                                  ? 'Unflag Question'
-                                  : 'Flag for Review',
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: _selectedAnswers
-                                        .containsKey(currentQuestion.id)
-                                    ? AppTheme.successSoft
-                                    : AppTheme.surfaceMuted,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                _selectedAnswers.containsKey(currentQuestion.id)
-                                    ? 'Answered'
-                                    : 'Unanswered',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: _selectedAnswers
-                                          .containsKey(currentQuestion.id)
-                                      ? AppTheme.successColor
-                                      : AppTheme.textSecondaryColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppTheme.spacingMd),
-                    Text(
-                      currentQuestion.stem,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            height: 1.4,
-                          ),
-                    ),
-                    const SizedBox(height: AppTheme.spacingXl),
-                    ...currentQuestion.options.map(
-                      (option) => _buildOptionTile(
-                        questionId: currentQuestion.id,
-                        optionId: option.id,
-                        optionText: option.text,
-                        isSelected: selectedOptionId == option.id,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingLg,
-                vertical: AppTheme.spacingMd,
-              ),
-              decoration: const BoxDecoration(
-                color: AppTheme.surfaceColor,
-                border: Border(top: BorderSide(color: AppTheme.borderColor)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _currentIndex > 0 ? _previousQuestion : null,
-                      icon: const Icon(Icons.arrow_back_rounded),
-                      label: const Text('Previous'),
-                    ),
-                  ),
-                  const SizedBox(width: AppTheme.spacingMd),
-                  Expanded(
-                    child: _currentIndex < totalQuestions - 1
-                        ? ElevatedButton.icon(
-                            onPressed: _nextQuestion,
-                            icon: const Icon(Icons.arrow_forward_rounded),
-                            label: const Text('Next'),
-                          )
-                        : ElevatedButton.icon(
-                            onPressed: _isSubmitting
-                                ? null
-                                : () =>
-                                    _showSubmitConfirmationDialog(context),
-                            icon: _isSubmitting
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Icon(Icons.check_circle_rounded),
-                            label: Text(_isSubmitting
-                                ? 'Submitting...'
-                                : 'Submit Exam'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.successColor,
-                            ),
-                          ),
-                  ),
-                ],
               ),
             ),
           ],
+        ),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isDesktopExam = constraints.maxWidth >= 900;
+
+              Widget questionContent = Column(
+                children: [
+                  LinearProgressIndicator(
+                    value: (totalQuestions > 0)
+                        ? (_currentIndex + 1) / totalQuestions
+                        : 0,
+                    backgroundColor: AppTheme.borderColor,
+                    color: AppTheme.primaryColor,
+                    minHeight: 3,
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(AppTheme.spacingLg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Question ${_currentIndex + 1} of $totalQuestions',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    onPressed: () =>
+                                        _toggleFlagQuestion(currentQuestion.id),
+                                    icon: Icon(
+                                      isFlagged
+                                          ? Icons.flag_rounded
+                                          : Icons.flag_outlined,
+                                      color: isFlagged
+                                          ? AppTheme.warningColor
+                                          : AppTheme.textSecondaryColor,
+                                      size: 20,
+                                    ),
+                                    tooltip: isFlagged
+                                        ? 'Unflag Question'
+                                        : 'Flag for Review',
+                                  ),
+                                  Text(
+                                    _selectedAnswers
+                                            .containsKey(currentQuestion.id)
+                                        ? 'Answered'
+                                        : 'Unanswered',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: _selectedAnswers
+                                              .containsKey(currentQuestion.id)
+                                          ? Colors.green
+                                          : AppTheme.textSecondaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppTheme.spacingSm),
+                          Text(
+                            currentQuestion.stem,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimaryColor,
+                                  height: 1.4,
+                                ),
+                          ),
+                          const SizedBox(height: AppTheme.spacingXl),
+                          ...currentQuestion.options.map(
+                            (option) => _buildOptionTile(
+                              questionId: currentQuestion.id,
+                              optionId: option.id,
+                              optionText: option.text,
+                              isSelected: selectedOptionId == option.id,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.spacingLg,
+                      vertical: AppTheme.spacingMd,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.surfaceColor,
+                      border: Border(top: BorderSide(color: AppTheme.borderColor)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed:
+                                _currentIndex > 0 ? _previousQuestion : null,
+                            icon: const Icon(Icons.arrow_back_rounded),
+                            label: const Text('Previous'),
+                          ),
+                        ),
+                        const SizedBox(width: AppTheme.spacingMd),
+                        Expanded(
+                          child: _currentIndex < totalQuestions - 1
+                              ? ElevatedButton.icon(
+                                  onPressed: _nextQuestion,
+                                  icon: const Icon(Icons.arrow_forward_rounded),
+                                  label: const Text('Next'),
+                                )
+                              : ElevatedButton.icon(
+                                  onPressed: _isSubmitting
+                                      ? null
+                                      : () =>
+                                          _showSubmitConfirmationDialog(context),
+                                  icon: _isSubmitting
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Icon(Icons.check_circle_rounded),
+                                  label: Text(_isSubmitting
+                                      ? 'Submitting...'
+                                      : 'Submit Exam'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.successColor,
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+
+              if (isDesktopExam) {
+                return Row(
+                  children: [
+                    Expanded(
+                      child: questionContent,
+                    ),
+                    const VerticalDivider(
+                      width: 1,
+                      thickness: 1,
+                      color: AppTheme.borderColor,
+                    ),
+                    SizedBox(
+                      width: 310,
+                      child: _buildDesktopQuestionPalette(),
+                    ),
+                  ],
+                );
+              }
+
+              return questionContent;
+            },
+          ),
         ),
       ),
     );
@@ -759,6 +987,9 @@ class _ExamSessionPageState extends State<ExamSessionPage>
         child: InkWell(
           onTap: () => _onOptionSelected(questionId, optionId),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+          hoverColor: AppTheme.primaryColor.withValues(alpha: 0.05),
+          focusColor: AppTheme.primaryColor.withValues(alpha: 0.10),
+          mouseCursor: SystemMouseCursors.click,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
             padding: const EdgeInsets.all(AppTheme.spacingMd),

@@ -38,6 +38,9 @@ class MsCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+        hoverColor: AppTheme.primaryColor.withValues(alpha: 0.05),
+        focusColor: AppTheme.primaryColor.withValues(alpha: 0.10),
+        mouseCursor: SystemMouseCursors.click,
         child: content,
       ),
     );

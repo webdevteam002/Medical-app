@@ -98,12 +98,16 @@ class ProfileDestinationView extends StatelessWidget {
                                   'Platform',
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
-                                Text(
-                                  '${AppConstants.appName} v${AppConstants.appVersion}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                Flexible(
+                                  child: Text(
+                                    '${AppConstants.appName} v${AppConstants.appVersion}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w700),
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.end,
+                                  ),
                                 ),
                               ],
                             ),
@@ -171,6 +175,11 @@ class ProfileDestinationView extends StatelessWidget {
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(
                             color: AppTheme.errorColor.withValues(alpha: 0.45),
+                          ),
+                          overlayColor:
+                              AppTheme.errorColor.withValues(alpha: 0.08),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppTheme.spacingMd,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(

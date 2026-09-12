@@ -41,6 +41,8 @@ class _HomePageState extends State<HomePage> {
       ),
     ];
 
+    final isDesktopWidth = MediaQuery.of(context).size.width >= 600;
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
@@ -70,41 +72,107 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: destinations,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth >= 600;
+
+          if (isDesktop) {
+            return Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: (int index) {
+                    setState(() {
+                      _selectedIndex = index;
+                    });
+                  },
+                  labelType: NavigationRailLabelType.all,
+                  backgroundColor: AppTheme.surfaceColor,
+                  indicatorColor: AppTheme.primaryColor.withValues(alpha: 0.15),
+                  selectedLabelTextStyle: const TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                  unselectedLabelTextStyle: const TextStyle(
+                    color: AppTheme.textSecondaryColor,
+                    fontSize: 12,
+                  ),
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.menu_book_outlined),
+                      selectedIcon: Icon(Icons.menu_book_rounded,
+                          color: AppTheme.primaryColor),
+                      label: Text('Study'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.assignment_outlined),
+                      selectedIcon: Icon(Icons.assignment_rounded,
+                          color: AppTheme.primaryColor),
+                      label: Text('Exams'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person_rounded,
+                          color: AppTheme.primaryColor),
+                      label: Text('Profile'),
+                    ),
+                  ],
+                ),
+                const VerticalDivider(
+                  thickness: 1,
+                  width: 1,
+                  color: AppTheme.borderColor,
+                ),
+                Expanded(
+                  child: IndexedStack(
+                    index: _selectedIndex,
+                    children: destinations,
+                  ),
+                ),
+              ],
+            );
+          }
+
+          return IndexedStack(
+            index: _selectedIndex,
+            children: destinations,
+          );
+        },
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppTheme.surfaceColor,
-          border: Border(top: BorderSide(color: AppTheme.borderColor)),
-        ),
-        child: NavigationBar(
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: (int index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.menu_book_outlined),
-              selectedIcon: Icon(Icons.menu_book_rounded),
-              label: 'Study',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.assignment_outlined),
-              selectedIcon: Icon(Icons.assignment_rounded),
-              label: 'Exams',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person_rounded),
-              label: 'Profile',
-            ),
-          ],
-        ),
-      ),
+      bottomNavigationBar: !isDesktopWidth
+          ? Container(
+              decoration: const BoxDecoration(
+                color: AppTheme.surfaceColor,
+                border: Border(top: BorderSide(color: AppTheme.borderColor)),
+              ),
+              child: NavigationBar(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: (int index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.menu_book_outlined),
+                    selectedIcon: Icon(Icons.menu_book_rounded),
+                    label: 'Study',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.assignment_outlined),
+                    selectedIcon: Icon(Icons.assignment_rounded),
+                    label: 'Exams',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.person_outline),
+                    selectedIcon: Icon(Icons.person_rounded),
+                    label: 'Profile',
+                  ),
+                ],
+              ),
+            )
+          : null,
     );
   }
 }
