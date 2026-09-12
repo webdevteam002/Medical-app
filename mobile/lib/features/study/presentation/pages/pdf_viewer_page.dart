@@ -1,10 +1,8 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdfrx/pdfrx.dart';
 
 import '../../../../core/network/api_client.dart';
 import '../../../../core/security/security_service.dart';
@@ -33,6 +31,7 @@ class PdfViewerPage extends StatefulWidget {
 class _PdfViewerPageState extends State<PdfViewerPage> {
   late final SecurityService _securityService;
   late final String _formattedWatermark;
+  final PdfViewerController _controller = PdfViewerController();
 
   String? _localPdfPath;
   bool _isLoadingFile = true;
@@ -40,12 +39,6 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   int _currentPage = 0;
   bool _isReady = false;
   String _errorMessage = '';
-  bool _openedExternally = false;
-
-  bool get _isDesktop {
-    if (kIsWeb) return false;
-    return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-  }
 
   @override
   void initState() {
@@ -97,33 +90,9 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     }
   }
 
-  Future<void> _openWithSystemViewer() async {
-    final path = _localPdfPath;
-    if (path == null || path.isEmpty) return;
-    try {
-      if (Platform.isWindows) {
-        await Process.start('cmd', ['/c', 'start', '', path],
-            runInShell: false);
-      } else if (Platform.isMacOS) {
-        await Process.start('open', [path]);
-      } else {
-        await Process.start('xdg-open', [path]);
-      }
-      if (mounted) {
-        setState(() => _openedExternally = true);
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open system PDF viewer.')),
-        );
-      }
-    }
-  }
-
   @override
   void dispose() {
-    _securityService.disableSecureScreen();
+    // Keep capture protection on after leaving the PDF viewer (app-wide policy).
     final path = _localPdfPath;
     if (path != null &&
         path.isNotEmpty &&
@@ -240,106 +209,40 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       return const Center(child: Text('PDF file not found.'));
     }
 
-    // Desktop: flutter_pdfview is unsupported — open with the OS PDF app.
-    if (_isDesktop) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.picture_as_pdf_rounded,
-                  size: 64, color: AppTheme.primaryColor),
-              const SizedBox(height: AppTheme.spacingMd),
-              Text(
-                widget.title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimaryColor,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingSm),
-              const Text(
-                'In-app PDF preview is not available on Windows desktop.\nOpen the file in your system PDF viewer.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppTheme.textSecondaryColor),
-              ),
-              const SizedBox(height: AppTheme.spacingLg),
-              ElevatedButton.icon(
-                onPressed: _openWithSystemViewer,
-                icon: const Icon(Icons.open_in_new),
-                label: Text(_openedExternally ? 'Open again' : 'Open PDF'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
+    return PdfViewer.file(
+      path,
+      controller: _controller,
+      params: PdfViewerParams(
+        backgroundColor: AppTheme.backgroundColor,
+        loadingBannerBuilder: (context, bytesDownloaded, totalBytes) =>
+            const Center(child: CircularProgressIndicator()),
+        errorBannerBuilder: (context, error, stackTrace, documentRef) =>
+            Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.spacingLg),
+            child: Text(
+              'Could not open PDF in the app.\n$error',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppTheme.textPrimaryColor),
+            ),
           ),
         ),
-      );
-    }
-
-    try {
-      return PDFView(
-        filePath: path,
-        enableSwipe: true,
-        swipeHorizontal: false,
-        autoSpacing: true,
-        pageFling: true,
-        pageSnap: true,
-        onRender: (pages) {
-          if (mounted) {
-            setState(() {
-              _totalPages = pages ?? 0;
-              _isReady = true;
-            });
-          }
+        onViewerReady: (document, controller) {
+          if (!mounted) return;
+          setState(() {
+            _totalPages = document.pages.length;
+            _isReady = true;
+            _currentPage = (controller.pageNumber ?? 1) - 1;
+          });
         },
-        onError: (error) {
-          if (mounted) {
-            setState(() {
-              _errorMessage = error.toString();
-            });
-          }
+        onPageChanged: (pageNumber) {
+          if (!mounted || pageNumber == null) return;
+          setState(() {
+            _currentPage = pageNumber - 1;
+          });
         },
-        onPageError: (page, error) {
-          if (mounted) {
-            setState(() {
-              _errorMessage = 'Page $page error: $error';
-            });
-          }
-        },
-        onPageChanged: (int? page, int? total) {
-          if (page != null && mounted) {
-            setState(() {
-              _currentPage = page;
-            });
-          }
-        },
-      );
-    } on MissingPluginException catch (_) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.picture_as_pdf_rounded,
-                size: 48, color: AppTheme.primaryColor),
-            const SizedBox(height: AppTheme.spacingMd),
-            Text(
-              widget.title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+      ),
+    );
   }
 
   Widget _buildWatermarkOverlay(String text) {
