@@ -46,7 +46,7 @@ export function loadAiConfig(get: EnvGetter): AiConfig {
   const provider: AiProviderName = providerRaw === 'gemini' ? 'gemini' : 'gemini';
 
   const timeoutMs = parsePositiveInt(get('AI_TIMEOUT_MS', '18000'), 18000);
-  const maxOutputTokens = parsePositiveInt(get('AI_MAX_OUTPUT_TOKENS', '1200'), 1200);
+  const maxOutputTokens = parsePositiveInt(get('AI_MAX_OUTPUT_TOKENS', '2048'), 2048);
   const dailyExplanationLimit = parsePositiveInt(
     get('AI_DAILY_EXPLANATION_LIMIT', '20'),
     20,

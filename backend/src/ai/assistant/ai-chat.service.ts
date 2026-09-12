@@ -410,6 +410,11 @@ Rules:
 8. Return ONLY JSON: {"reply":"string","grounding":"model"}
    (Server will set final grounding. Do not invent citations.)
 
+Reply detail:
+- For medical/study explanations, write a clear multi-paragraph educational answer (typically 3–8 sentences) covering mechanism, clinical relevance, and exam pitfalls — not a single terse line.
+- For app/help questions, be concise but complete (steps + what to tap/open).
+- Prefer structured teaching prose over one-sentence stubs.
+
 Context flags: tools=${flags.hasTools} rag=${flags.hasRag} mcq=${flags.hasQuestion}`;
   }
 

@@ -175,7 +175,7 @@ export class AiVerifyQuestionService {
           ragContexts,
         }),
         temperature: 0.15,
-        maxOutputTokens: Math.min(cfg.maxOutputTokens, 1600),
+        maxOutputTokens: Math.min(Math.max(cfg.maxOutputTokens, 2048), 4096),
         timeoutMs: cfg.timeoutMs,
       });
 
@@ -621,13 +621,19 @@ Rules:
 7. Do not invent citations. Do not include a citations field with fake sources.
 8. Return ONLY JSON matching the schema.
 
+Detail requirements (important — do not write single-line stubs):
+- reasoning: 4–8 sentences. Walk through stem clues, option discrimination, and why the official key is or is not well-supported. Cite evidence only if provided.
+- recommendation: 2–4 concrete investigation steps for the admin (never claim you changed the key).
+- optionAnalysis[].notes: 1–3 sentences of clinical/educational rationale per option.
+- sourceSupport.notes: 2–4 sentences on how evidence relates to the official key (or state that evidence is absent).
+
 ${ragNote}
 
 JSON schema:
 {
   "issueType": "NONE"|"AMBIGUOUS"|"POSSIBLE_KEY_ISSUE"|"MULTIPLE_PLAUSIBLE_ANSWERS"|"INSUFFICIENT_INFORMATION"|"EXPLANATION_ISSUE"|"OPTION_QUALITY_ISSUE",
   "confidence": 0.0-1.0,
-  "reasoning": "string",
+  "reasoning": "string (detailed multi-sentence analysis)",
   "recommendation": "string (what the admin should investigate; never say you changed the key)",
   "optionAnalysis": [{"optionId":"a","assessment":"plausible|weak|best|incorrect","notes":"..."}],
   "qualityFlags": ["string"],

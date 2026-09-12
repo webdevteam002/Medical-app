@@ -125,7 +125,8 @@ export class McqExplainService {
           ragContexts,
         }),
         temperature: 0.2,
-        maxOutputTokens: cfg.maxOutputTokens,
+        // Allow fuller multi-sentence explanations across all clients.
+        maxOutputTokens: Math.min(Math.max(cfg.maxOutputTokens, 2048), 4096),
         timeoutMs: cfg.timeoutMs,
       });
 
@@ -327,11 +328,19 @@ Authoritative rules:
 3. If you believe the official key may be medically questionable, still treat it as the scoring answer. Set questionQuality to potentially_incorrect or ambiguous and explain in questionConcern — do NOT tell the student the key was changed.
 4. Explain why the selected option is correct or incorrect relative to the official key.
 5. Explain why the official answer is correct.
-6. Briefly explain other options when educationally useful.
-7. Explain the underlying medical concept.
-8. Provide a concise exam takeaway.
+6. Explain other options when educationally useful (not one-liners).
+7. Explain the underlying medical concept in teaching depth.
+8. Provide a clear exam takeaway the student can reuse.
 9. Express uncertainty when appropriate. Prefer honesty over confident language.
 10. Return ONLY valid JSON matching the required schema.
+
+Detail requirements (important — do not write single-sentence stubs):
+- whyCorrect: 3–6 sentences. Cover mechanism/pathophysiology or key discriminating feature, why it fits the stem, and how it beats common traps.
+- whySelectedWrong: when not null, 2–4 sentences explaining the misconception and how to avoid it next time.
+- whyOtherOptions[].explanation: 2–3 sentences each when useful (why tempting, why wrong).
+- concept: 2–4 sentences of the core teaching point.
+- examTakeaway: 1–2 dense sentences a student can memorize for similar stems.
+- Prefer multi-sentence educational prose over terse labels.
 ${ragRules}
 
 Required JSON schema:
@@ -339,9 +348,9 @@ Required JSON schema:
   "officialAnswer": "string (option text)",
   "selectedAnswer": "string (option text)",
   "whySelectedWrong": "string or null — MUST be null if selected matches official",
-  "whyCorrect": "string",
-  "whyOtherOptions": [{"option":"string","explanation":"string"}],
-  "concept": "string",
+  "whyCorrect": "string (detailed multi-sentence reasoning)",
+  "whyOtherOptions": [{"option":"string","explanation":"string (multi-sentence when useful)"}],
+  "concept": "string (multi-sentence)",
   "examTakeaway": "string",
   "confidence": 0.0,
   "grounding": "key" | "model",
