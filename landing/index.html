@@ -301,8 +301,8 @@
                     <p class="text-slate-400">Yes! If you do 50 flashcards on your phone on the train, your desktop app will perfectly reflect that progress the moment you log in.</p>
                 </div>
                 <div class="glass-panel p-6 rounded-2xl border border-white/5" data-aos="fade-up" data-aos-delay="300">
-                    <h3 class="text-xl font-bold mb-2 flex items-center gap-2"><i data-lucide="help-circle" class="text-medical-400 w-5 h-5"></i> Why isn't there a Web version?</h3>
-                    <p class="text-slate-400">We take content security seriously. Native applications ensure our high-quality medical content cannot be easily pirated, which allows us to keep subscription costs incredibly low for you.</p>
+                    <h3 class="text-xl font-bold mb-2 flex items-center gap-2"><i data-lucide="help-circle" class="text-medical-400 w-5 h-5"></i> Is there a Web version?</h3>
+                    <p class="text-slate-400">Yes — a web client is available for testing. For the strongest content protection we still recommend the native apps for daily study.</p>
                 </div>
             </div>
         </div>
@@ -314,17 +314,18 @@
             <h2 class="text-3xl md:text-5xl font-bold mb-6" data-aos="fade-up">Ready to Ace Your Exams?</h2>
             <p class="text-slate-400 max-w-2xl mx-auto mb-16 text-lg" data-aos="fade-up" data-aos-delay="100">Download our highly-secure native application for your operating system.</p>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <p class="text-slate-500 text-sm mb-10" data-aos="fade-up">AI Assistant &amp; Ask AI are included in these builds (API: production). Reinstall after downloading so you get the latest AI client.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 <!-- Windows -->
                 <a href="MedStudy_Windows.zip" class="glass-panel p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all group flex flex-col items-center" data-aos="fade-up" data-aos-delay="100">
                     <i data-lucide="monitor" class="w-16 h-16 text-blue-400 mb-6 group-hover:scale-110 transition-transform"></i>
                     <h3 class="text-2xl font-bold mb-2">Windows</h3>
-                    <p class="text-slate-400 mb-6">Windows 10 or newer</p>
-                    <span class="px-6 py-2.5 rounded-full bg-blue-500/10 text-blue-400 font-semibold w-full group-hover:bg-blue-500 group-hover:text-white transition-colors">Download .exe</span>
+                    <p class="text-slate-400 mb-6">Windows 10 or newer · unzip &amp; run medstudy.exe</p>
+                    <span class="px-6 py-2.5 rounded-full bg-blue-500/10 text-blue-400 font-semibold w-full group-hover:bg-blue-500 group-hover:text-white transition-colors">Download .zip</span>
                 </a>
 
                 <!-- macOS -->
-                <a href="MedStudy_macOS.zip" class="glass-panel p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all group flex flex-col items-center" data-aos="fade-up" data-aos-delay="200">
+                <a href="MedStudy_macOS.zip" class="glass-panel p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all group flex flex-col items-center" data-aos="fade-up" data-aos-delay="150">
                     <svg class="w-16 h-16 text-white mb-6 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                     <h3 class="text-2xl font-bold mb-2">macOS</h3>
                     <p class="text-slate-400 mb-6">macOS 10.14 or newer</p>
@@ -332,12 +333,36 @@
                 </a>
 
                 <!-- Android -->
-                <a href="MedStudy_Android.apk" class="glass-panel p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all group flex flex-col items-center" data-aos="fade-up" data-aos-delay="300">
+                <a href="MedStudy_Android.apk" class="glass-panel p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all group flex flex-col items-center" data-aos="fade-up" data-aos-delay="200">
                     <i data-lucide="smartphone" class="w-16 h-16 text-green-400 mb-6 group-hover:scale-110 transition-transform"></i>
                     <h3 class="text-2xl font-bold mb-2">Android</h3>
                     <p class="text-slate-400 mb-6">Android 8.0 or newer</p>
                     <span class="px-6 py-2.5 rounded-full bg-green-500/10 text-green-400 font-semibold w-full group-hover:bg-green-500 group-hover:text-white transition-colors">Download .apk</span>
                 </a>
+
+                <!-- Linux -->
+                <a href="MedStudy_Linux.zip" class="glass-panel p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all group flex flex-col items-center" data-aos="fade-up" data-aos-delay="250">
+                    <i data-lucide="terminal" class="w-16 h-16 text-orange-400 mb-6 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-2xl font-bold mb-2">Linux</h3>
+                    <p class="text-slate-400 mb-6">x64 desktop · unzip &amp; run</p>
+                    <span class="px-6 py-2.5 rounded-full bg-orange-500/10 text-orange-400 font-semibold w-full group-hover:bg-orange-500 group-hover:text-white transition-colors">Download .zip</span>
+                </a>
+
+                <!-- Web -->
+                <a href="web/index.html" class="glass-panel p-10 rounded-3xl border border-white/5 hover:bg-white/5 transition-all group flex flex-col items-center" data-aos="fade-up" data-aos-delay="300">
+                    <i data-lucide="globe" class="w-16 h-16 text-cyan-400 mb-6 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-2xl font-bold mb-2">Web</h3>
+                    <p class="text-slate-400 mb-6">Browser client (AI enabled)</p>
+                    <span class="px-6 py-2.5 rounded-full bg-cyan-500/10 text-cyan-400 font-semibold w-full group-hover:bg-cyan-500 group-hover:text-white transition-colors">Open web app</span>
+                </a>
+
+                <!-- iOS note -->
+                <div class="glass-panel p-10 rounded-3xl border border-white/5 flex flex-col items-center text-center" data-aos="fade-up" data-aos-delay="350">
+                    <i data-lucide="smartphone" class="w-16 h-16 text-slate-400 mb-6"></i>
+                    <h3 class="text-2xl font-bold mb-2">iOS</h3>
+                    <p class="text-slate-400 mb-4">Requires Apple signing / TestFlight. Unsigned CI builds cannot be public-sideloaded.</p>
+                    <span class="px-6 py-2.5 rounded-full bg-slate-500/10 text-slate-400 font-semibold w-full">Coming via App Store / TestFlight</span>
+                </div>
             </div>
         </div>
     </section>

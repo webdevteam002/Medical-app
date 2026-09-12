@@ -1,0 +1,80 @@
+name: Multi-platform Client Builds
+
+on:
+  workflow_dispatch:
+
+env:
+  API_BASE_URL: http://92.5.56.120:3000/v1
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Install dependencies
+        working-directory: ./mobile
+        run: flutter pub get
+      - name: Build macOS
+        working-directory: ./mobile
+        run: flutter build macos --release --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
+      - name: Zip macOS
+        working-directory: ./mobile/build/macos/Build/Products/Release
+        run: zip -r MedStudy_macOS.zip MedStudy.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MedStudy_macOS
+          path: ./mobile/build/macos/Build/Products/Release/MedStudy_macOS.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Install Linux deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+      - name: Install dependencies
+        working-directory: ./mobile
+        run: flutter pub get
+      - name: Enable Linux desktop
+        working-directory: ./mobile
+        run: flutter config --enable-linux-desktop
+      - name: Build Linux
+        working-directory: ./mobile
+        run: flutter build linux --release --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
+      - name: Zip Linux
+        working-directory: ./mobile/build/linux/x64/release/bundle
+        run: zip -r MedStudy_Linux.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MedStudy_Linux
+          path: ./mobile/build/linux/x64/release/bundle/MedStudy_Linux.zip
+
+  # iOS unsigned archive for TestFlight/signing on a Mac with Apple credentials.
+  # A public sideload IPA is not produced without signing secrets.
+  build-ios-unsigned:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Install dependencies
+        working-directory: ./mobile
+        run: flutter pub get
+      - name: Build iOS (no codesign)
+        working-directory: ./mobile
+        run: flutter build ios --release --no-codesign --dart-define=API_BASE_URL=${{ env.API_BASE_URL }}
+      - name: Zip iOS Runner.app
+        working-directory: ./mobile/build/ios/iphoneos
+        run: zip -r MedStudy_iOS_unsigned.zip Runner.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MedStudy_iOS_unsigned
+          path: ./mobile/build/ios/iphoneos/MedStudy_iOS_unsigned.zip
