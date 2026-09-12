@@ -109,18 +109,11 @@ ExamAttemptReviewModel _review({
   );
 }
 
-Future<void> _tapAskAi(WidgetTester tester) async {
-  final button = find.byKey(const Key('ask_ai_explain_button'));
-  await tester.ensureVisible(button);
-  await tester.pumpAndSettle();
-  await tester.tap(button);
-  await tester.pump();
-}
-
 Widget _panel({
   required _FakeAiRemote fake,
   bool isCorrect = false,
   String? selectedOptionId = 'b',
+  VoidCallback? onAskAboutQuestion,
 }) {
   return MaterialApp(
     home: Scaffold(
@@ -135,6 +128,7 @@ Widget _panel({
           correctOptionText: 'Femoral artery',
           isCorrect: isCorrect,
           aiRemoteDataSource: fake,
+          onAskAboutQuestion: onAskAboutQuestion,
         ),
       ),
     ),
@@ -142,40 +136,47 @@ Widget _panel({
 }
 
 void main() {
-  testWidgets('AI action renders on exam review', (tester) async {
+  testWidgets('AI auto-loads on exam review and shows ask follow-up',
+      (tester) async {
+    final fake = _FakeAiRemote(
+      response: _sample(),
+      delay: const Duration(milliseconds: 40),
+    );
     await tester.pumpWidget(
       MaterialApp(
         home: ExamReviewPage(
           attemptId: 'att_ai',
           initialReview: _review(),
-          aiRemoteDataSource: _FakeAiRemote(response: _sample()),
+          aiRemoteDataSource: fake,
         ),
       ),
     );
 
-    await tester.ensureVisible(find.byKey(const Key('ask_ai_explain_button')));
+    await tester.pump(); // post-frame callback schedules request
+    await tester.pump(); // loading UI
+    expect(find.byKey(const Key('ai_explain_loading')), findsOneWidget);
     await tester.pumpAndSettle();
-    expect(find.text('Ask AI to Explain'), findsOneWidget);
-    expect(find.byKey(const Key('ask_ai_explain_button')), findsOneWidget);
+
+    expect(find.byKey(const Key('ai_explain_result')), findsOneWidget);
+    expect(find.text('Ask about this question'), findsOneWidget);
+    expect(
+      find.byKey(const Key('ask_ai_about_question_button')),
+      findsOneWidget,
+    );
+    expect(find.text('Ask AI to Explain'), findsNothing);
+    expect(fake.callCount, 1);
   });
 
-  testWidgets('loading and successful incorrect explanation', (tester) async {
+  testWidgets('loading and successful incorrect explanation auto-loads',
+      (tester) async {
     final fake = _FakeAiRemote(
       response: _sample(),
       delay: const Duration(milliseconds: 50),
     );
 
     await tester.pumpWidget(_panel(fake: fake));
-
-    await _tapAskAi(tester);
+    await tester.pump();
     expect(find.byKey(const Key('ai_explain_loading')), findsOneWidget);
-    expect(
-      tester
-          .widget<ElevatedButton>(
-              find.byKey(const Key('ask_ai_explain_button')))
-          .onPressed,
-      isNull,
-    );
 
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('ai_explain_result')), findsOneWidget);
@@ -192,12 +193,29 @@ void main() {
     expect(fake.lastSelectedOptionId, 'b');
   });
 
+  testWidgets('ask about this question invokes callback', (tester) async {
+    var tapped = false;
+    final fake = _FakeAiRemote(response: _sample());
+    await tester.pumpWidget(
+      _panel(
+        fake: fake,
+        onAskAboutQuestion: () => tapped = true,
+      ),
+    );
+    await tester.pumpAndSettle();
+    final askButton = find.byKey(const Key('ask_ai_about_question_button'));
+    await tester.ensureVisible(askButton);
+    await tester.pumpAndSettle();
+    await tester.tap(askButton);
+    await tester.pump();
+    expect(tapped, isTrue);
+  });
+
   testWidgets('no Sources section when citations empty', (tester) async {
     final fake = _FakeAiRemote(
       response: _sample(citations: const [], grounding: 'model'),
     );
     await tester.pumpWidget(_panel(fake: fake));
-    await _tapAskAi(tester);
     await tester.pumpAndSettle();
     expect(find.text('Sources'), findsNothing);
     expect(find.textContaining('Grounding: model'), findsOneWidget);
@@ -218,7 +236,6 @@ void main() {
       ),
     );
     await tester.pumpWidget(_panel(fake: fake));
-    await _tapAskAi(tester);
     await tester.pumpAndSettle();
     expect(find.textContaining('Pharmacology Notes'), findsOneWidget);
     expect(find.textContaining('Page '), findsNothing);
@@ -234,7 +251,6 @@ void main() {
       _panel(fake: fake, isCorrect: true, selectedOptionId: 'a'),
     );
 
-    await _tapAskAi(tester);
     await tester.pumpAndSettle();
 
     expect(find.text('Why Your Answer Is Correct'), findsOneWidget);
@@ -250,7 +266,6 @@ void main() {
     );
 
     await tester.pumpWidget(_panel(fake: fake));
-    await _tapAskAi(tester);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('ai_explain_error')), findsOneWidget);
@@ -270,7 +285,6 @@ void main() {
     );
 
     await tester.pumpWidget(_panel(fake: fake));
-    await _tapAskAi(tester);
     await tester.pumpAndSettle();
 
     expect(
@@ -289,22 +303,19 @@ void main() {
     );
 
     await tester.pumpWidget(_panel(fake: fake));
-    await _tapAskAi(tester);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('ai_explain_retry')), findsOneWidget);
   });
 
-  testWidgets('duplicate request prevention while loading', (tester) async {
+  testWidgets('duplicate auto-request prevention while loading',
+      (tester) async {
     final fake = _FakeAiRemote(
       response: _sample(),
       delay: const Duration(milliseconds: 200),
     );
 
     await tester.pumpWidget(_panel(fake: fake));
-
-    await _tapAskAi(tester);
-    await tester.tap(find.byKey(const Key('ask_ai_explain_button')));
     await tester.pump();
     expect(fake.callCount, 1);
     await tester.pumpAndSettle();
@@ -320,7 +331,6 @@ void main() {
     );
 
     await tester.pumpWidget(_panel(fake: fake));
-    await _tapAskAi(tester);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('ai_quality_warning')), findsOneWidget);

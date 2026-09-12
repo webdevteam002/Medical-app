@@ -179,6 +179,30 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                 controller: _scrollController,
                 padding: const EdgeInsets.all(AppTheme.spacingLg),
                 children: [
+                  if (widget.initialQuestionId != null &&
+                      widget.initialQuestionId!.isNotEmpty) ...[
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+                      padding: const EdgeInsets.all(AppTheme.spacingMd),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.06),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusSm),
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: const Text(
+                        'This chat is linked to the question you were reviewing. Ask anything about that MCQ.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.35,
+                          color: AppTheme.textPrimaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
                   _IntroCard(onSuggestion: _loading ? null : _send),
                   const SizedBox(height: AppTheme.spacingMd),
                   ..._messages.map(

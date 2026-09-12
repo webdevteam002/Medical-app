@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/datasources/ai_remote_datasource.dart';
 import '../../data/models/explain_mcq_response.dart';
 import 'ai_sources_section.dart';
 
-/// Student MCQ AI panel for exam review (AI-3). Explicit request only.
+/// Student MCQ AI panel for exam review (AI-3).
+/// Auto-loads the structured explanation when an answer is selected;
+/// keeps an explicit action to ask follow-up questions about the MCQ.
 class McqAiExplainPanel extends StatefulWidget {
   final String questionId;
   final String? selectedOptionId;
@@ -15,6 +18,9 @@ class McqAiExplainPanel extends StatefulWidget {
   final String correctOptionText;
   final bool isCorrect;
   final AiRemoteDataSource? aiRemoteDataSource;
+
+  /// Optional override for tests / hosts without GoRouter.
+  final VoidCallback? onAskAboutQuestion;
 
   const McqAiExplainPanel({
     super.key,
@@ -26,6 +32,7 @@ class McqAiExplainPanel extends StatefulWidget {
     required this.correctOptionText,
     required this.isCorrect,
     this.aiRemoteDataSource,
+    this.onAskAboutQuestion,
   });
 
   @override
@@ -43,6 +50,9 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
   void initState() {
     super.initState();
     _ai = widget.aiRemoteDataSource ?? AiRemoteDataSource();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _requestExplain();
+    });
   }
 
   @override
@@ -56,6 +66,9 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
         _errorCode = null;
         _result = null;
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _requestExplain();
+      });
     }
   }
 
@@ -67,6 +80,7 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
         _error =
             'Select an answer during the exam to request an AI explanation.';
         _errorCode = 'NO_SELECTION';
+        _result = null;
       });
       return;
     }
@@ -112,10 +126,21 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
   }
 
   bool get _canRetry {
-    if (_errorCode == 'AI_DISABLED' || _errorCode == 'AI_QUOTA_EXCEEDED') {
+    if (_errorCode == 'AI_DISABLED' ||
+        _errorCode == 'AI_QUOTA_EXCEEDED' ||
+        _errorCode == 'NO_SELECTION') {
       return false;
     }
     return _error != null;
+  }
+
+  void _openAskAboutQuestion() {
+    if (widget.onAskAboutQuestion != null) {
+      widget.onAskAboutQuestion!();
+      return;
+    }
+    final q = Uri.encodeQueryComponent(widget.questionId);
+    context.push('/ai-assistant?questionId=$q');
   }
 
   @override
@@ -147,42 +172,26 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
               ),
             ],
           ),
-          const SizedBox(height: AppTheme.spacingSm),
-          if (_result == null) ...[
-            Text(
-              unanswered
-                  ? 'AI explanation is available after you select an answer.'
-                  : 'Get a structured explanation of this MCQ.',
-              style: const TextStyle(
+          if (unanswered) ...[
+            const SizedBox(height: AppTheme.spacingSm),
+            const Text(
+              'AI explanation is available after you select an answer.',
+              style: TextStyle(
                 fontSize: 13,
                 color: AppTheme.textSecondaryColor,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingMd),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                key: const Key('ask_ai_explain_button'),
-                onPressed: (_loading || unanswered) ? null : _requestExplain,
-                icon: _loading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.psychology_alt_rounded),
-                label: Text(_loading ? 'Asking AI…' : 'Ask AI to Explain'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor:
-                      AppTheme.primaryColor.withValues(alpha: 0.4),
-                ),
               ),
             ),
           ],
           if (_loading && _result == null) ...[
             const SizedBox(height: AppTheme.spacingMd),
+            const Text(
+              'Generating AI explanation…',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppTheme.textSecondaryColor,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingSm),
             const LinearProgressIndicator(key: Key('ai_explain_loading')),
           ],
           if (_error != null) ...[
@@ -202,13 +211,24 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
               correctLabel: widget.correctOptionLabel,
               correctText: widget.correctOptionText,
               isCorrect: widget.isCorrect,
-              onAskAgain: _loading
-                  ? null
-                  : () {
-                      setState(() => _result = null);
-                      _requestExplain();
-                    },
+              onRefresh: _loading ? null : _requestExplain,
               loading: _loading,
+            ),
+          ],
+          if (!unanswered) ...[
+            const SizedBox(height: AppTheme.spacingMd),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                key: const Key('ask_ai_about_question_button'),
+                onPressed: _openAskAboutQuestion,
+                icon: const Icon(Icons.chat_bubble_outline_rounded),
+                label: const Text('Ask about this question'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primaryColor,
+                  side: const BorderSide(color: AppTheme.primaryColor),
+                ),
+              ),
             ),
           ],
         ],
@@ -272,7 +292,7 @@ class _ExplanationBody extends StatelessWidget {
   final String correctLabel;
   final String correctText;
   final bool isCorrect;
-  final VoidCallback? onAskAgain;
+  final VoidCallback? onRefresh;
   final bool loading;
 
   const _ExplanationBody({
@@ -282,7 +302,7 @@ class _ExplanationBody extends StatelessWidget {
     required this.correctLabel,
     required this.correctText,
     required this.isCorrect,
-    required this.onAskAgain,
+    required this.onRefresh,
     required this.loading,
   });
 
@@ -380,8 +400,8 @@ class _ExplanationBody extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: TextButton(
             key: const Key('ai_explain_again'),
-            onPressed: onAskAgain,
-            child: Text(loading ? 'Refreshing…' : 'Ask again'),
+            onPressed: onRefresh,
+            child: Text(loading ? 'Refreshing…' : 'Refresh explanation'),
           ),
         ),
       ],
