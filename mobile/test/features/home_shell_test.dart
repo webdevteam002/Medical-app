@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medstudy/core/storage/secure_storage_service.dart';
+import 'package:medstudy/core/theme/app_theme.dart';
+
 import 'package:medstudy/features/exams/data/datasources/exams_remote_datasource.dart';
 import 'package:medstudy/features/exams/data/models/exam_model.dart';
 import 'package:medstudy/features/home/presentation/pages/home_page.dart';
@@ -62,9 +64,19 @@ void main() {
     );
   }
 
-  group('Day 12 Home Shell Widget Tests', () {
-    testWidgets('1. Renders Home Shell with Study destination by default',
+  void setScreenSize(WidgetTester tester, Size size) {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+  }
+
+  group('Day 12 & Desktop Task 1 Home Shell Widget Tests', () {
+    testWidgets('1. Mobile layout (<600px) renders bottom NavigationBar',
         (WidgetTester tester) async {
+      setScreenSize(tester, const Size(400, 800));
       final fakeStudyDs = FakeStudyRemoteDataSource();
       final fakeExamsDs = FakeExamsRemoteDataSource();
       await tester.pumpWidget(createWidgetUnderTest(
@@ -80,13 +92,13 @@ void main() {
       expect(find.text('MedStudy'), findsOneWidget);
       expect(find.text('Study Library'), findsOneWidget);
       expect(find.text('First Year MBBS'), findsOneWidget);
-      expect(find.text('Study'), findsOneWidget);
-      expect(find.text('Exams'), findsOneWidget);
-      expect(find.text('Profile'), findsOneWidget);
+      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.byType(NavigationRail), findsNothing);
     });
 
-    testWidgets('2. NavigationBar switches to Exams destination',
+    testWidgets('2. NavigationBar switches to Exams destination on mobile',
         (WidgetTester tester) async {
+      setScreenSize(tester, const Size(400, 800));
       final fakeStudyDs = FakeStudyRemoteDataSource();
       final fakeExamsDs = FakeExamsRemoteDataSource();
       await tester.pumpWidget(createWidgetUnderTest(
@@ -99,15 +111,20 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Exams'));
+      final examsNavDest = find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.byIcon(Icons.assignment_outlined),
+      );
+      await tester.tap(examsNavDest);
       await tester.pumpAndSettle();
 
       expect(find.text('QBank & Exams'), findsOneWidget);
       expect(find.text('Anatomy Midterm Mock Exam 2026'), findsOneWidget);
     });
 
-    testWidgets('3. NavigationBar switches to Profile destination',
+    testWidgets('3. NavigationBar switches to Profile destination on mobile',
         (WidgetTester tester) async {
+      setScreenSize(tester, const Size(400, 800));
       final fakeStudyDs = FakeStudyRemoteDataSource();
       final fakeExamsDs = FakeExamsRemoteDataSource();
       await tester.pumpWidget(createWidgetUnderTest(
@@ -120,12 +137,102 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Profile'));
+      final profileNavDest = find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.byIcon(Icons.person_outline),
+      );
+      await tester.tap(profileNavDest);
       await tester.pumpAndSettle();
 
       expect(find.text('Student Profile'), findsOneWidget);
       expect(find.text('Medical Student'), findsOneWidget);
       expect(find.text('Sign Out'), findsOneWidget);
+    });
+
+    testWidgets(
+        '4. Desktop layout (>=600px) renders NavigationRail and hides NavigationBar',
+        (WidgetTester tester) async {
+      setScreenSize(tester, const Size(1024, 768));
+      final fakeStudyDs = FakeStudyRemoteDataSource();
+      final fakeExamsDs = FakeExamsRemoteDataSource();
+      await tester.pumpWidget(createWidgetUnderTest(
+        HomePage(
+          studyRemoteDataSource: fakeStudyDs,
+          examsRemoteDataSource: fakeExamsDs,
+        ),
+      ));
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NavigationRail), findsOneWidget);
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.text('Study Library'), findsOneWidget);
+    });
+
+    testWidgets('5. NavigationRail switches destinations on desktop',
+        (WidgetTester tester) async {
+      setScreenSize(tester, const Size(1280, 800));
+      final fakeStudyDs = FakeStudyRemoteDataSource();
+      final fakeExamsDs = FakeExamsRemoteDataSource();
+      await tester.pumpWidget(createWidgetUnderTest(
+        HomePage(
+          studyRemoteDataSource: fakeStudyDs,
+          examsRemoteDataSource: fakeExamsDs,
+        ),
+      ));
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      final examsRailDest = find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.byIcon(Icons.assignment_outlined),
+      );
+      await tester.tap(examsRailDest);
+      await tester.pumpAndSettle();
+
+      expect(find.text('QBank & Exams'), findsOneWidget);
+
+      final profileRailDest = find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.byIcon(Icons.person_outline),
+      );
+      await tester.tap(profileRailDest);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Student Profile'), findsOneWidget);
+    });
+
+    testWidgets(
+        '6. Desktop Task 4: NavigationRail renders styled labels and Profile renders Subscriptions card',
+        (WidgetTester tester) async {
+      setScreenSize(tester, const Size(1280, 800));
+      final fakeStudyDs = FakeStudyRemoteDataSource();
+      final fakeExamsDs = FakeExamsRemoteDataSource();
+      await tester.pumpWidget(createWidgetUnderTest(
+        HomePage(
+          studyRemoteDataSource: fakeStudyDs,
+          examsRemoteDataSource: fakeExamsDs,
+        ),
+      ));
+
+      await tester.pumpAndSettle();
+
+      final navRail =
+          tester.widget<NavigationRail>(find.byType(NavigationRail));
+      expect(navRail.selectedIndex, equals(0));
+      expect(
+          navRail.selectedLabelTextStyle?.color, equals(AppTheme.primaryColor));
+
+      final profileRailDest = find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.byIcon(Icons.person_outline),
+      );
+      await tester.tap(profileRailDest);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Subscriptions & Access'), findsOneWidget);
     });
   });
 }

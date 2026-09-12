@@ -80,19 +80,21 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'QBank & Exams',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: AppTheme.spacingXs),
-                    Text(
-                      'Medical exam preparation & self-assessment portal',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'QBank & Exams',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: AppTheme.spacingXs),
+                      Text(
+                        'Medical exam preparation & self-assessment portal',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
                 ),
                 IconButton(
                   onPressed: () => context.push('/exams/history'),
@@ -203,6 +205,12 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
               side: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
             child: ListTile(
+              hoverColor: AppTheme.primaryColor.withValues(alpha: 0.05),
+              focusColor: AppTheme.primaryColor.withValues(alpha: 0.10),
+              mouseCursor: SystemMouseCursors.click,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+              ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: AppTheme.spacingLg,
                 vertical: AppTheme.spacingSm,

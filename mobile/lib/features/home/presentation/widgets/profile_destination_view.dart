@@ -104,12 +104,15 @@ class ProfileDestinationView extends StatelessWidget {
                                   color: AppTheme.textSecondaryColor,
                                 ),
                               ),
-                              Text(
-                                '${AppConstants.appName} v${AppConstants.appVersion}',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.textPrimaryColor,
+                              Flexible(
+                                child: Text(
+                                  '${AppConstants.appName} v${AppConstants.appVersion}',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textPrimaryColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -117,7 +120,50 @@ class ProfileDestinationView extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: AppTheme.spacingXl),
+                    const SizedBox(height: AppTheme.spacingMd),
+                    Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusMd),
+                        side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      child: ListTile(
+                        hoverColor:
+                            AppTheme.primaryColor.withValues(alpha: 0.05),
+                        focusColor:
+                            AppTheme.primaryColor.withValues(alpha: 0.10),
+                        mouseCursor: SystemMouseCursors.click,
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadiusMd),
+                        ),
+                        leading: const CircleAvatar(
+                          backgroundColor: Color(0xFFE0F2FE),
+                          child: Icon(Icons.star_rounded,
+                              color: AppTheme.primaryColor),
+                        ),
+                        title: const Text(
+                          'Subscriptions & Access',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimaryColor,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'View plan status and unlock academic modules',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.chevron_right_rounded,
+                            color: AppTheme.textSecondaryColor),
+                        onTap: () => context.push('/subscriptions'),
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingLg),
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
@@ -133,6 +179,7 @@ class ProfileDestinationView extends StatelessWidget {
                         ),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Colors.redAccent),
+                          overlayColor: Colors.redAccent.withValues(alpha: 0.1),
                           padding: const EdgeInsets.symmetric(
                             vertical: AppTheme.spacingMd,
                           ),

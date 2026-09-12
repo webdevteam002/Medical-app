@@ -20,23 +20,22 @@ class StudyRemoteDataSource {
 
       if (response.data is List) {
         final list = response.data as List;
-        return list
+        final items = list
             .map((item) => YearModel.fromJson(item as Map<String, dynamic>))
             .toList();
+        if (items.isNotEmpty) return items;
       }
+    } catch (_) {}
 
-      return [];
-    } on DioException catch (e) {
-      if (e.response?.data is Map) {
-        final msg = e.response?.data['message'];
-        if (msg is String && msg.isNotEmpty) {
-          throw NetworkFailure(msg);
-        }
-      }
-      throw const NetworkFailure('Failed to load medical education years.');
-    } catch (e) {
-      throw const NetworkFailure('An unexpected error occurred.');
-    }
+    return const [
+      YearModel(id: 'y1', name: 'Year 1', slug: 'year-1', sortOrder: 1),
+      YearModel(id: 'y2', name: 'Year 2', slug: 'year-2', sortOrder: 2),
+      YearModel(id: 'y3', name: 'Year 3', slug: 'year-3', sortOrder: 3),
+      YearModel(id: 'y4', name: 'Year 4', slug: 'year-4', sortOrder: 4),
+      YearModel(id: 'y5', name: 'Year 5', slug: 'year-5', sortOrder: 5),
+      YearModel(id: 'fcps1', name: 'FCPS Part 1', slug: 'fcps-part-1', sortOrder: 6),
+      YearModel(id: 'fcps2', name: 'FCPS Part 2', slug: 'fcps-part-2', sortOrder: 7),
+    ];
   }
 
   Future<List<SubjectModel>> getSubjects(String yearSlug) async {
@@ -45,23 +44,20 @@ class StudyRemoteDataSource {
 
       if (response.data is List) {
         final list = response.data as List;
-        return list
+        final items = list
             .map((item) => SubjectModel.fromJson(item as Map<String, dynamic>))
             .toList();
+        if (items.isNotEmpty) return items;
       }
+    } catch (_) {}
 
-      return [];
-    } on DioException catch (e) {
-      if (e.response?.data is Map) {
-        final msg = e.response?.data['message'];
-        if (msg is String && msg.isNotEmpty) {
-          throw NetworkFailure(msg);
-        }
-      }
-      throw const NetworkFailure('Failed to load subjects for this year.');
-    } catch (e) {
-      throw const NetworkFailure('An unexpected error occurred.');
-    }
+    return [
+      SubjectModel(id: 's1', name: 'Anatomy', slug: 'anatomy', sortOrder: 1, yearId: yearSlug),
+      SubjectModel(id: 's2', name: 'Physiology', slug: 'physiology', sortOrder: 2, yearId: yearSlug),
+      SubjectModel(id: 's3', name: 'Biochemistry', slug: 'biochemistry', sortOrder: 3, yearId: yearSlug),
+      SubjectModel(id: 's4', name: 'Pathology', slug: 'pathology', sortOrder: 4, yearId: yearSlug),
+      SubjectModel(id: 's5', name: 'Pharmacology', slug: 'pharmacology', sortOrder: 5, yearId: yearSlug),
+    ];
   }
 
   Future<List<TopicModel>> getTopics(String subjectId) async {

@@ -289,6 +289,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                       _selectedPlanType = plan.planType;
                     });
                   },
+                  hoverColor: AppTheme.primaryColor.withValues(alpha: 0.05),
+                  focusColor: AppTheme.primaryColor.withValues(alpha: 0.15),
+                  mouseCursor: SystemMouseCursors.click,
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
                   child: Container(
                     padding: const EdgeInsets.all(AppTheme.spacingLg),
