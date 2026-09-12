@@ -129,7 +129,13 @@ export class ContentService {
 
     const port = this.config.get<number>('PORT', 3000);
     const prefix = this.config.get<string>('API_PREFIX', 'v1');
-    const url = `http://localhost:${port}/${prefix}/materials/${materialId}/stream`;
+    const publicBase = this.config
+      .get<string>('PUBLIC_API_BASE_URL')
+      ?.trim()
+      .replace(/\/$/, '');
+    const url = publicBase
+      ? `${publicBase}/${prefix}/materials/${materialId}/stream`
+      : `http://localhost:${port}/${prefix}/materials/${materialId}/stream`;
 
     return { url, expiresAt, watermark };
   }
