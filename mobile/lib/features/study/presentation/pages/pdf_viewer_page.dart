@@ -1,7 +1,12 @@
 import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '../../../../core/network/api_client.dart';
 import '../../../../core/security/security_service.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -28,10 +33,19 @@ class PdfViewerPage extends StatefulWidget {
 class _PdfViewerPageState extends State<PdfViewerPage> {
   late final SecurityService _securityService;
   late final String _formattedWatermark;
+
+  String? _localPdfPath;
+  bool _isLoadingFile = true;
   int _totalPages = 0;
   int _currentPage = 0;
   bool _isReady = false;
   String _errorMessage = '';
+  bool _openedExternally = false;
+
+  bool get _isDesktop {
+    if (kIsWeb) return false;
+    return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  }
 
   @override
   void initState() {
@@ -41,12 +55,85 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       backendWatermark: widget.watermarkText,
     );
     _securityService.enableSecureScreen();
+    if (!widget.isTestMode) {
+      _prepareLocalPdf();
+    } else {
+      _isLoadingFile = false;
+    }
+  }
+
+  Future<void> _prepareLocalPdf() async {
+    try {
+      if (!widget.pdfUrl.startsWith('http')) {
+        if (mounted) {
+          setState(() {
+            _localPdfPath = widget.pdfUrl;
+            _isLoadingFile = false;
+          });
+        }
+        return;
+      }
+
+      final dir = await getTemporaryDirectory();
+      final path =
+          '${dir.path}${Platform.pathSeparator}medstudy_${DateTime.now().millisecondsSinceEpoch}.pdf';
+
+      await ApiClient().client.download(widget.pdfUrl, path);
+
+      if (mounted) {
+        setState(() {
+          _localPdfPath = path;
+          _isLoadingFile = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _errorMessage =
+              'Unable to load PDF. Check that the API is running and you are signed in.';
+          _isLoadingFile = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _openWithSystemViewer() async {
+    final path = _localPdfPath;
+    if (path == null || path.isEmpty) return;
+    try {
+      if (Platform.isWindows) {
+        await Process.start('cmd', ['/c', 'start', '', path], runInShell: false);
+      } else if (Platform.isMacOS) {
+        await Process.start('open', [path]);
+      } else {
+        await Process.start('xdg-open', [path]);
+      }
+      if (mounted) {
+        setState(() => _openedExternally = true);
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open system PDF viewer.')),
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
     _securityService.disableSecureScreen();
-    if (!widget.pdfUrl.startsWith('http') && widget.pdfUrl.isNotEmpty) {
+    final path = _localPdfPath;
+    if (path != null &&
+        path.isNotEmpty &&
+        (widget.pdfUrl.startsWith('http') || path != widget.pdfUrl)) {
+      try {
+        final file = File(path);
+        if (file.existsSync()) {
+          file.deleteSync();
+        }
+      } catch (_) {}
+    } else if (!widget.pdfUrl.startsWith('http') && widget.pdfUrl.isNotEmpty) {
       try {
         final file = File(widget.pdfUrl);
         if (file.existsSync()) {
@@ -112,6 +199,19 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       );
     }
 
+    if (_isLoadingFile) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: AppTheme.spacingMd),
+            Text('Loading PDF…'),
+          ],
+        ),
+      );
+    }
+
     if (_errorMessage.isNotEmpty) {
       return Center(
         child: Padding(
@@ -134,9 +234,56 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       );
     }
 
+    final path = _localPdfPath;
+    if (path == null || path.isEmpty) {
+      return const Center(child: Text('PDF file not found.'));
+    }
+
+    // Desktop: flutter_pdfview is unsupported — open with the OS PDF app.
+    if (_isDesktop) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spacingLg),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.picture_as_pdf_rounded,
+                  size: 64, color: AppTheme.primaryColor),
+              const SizedBox(height: AppTheme.spacingMd),
+              Text(
+                widget.title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimaryColor,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingSm),
+              const Text(
+                'In-app PDF preview is not available on Windows desktop.\nOpen the file in your system PDF viewer.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.textSecondaryColor),
+              ),
+              const SizedBox(height: AppTheme.spacingLg),
+              ElevatedButton.icon(
+                onPressed: _openWithSystemViewer,
+                icon: const Icon(Icons.open_in_new),
+                label: Text(_openedExternally ? 'Open again' : 'Open PDF'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     try {
       return PDFView(
-        filePath: widget.pdfUrl.startsWith('http') ? null : widget.pdfUrl,
+        filePath: path,
         enableSwipe: true,
         swipeHorizontal: false,
         autoSpacing: true,

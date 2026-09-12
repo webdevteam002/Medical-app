@@ -92,7 +92,8 @@ async function main() {
             { id: 'd', text: 'Temporal bone' },
           ],
           correctOptionId: 'a',
-          explanation: 'The frontal bone forms the forehead and superior part of the orbit.',
+          explanation:
+            'Correct answer: Frontal bone. The frontal bone forms the forehead and the superior rim/roof of the orbit. Parietal bones form the sides and roof of the cranial vault behind the frontal bone, so they are not the forehead. Occipital bone forms the posterior skull and surrounds the foramen magnum, far from the forehead. Temporal bones form the lateral skull around the ear and house middle/inner ear structures, not the forehead.',
         },
         {
           stem: 'The largest artery in the body is the:',
@@ -103,7 +104,8 @@ async function main() {
             { id: 'd', text: 'Femoral artery' },
           ],
           correctOptionId: 'b',
-          explanation: 'The aorta is the largest artery, carrying oxygenated blood from the left ventricle.',
+          explanation:
+            'Correct answer: Aorta. The aorta is the largest artery in the body and arises from the left ventricle to distribute oxygenated blood to the systemic circulation. The pulmonary artery is large but carries deoxygenated blood from the right ventricle to the lungs and is not the systemic “largest artery” answer. Carotid arteries supply the head and neck and are major vessels, but much smaller than the aorta. The femoral artery is the main artery of the thigh and again far smaller in caliber than the aorta.',
         },
         {
           stem: 'Which muscle is primarily responsible for abduction of the arm at the shoulder?',
@@ -114,7 +116,8 @@ async function main() {
             { id: 'd', text: 'Trapezius' },
           ],
           correctOptionId: 'a',
-          explanation: 'The deltoid (especially middle fibers) is the primary abductor of the arm.',
+          explanation:
+            'Correct answer: Deltoid. The middle fibers of deltoid are the primary abductors of the arm at the shoulder (especially after the first ~15°, which is initiated by supraspinatus). Pectoralis major adducts and medially rotates the arm, so it is not an abductor. Latissimus dorsi extends, adducts and internally rotates the humerus — a common wrong choice, but opposite to abduction. Trapezius mainly moves and stabilizes the scapula; it does not primarily abduct the humerus at the glenohumeral joint.',
         },
       ];
 
@@ -124,6 +127,15 @@ async function main() {
           where: { subjectId: anatomy.id, stem: q.stem },
         });
         if (existing) {
+          await prisma.question.update({
+            where: { id: existing.id },
+            data: {
+              explanation: q.explanation,
+              options: q.options,
+              correctOptionId: q.correctOptionId,
+              isPublished: true,
+            },
+          });
           questionIds.push(existing.id);
         } else {
           const created = await prisma.question.create({

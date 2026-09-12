@@ -29,14 +29,15 @@ export class CreateQuestionDto {
   @IsArray()
   options!: { id: string; text: string }[];
 
-  @ApiProperty({ example: 'a' })
+  @ApiProperty({ example: 'a', description: 'Optional when EXAM_GRADING_MODE=ai (Gemini grades on submit)' })
+  @IsOptional()
   @IsString()
-  correctOptionId!: string;
+  correctOptionId?: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Optional when EXAM_GRADING_MODE=ai' })
+  @IsOptional()
   @IsString()
-  @MinLength(10)
-  explanation!: string;
+  explanation?: string;
 
   @ApiPropertyOptional({ enum: Difficulty })
   @IsOptional()

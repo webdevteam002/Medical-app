@@ -4,8 +4,10 @@ import {
   ForbiddenException,
   BadRequestException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { AttemptStatus, Difficulty, UserRole } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { JwtPayloadUser } from '../common/decorators/current-user.decorator';
@@ -16,14 +18,19 @@ import {
   UpdateExamDto,
   UpdateQuestionDto,
 } from './dto/exams.dto';
+import { GeminiGradingService } from './gemini-grading.service';
 
 type QuestionOption = { id: string; text: string };
 
 @Injectable()
 export class ExamsService {
+  private readonly logger = new Logger(ExamsService.name);
+
   constructor(
     private prisma: PrismaService,
     private subscriptions: SubscriptionsService,
+    private geminiGrading: GeminiGradingService,
+    private config: ConfigService,
   ) {}
 
   // ─── Student ───────────────────────────────────────────────
@@ -65,16 +72,6 @@ export class ExamsService {
     const exam = await this.getPublishedExam(examId);
     await this.assertSubjectAccess(user, exam.subjectId);
 
-    const existing = await this.prisma.examAttempt.findFirst({
-      where: { userId: user.sub, examId, status: AttemptStatus.IN_PROGRESS },
-    });
-    if (existing) {
-      throw new ConflictException({
-        code: 'ATTEMPT_IN_PROGRESS',
-        message: 'You already have an active attempt for this exam',
-      });
-    }
-
     const examQuestions = await this.prisma.examQuestion.findMany({
       where: { examId },
       include: { question: true },
@@ -83,6 +80,29 @@ export class ExamsService {
 
     if (!examQuestions.length) {
       throw new BadRequestException({ code: 'NO_QUESTIONS', message: 'Exam has no questions' });
+    }
+
+    const existing = await this.prisma.examAttempt.findFirst({
+      where: { userId: user.sub, examId, status: AttemptStatus.IN_PROGRESS },
+    });
+
+    // Resume in-progress attempts so a failed submit never permanently locks the exam.
+    if (existing) {
+      const elapsedMs = Date.now() - existing.startedAt.getTime();
+      const maxMs = exam.durationMinutes * 60 * 1000 + 60000;
+      if (elapsedMs > maxMs) {
+        await this.prisma.examAttempt.update({
+          where: { id: existing.id },
+          data: { status: AttemptStatus.ABANDONED, completedAt: new Date() },
+        });
+      } else {
+        return {
+          attemptId: existing.id,
+          durationMinutes: exam.durationMinutes,
+          startedAt: existing.startedAt,
+          questions: examQuestions.map((eq) => this.toClientQuestion(eq.question, exam.shuffleOptions)),
+        };
+      }
     }
 
     let questions = examQuestions.map((eq) => eq.question);
@@ -136,48 +156,109 @@ export class ExamsService {
       throw new ForbiddenException({ code: 'TIME_EXPIRED', message: 'Exam time has expired' });
     }
 
-    const questionMap = new Map(
-      attempt.exam.examQuestions.map((eq) => [eq.questionId, eq.question]),
-    );
+    const answerByQuestion = new Map(dto.answers.map((a) => [a.questionId, a]));
+    const orderedQuestions = attempt.exam.examQuestions.map((eq) => eq.question);
 
     let score = 0;
+    let gradedBy = 'key';
     const details: Array<{
       questionId: string;
+      stem: string;
+      options: QuestionOption[];
       selectedOptionId: string | null;
       correctOptionId: string;
       isCorrect: boolean;
       explanation: string;
       timeSpentSeconds: number;
+      gradedBy: string;
     }> = [];
 
-    for (const answer of dto.answers) {
-      const question = questionMap.get(answer.questionId);
-      if (!question) continue;
+    // Answer keys are always the reliable path. AI is only attempted when
+    // some questions lack a stored correctOptionId (true AI-only items).
+    let aiById: Map<string, { correctOptionId: string; isCorrect: boolean; explanation: string }> | null =
+      null;
 
-      const isCorrect = answer.selectedOptionId === question.correctOptionId;
+    const missingKeys = orderedQuestions.filter((q) => !q.correctOptionId);
+    const shouldTryAi = this.useAiGrading() && missingKeys.length > 0;
+
+    if (shouldTryAi) {
+      const gradeInput = missingKeys.map((q) => {
+        const answer = answerByQuestion.get(q.id);
+        return {
+          questionId: q.id,
+          stem: q.stem,
+          options: (q.options as QuestionOption[]) ?? [],
+          selectedOptionId: answer?.selectedOptionId ?? null,
+        };
+      });
+
+      try {
+        const aiResults = await this.geminiGrading.gradeQuestions(gradeInput);
+        if (aiResults && aiResults.length === missingKeys.length) {
+          aiById = new Map(aiResults.map((r) => [r.questionId, r]));
+          gradedBy = 'ai';
+        } else {
+          this.logger.warn('AI grading unavailable — using answer-key fallback.');
+          gradedBy = 'key';
+        }
+      } catch {
+        this.logger.warn('AI grading threw — using answer-key fallback.');
+        gradedBy = 'key';
+        aiById = null;
+      }
+    } else if (this.useAiGrading() && missingKeys.length === 0) {
+      // Keys cover the whole exam — skip Gemini so overload never blocks submit.
+      gradedBy = 'key';
+    }
+
+    for (const question of orderedQuestions) {
+      const answer = answerByQuestion.get(question.id);
+      const selectedOptionId = answer?.selectedOptionId ?? null;
+      const options = (question.options as QuestionOption[]) ?? [];
+      const ai = aiById?.get(question.id);
+
+      // Prefer stored key when present (admin-authored). AI fills gaps only.
+      const correctOptionId =
+        question.correctOptionId || ai?.correctOptionId || options[0]?.id || '';
+      const isCorrect =
+        Boolean(selectedOptionId) &&
+        Boolean(correctOptionId) &&
+        selectedOptionId === correctOptionId;
+      const explanation =
+        question.explanation ||
+        (ai?.explanation && ai.explanation.trim()) ||
+        (correctOptionId ? `Correct option is ${correctOptionId}.` : 'No answer key available.');
+
       if (isCorrect) score++;
 
+      const rowGradedBy = question.correctOptionId ? 'key' : ai ? 'ai' : 'key';
       details.push({
         questionId: question.id,
-        selectedOptionId: answer.selectedOptionId ?? null,
-        correctOptionId: question.correctOptionId,
+        stem: question.stem,
+        options,
+        selectedOptionId,
+        correctOptionId,
         isCorrect,
-        explanation: question.explanation,
-        timeSpentSeconds: answer.timeSpentSeconds ?? 0,
+        explanation,
+        timeSpentSeconds: answer?.timeSpentSeconds ?? 0,
+        gradedBy: rowGradedBy,
       });
 
       await this.prisma.examAttemptDetail.create({
         data: {
           attemptId,
           questionId: question.id,
-          selectedOptionId: answer.selectedOptionId,
+          selectedOptionId,
           isCorrect,
-          timeSpentSeconds: answer.timeSpentSeconds ?? 0,
+          timeSpentSeconds: answer?.timeSpentSeconds ?? 0,
+          aiCorrectOptionId: ai?.correctOptionId ?? null,
+          aiExplanation: ai?.explanation ?? null,
+          gradedBy: rowGradedBy,
         },
       });
     }
 
-    const total = attempt.total ?? questionMap.size;
+    const total = attempt.total ?? orderedQuestions.length;
     const percentage = total > 0 ? Math.round((score / total) * 10000) / 100 : 0;
 
     await this.prisma.examAttempt.update({
@@ -191,7 +272,14 @@ export class ExamsService {
       },
     });
 
-    return { score, total, percentage, details };
+    return {
+      attemptId,
+      score,
+      total,
+      percentage,
+      gradedBy,
+      details,
+    };
   }
 
   async listAttempts(user: JwtPayloadUser) {
@@ -207,7 +295,7 @@ export class ExamsService {
       subjectName: a.exam.subject.name,
       score: a.score,
       total: a.total,
-      percentage: a.percentage,
+      percentage: Number(a.percentage ?? 0),
       startedAt: a.startedAt,
       completedAt: a.completedAt,
     }));
@@ -231,7 +319,7 @@ export class ExamsService {
       examTitle: attempt.exam.title,
       score: attempt.score,
       total: attempt.total,
-      percentage: attempt.percentage,
+      percentage: Number(attempt.percentage ?? 0),
       startedAt: attempt.startedAt,
       completedAt: attempt.completedAt,
       details: attempt.details.map((d) => ({
@@ -239,10 +327,11 @@ export class ExamsService {
         stem: d.question.stem,
         options: d.question.options,
         selectedOptionId: d.selectedOptionId,
-        correctOptionId: d.question.correctOptionId,
+        correctOptionId: d.aiCorrectOptionId || d.question.correctOptionId,
         isCorrect: d.isCorrect,
-        explanation: d.question.explanation,
+        explanation: d.aiExplanation || d.question.explanation,
         timeSpentSeconds: d.timeSpentSeconds,
+        gradedBy: d.gradedBy,
       })),
     };
   }
@@ -250,14 +339,33 @@ export class ExamsService {
   // ─── Admin: Questions ──────────────────────────────────────
 
   createQuestion(dto: CreateQuestionDto) {
-    this.validateQuestionOptions(dto.options, dto.correctOptionId);
+    const options = dto.options ?? [];
+    const correctOptionId =
+      dto.correctOptionId?.trim() ||
+      options[0]?.id ||
+      'a';
+    const explanation =
+      dto.explanation?.trim() ||
+      (this.useAiGrading()
+        ? 'Graded by AI on exam submit (no fixed answer key).'
+        : 'No explanation provided.');
+
+    if (!this.useAiGrading() || dto.correctOptionId) {
+      this.validateQuestionOptions(options, correctOptionId);
+    } else if (options.length < 2) {
+      throw new BadRequestException({
+        code: 'INVALID_OPTIONS',
+        message: 'At least 2 options are required',
+      });
+    }
+
     return this.prisma.question.create({
       data: {
         subjectId: dto.subjectId,
         stem: dto.stem,
         options: dto.options,
-        correctOptionId: dto.correctOptionId,
-        explanation: dto.explanation,
+        correctOptionId,
+        explanation,
         difficulty: dto.difficulty ?? Difficulty.MEDIUM,
         tags: dto.tags ?? [],
         imageKey: dto.imageKey,
@@ -475,6 +583,10 @@ export class ExamsService {
         message: 'Active subscription required',
       });
     }
+  }
+
+  private useAiGrading(): boolean {
+    return this.geminiGrading.isEnabled();
   }
 
   private toClientQuestion(

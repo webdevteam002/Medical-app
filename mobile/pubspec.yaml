@@ -23,7 +23,7 @@ dependencies:
   encrypt: ^5.0.3
   pointycastle: ^3.9.1
   purchases_flutter: ^8.6.0
-
+  google_fonts: ^8.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

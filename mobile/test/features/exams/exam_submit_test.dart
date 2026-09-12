@@ -218,9 +218,10 @@ void main() {
       ));
 
       expect(find.text('Pharmacology Mock Exam'), findsOneWidget);
-      expect(find.text('Exam Submitted Successfully'), findsOneWidget);
-      expect(find.text('42 / 50'), findsOneWidget);
+      expect(find.text('Submitted successfully'), findsOneWidget);
+      expect(find.text('42/50'), findsOneWidget);
       expect(find.text('84.0%'), findsOneWidget);
+      expect(find.text('Answer review'), findsOneWidget);
       expect(find.text('Back to Home'), findsOneWidget);
     });
   });

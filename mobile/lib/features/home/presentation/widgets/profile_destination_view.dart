@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/storage/auth_session_service.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/ms_card.dart';
+import '../../../../core/widgets/ms_section_header.dart';
 
 class ProfileDestinationView extends StatelessWidget {
   final AuthSessionService? authSessionService;
@@ -30,89 +32,123 @@ class ProfileDestinationView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingLg),
+        padding: const EdgeInsets.fromLTRB(
+          AppTheme.spacingLg,
+          AppTheme.spacingMd,
+          AppTheme.spacingLg,
+          AppTheme.spacingLg,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Student Profile',
-              style: Theme.of(context).textTheme.headlineMedium,
+            const MsSectionHeader(
+              title: 'Student Profile',
+              subtitle: 'Account & portal settings',
             ),
-            const SizedBox(height: AppTheme.spacingXs),
-            Text(
-              'Account information & portal settings',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: AppTheme.spacingXl),
+            const SizedBox(height: AppTheme.spacingLg),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    Container(
+                    MsCard(
                       padding: const EdgeInsets.all(AppTheme.spacingLg),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusMd),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
                       child: Column(
                         children: [
-                          const CircleAvatar(
-                            radius: 36,
-                            backgroundColor: AppTheme.primaryColor,
-                            child: Icon(
+                          Container(
+                            width: 84,
+                            height: 84,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [
+                                  AppTheme.primaryColor,
+                                  AppTheme.primarySoft,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                            child: const Icon(
                               Icons.person_rounded,
-                              size: 40,
+                              size: 42,
                               color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: AppTheme.spacingMd),
-                          const Text(
+                          Text(
                             'Medical Student',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimaryColor,
-                            ),
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           const SizedBox(height: AppTheme.spacingXs),
-                          const Text(
+                          Text(
                             'student@medstudy.org',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppTheme.textSecondaryColor,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           const SizedBox(height: AppTheme.spacingLg),
-                          const Divider(height: 1),
-                          const SizedBox(height: AppTheme.spacingMd),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Platform Version',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: AppTheme.textSecondaryColor,
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(AppTheme.spacingMd),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceMuted,
+                              borderRadius: BorderRadius.circular(
+                                  AppTheme.borderRadiusSm),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Platform',
+                                  style: Theme.of(context).textTheme.bodySmall,
                                 ),
-                              ),
-                              Text(
-                                '${AppConstants.appName} v${AppConstants.appVersion}',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.textPrimaryColor,
+                                Text(
+                                  '${AppConstants.appName} v${AppConstants.appVersion}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w700),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingMd),
+                    MsCard(
+                      onTap: () => context.push('/subscriptions'),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: AppTheme.secondarySoft,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.workspace_premium_outlined,
+                              color: AppTheme.secondaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: AppTheme.spacingMd),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Subscription',
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                ),
+                                Text(
+                                  'Manage your study access plan',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 16,
+                            color: AppTheme.textSecondaryColor,
                           ),
                         ],
                       ),
@@ -120,25 +156,25 @@ class ProfileDestinationView extends StatelessWidget {
                     const SizedBox(height: AppTheme.spacingXl),
                     SizedBox(
                       width: double.infinity,
+                      height: AppTheme.buttonHeight,
                       child: OutlinedButton.icon(
                         onPressed: () => _handleLogout(context),
                         icon: const Icon(Icons.logout_rounded,
-                            color: Colors.redAccent),
+                            color: AppTheme.errorColor),
                         label: const Text(
                           'Sign Out',
                           style: TextStyle(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.bold,
+                            color: AppTheme.errorColor,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.redAccent),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppTheme.spacingMd,
+                          side: BorderSide(
+                            color: AppTheme.errorColor.withValues(alpha: 0.45),
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppTheme.borderRadiusSm),
+                            borderRadius: BorderRadius.circular(
+                                AppTheme.borderRadiusSm),
                           ),
                         ),
                       ),

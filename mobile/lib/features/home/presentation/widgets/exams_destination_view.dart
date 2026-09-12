@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/ms_card.dart';
+import '../../../../core/widgets/ms_empty_state.dart';
+import '../../../../core/widgets/ms_gradient_header.dart';
+import '../../../../core/widgets/ms_section_header.dart';
 import '../../../exams/data/datasources/exams_remote_datasource.dart';
 import '../../../exams/data/models/exam_model.dart';
 
@@ -73,39 +77,24 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingLg),
+        padding: const EdgeInsets.fromLTRB(
+          AppTheme.spacingLg,
+          AppTheme.spacingMd,
+          AppTheme.spacingLg,
+          AppTheme.spacingLg,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'QBank & Exams',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: AppTheme.spacingXs),
-                    Text(
-                      'Medical exam preparation & self-assessment portal',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-                IconButton(
-                  onPressed: () => context.push('/exams/history'),
-                  icon: const Icon(Icons.history_rounded,
-                      color: AppTheme.primaryColor),
-                  tooltip: 'Exam Attempt History',
-                ),
-              ],
+            MsSectionHeader(
+              title: 'QBank & Exams',
+              subtitle: 'Timed mocks and self-assessment',
+              action: _HistoryButton(
+                onPressed: () => context.push('/exams/history'),
+              ),
             ),
             const SizedBox(height: AppTheme.spacingLg),
-            Expanded(
-              child: _buildBody(),
-            ),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
@@ -114,165 +103,141 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: Colors.redAccent),
-              const SizedBox(height: AppTheme.spacingMd),
-              Text(
-                _errorMessage!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 15, color: AppTheme.textPrimaryColor),
-              ),
-              const SizedBox(height: AppTheme.spacingLg),
-              ElevatedButton.icon(
-                onPressed: _fetchExams,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Retry'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return MsErrorState(message: _errorMessage!, onRetry: _fetchExams);
     }
 
     if (_exams.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.assignment_late_outlined,
-                size: 64, color: AppTheme.textSecondaryColor),
-            const SizedBox(height: AppTheme.spacingMd),
-            const Text(
-              'No exams published yet',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingXs),
-            const Text(
-              'Published mock exams and practice tests will appear here.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppTheme.textSecondaryColor,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingLg),
-            OutlinedButton.icon(
-              onPressed: _fetchExams,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Refresh'),
-            ),
-          ],
-        ),
+      return MsEmptyState(
+        icon: Icons.assignment_late_outlined,
+        title: 'No exams published yet',
+        message: 'Published mock exams and practice tests will appear here.',
+        actionLabel: 'Refresh',
+        onAction: _fetchExams,
       );
     }
 
     return RefreshIndicator(
       onRefresh: _fetchExams,
+      color: AppTheme.primaryColor,
       child: ListView.separated(
         itemCount: _exams.length,
-        separatorBuilder: (context, index) =>
-            const SizedBox(height: AppTheme.spacingMd),
+        separatorBuilder: (_, __) => const SizedBox(height: AppTheme.spacingMd),
         itemBuilder: (context, index) {
           final exam = _exams[index];
-
-          return Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-              side: const BorderSide(color: Color(0xFFE2E8F0)),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingLg,
-                vertical: AppTheme.spacingSm,
-              ),
-              leading: const CircleAvatar(
-                backgroundColor: Color(0xFFFEF3C7),
-                child: Icon(
-                  Icons.assignment_turned_in_rounded,
-                  color: Colors.amber,
-                ),
-              ),
-              title: Text(
-                exam.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimaryColor,
-                ),
-              ),
-              subtitle: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  if (exam.subjectName != null &&
-                      exam.subjectName!.isNotEmpty) ...[
-                    Text(
-                      exam.subjectName!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryColor,
+          return MsCard(
+            onTap: () {
+              context.push('/exams/${exam.id}/detail', extra: exam);
+            },
+            padding: const EdgeInsets.all(AppTheme.spacingMd),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppTheme.secondarySoft,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        Icons.assignment_turned_in_rounded,
+                        color: AppTheme.secondaryColor,
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    const Text('•',
-                        style: TextStyle(color: AppTheme.textSecondaryColor)),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: AppTheme.spacingMd),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            exam.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          if (exam.subjectName != null &&
+                              exam.subjectName!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              exam.subjectName!,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: AppTheme.primaryColor,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16,
+                      color: AppTheme.textSecondaryColor,
+                    ),
                   ],
-                  Text(
-                    '${exam.durationMinutes} mins',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondaryColor,
+                ),
+                const SizedBox(height: AppTheme.spacingMd),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    MsMetaChip(
+                      icon: Icons.timer_outlined,
+                      label: '${exam.durationMinutes} min',
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Text('•',
-                      style: TextStyle(color: AppTheme.textSecondaryColor)),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${exam.questionCount} questions',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondaryColor,
+                    MsMetaChip(
+                      icon: Icons.help_outline_rounded,
+                      label: '${exam.questionCount} questions',
                     ),
-                  ),
-                ],
-              ),
-              trailing: const Icon(Icons.chevron_right_rounded,
-                  color: AppTheme.textSecondaryColor),
-              onTap: () {
-                context.push(
-                  '/exams/${exam.id}/detail',
-                  extra: exam,
-                );
-              },
+                  ],
+                ),
+              ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _HistoryButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _HistoryButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Exam Attempt History',
+      child: Material(
+        color: AppTheme.surfaceColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppTheme.borderColor),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: const SizedBox(
+            width: 42,
+            height: 42,
+            child: Icon(
+              Icons.history_rounded,
+              color: AppTheme.primaryColor,
+              size: 22,
+            ),
+          ),
+        ),
       ),
     );
   }

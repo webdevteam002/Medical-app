@@ -84,6 +84,11 @@ class ExamsRemoteDataSource {
       final response = await _apiClient.client.post(
         '/exams/attempts/$attemptId/submit',
         data: dto.toJson(),
+        options: Options(
+          // Gemini live grading can take longer than normal API calls
+          receiveTimeout: const Duration(seconds: 120),
+          sendTimeout: const Duration(seconds: 30),
+        ),
       );
 
       if (response.data is Map<String, dynamic>) {
@@ -136,9 +141,9 @@ class ExamsRemoteDataSource {
       final response =
           await _apiClient.client.get('/exams/attempts/$attemptId');
 
-      if (response.data is Map<String, dynamic>) {
+      if (response.data is Map) {
         return ExamAttemptReviewModel.fromJson(
-            response.data as Map<String, dynamic>);
+            Map<String, dynamic>.from(response.data as Map));
       }
 
       throw const NetworkFailure(

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/ms_card.dart';
+import '../../../../core/widgets/ms_empty_state.dart';
+import '../../../../core/widgets/ms_section_header.dart';
 import '../../data/datasources/study_remote_datasource.dart';
 import '../../data/models/subject_model.dart';
 
@@ -78,6 +81,49 @@ class _SubjectsPageState extends State<SubjectsPage> {
     context.push('/subjects/${subject.id}/topics', extra: subject.name);
   }
 
+  String get _yearLabel {
+    if (widget.yearName != null && widget.yearName!.trim().isNotEmpty) {
+      return widget.yearName!;
+    }
+    return widget.yearSlug
+        .replaceAll('-', ' ')
+        .split(' ')
+        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
+  }
+
+  IconData _iconForSubject(String slug, String name) {
+    final key = '${slug}_${name}'.toLowerCase();
+    if (key.contains('past') || key.contains('paper')) {
+      return Icons.description_outlined;
+    }
+    if (key.contains('anat')) return Icons.accessibility_new_rounded;
+    if (key.contains('physio')) return Icons.monitor_heart_outlined;
+    if (key.contains('biochem') || key.contains('chem')) {
+      return Icons.science_outlined;
+    }
+    if (key.contains('patho')) return Icons.biotech_outlined;
+    if (key.contains('pharma')) return Icons.medication_outlined;
+    if (key.contains('micro')) return Icons.coronavirus_outlined;
+    if (key.contains('forensic')) return Icons.gavel_rounded;
+    if (key.contains('community') || key.contains('psm')) {
+      return Icons.public_outlined;
+    }
+    return Icons.menu_book_rounded;
+  }
+
+  Color _accentForIndex(int index) {
+    const accents = [
+      AppTheme.primaryColor,
+      AppTheme.secondaryColor,
+      Color(0xFF0369A1),
+      Color(0xFF0F766E),
+      Color(0xFF4338CA),
+      Color(0xFFB45309),
+    ];
+    return accents[index % accents.length];
+  }
+
   @override
   Widget build(BuildContext context) {
     final titleText = widget.yearName != null
@@ -85,11 +131,9 @@ class _SubjectsPageState extends State<SubjectsPage> {
         : 'Medical Subjects';
 
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: Text(titleText),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: [
           IconButton(
             tooltip: 'Refresh subjects',
@@ -100,23 +144,21 @@ class _SubjectsPageState extends State<SubjectsPage> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
+          padding: const EdgeInsets.fromLTRB(
+            AppTheme.spacingLg,
+            AppTheme.spacingMd,
+            AppTheme.spacingLg,
+            AppTheme.spacingLg,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Available Subjects',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: AppTheme.spacingXs),
-              Text(
-                'Year: ${widget.yearSlug}',
-                style: Theme.of(context).textTheme.bodyMedium,
+              MsSectionHeader(
+                title: 'Available Subjects',
+                subtitle: '$_yearLabel · open a subject to browse topics',
               ),
               const SizedBox(height: AppTheme.spacingLg),
-              Expanded(
-                child: _buildBody(),
-              ),
+              Expanded(child: _buildBody()),
             ],
           ),
         ),
@@ -126,129 +168,85 @@ class _SubjectsPageState extends State<SubjectsPage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: Colors.redAccent),
-              const SizedBox(height: AppTheme.spacingMd),
-              Text(
-                _errorMessage!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppTheme.textPrimaryColor,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingLg),
-              ElevatedButton.icon(
-                onPressed: _fetchSubjects,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Retry'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return MsErrorState(message: _errorMessage!, onRetry: _fetchSubjects);
     }
 
     if (_subjects.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.folder_open_rounded,
-                size: 64, color: AppTheme.textSecondaryColor),
-            const SizedBox(height: AppTheme.spacingMd),
-            const Text(
-              'No subjects available for this year',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingXs),
-            const Text(
-              'Check back later for updated subject modules.',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppTheme.textSecondaryColor,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingLg),
-            OutlinedButton(
-              onPressed: _fetchSubjects,
-              child: const Text('Refresh'),
-            ),
-          ],
-        ),
+      return MsEmptyState(
+        icon: Icons.folder_open_rounded,
+        title: 'No subjects available for this year',
+        message: 'Check back later for updated subject modules.',
+        actionLabel: 'Refresh',
+        onAction: _fetchSubjects,
       );
     }
 
     return RefreshIndicator(
       onRefresh: _fetchSubjects,
+      color: AppTheme.primaryColor,
       child: ListView.separated(
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: _subjects.length,
-        separatorBuilder: (context, index) =>
-            const SizedBox(height: AppTheme.spacingMd),
+        separatorBuilder: (_, __) => const SizedBox(height: AppTheme.spacingMd),
         itemBuilder: (context, index) {
           final subject = _subjects[index];
-          return Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-              side: const BorderSide(color: Color(0xFFE2E8F0)),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingLg,
-                vertical: AppTheme.spacingSm,
-              ),
-              leading: CircleAvatar(
-                backgroundColor: AppTheme.secondaryColor.withValues(alpha: 0.1),
-                child: Text(
-                  'S${index + 1}',
-                  style: const TextStyle(
-                    color: AppTheme.secondaryColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+          final accent = _accentForIndex(index);
+          final icon = _iconForSubject(subject.slug, subject.name);
+
+          return MsCard(
+            onTap: () => _onSubjectTap(subject),
+            padding: const EdgeInsets.all(AppTheme.spacingMd),
+            child: Row(
+              children: [
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: accent.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: Icon(icon, color: accent, size: 26),
+                ),
+                const SizedBox(width: AppTheme.spacingMd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        subject.name,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Browse topics & study materials',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              title: Text(
-                subject.name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimaryColor,
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceMuted,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: AppTheme.primaryColor,
+                  ),
                 ),
-              ),
-              subtitle: Text(
-                'Slug: ${subject.slug}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppTheme.textSecondaryColor,
-                ),
-              ),
-              trailing: const Icon(Icons.chevron_right_rounded,
-                  color: AppTheme.textSecondaryColor),
-              onTap: () => _onSubjectTap(subject),
+              ],
             ),
           );
         },

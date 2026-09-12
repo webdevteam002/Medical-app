@@ -95,7 +95,7 @@ void main() {
         ),
       ));
 
-      expect(find.text('Exam Instructions & Rules'), findsOneWidget);
+      expect(find.text('Instructions'), findsOneWidget);
       expect(find.text('Start Exam'), findsOneWidget);
 
       await tester.tap(find.text('Start Exam'));

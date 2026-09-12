@@ -140,6 +140,15 @@ class _ExamSessionPageState extends State<ExamSessionPage>
       _isSubmitting = true;
     });
 
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Submitting exam… scoring answers'),
+          duration: Duration(seconds: 8),
+        ),
+      );
+    }
+
     final answerDtos = widget.session.questions.map((q) {
       return SubmitAnswerDto(
         questionId: q.id,
@@ -513,11 +522,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
   Widget build(BuildContext context) {
     if (widget.session.questions.isEmpty) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.examTitle),
-          backgroundColor: AppTheme.primaryColor,
-          foregroundColor: Colors.white,
-        ),
+        appBar: AppBar(title: Text(widget.examTitle)),
         body: const Center(
           child: Text('No questions available in this exam.'),
         ),
@@ -528,17 +533,20 @@ class _ExamSessionPageState extends State<ExamSessionPage>
     final totalQuestions = widget.session.questions.length;
     final selectedOptionId = _selectedAnswers[currentQuestion.id];
     final isFlagged = _flaggedQuestionIds.contains(currentQuestion.id);
+    final isUrgent = _remainingDuration.inMinutes < 5;
 
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: Text(widget.examTitle),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
+        title: Text(
+          widget.examTitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           IconButton(
             onPressed: () => _openQuestionPalette(context),
-            icon: const Icon(Icons.grid_view_rounded, color: Colors.white),
+            icon: const Icon(Icons.grid_view_rounded),
             tooltip: 'Question Palette',
           ),
           Padding(
@@ -546,31 +554,34 @@ class _ExamSessionPageState extends State<ExamSessionPage>
             child: Center(
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _remainingDuration.inMinutes < 5
-                      ? Colors.red.withValues(alpha: 0.3)
-                      : Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
+                  color: isUrgent ? AppTheme.errorSoft : AppTheme.surfaceMuted,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isUrgent
+                        ? AppTheme.errorColor.withValues(alpha: 0.35)
+                        : AppTheme.borderColor,
+                  ),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.timer_rounded,
                       size: 16,
-                      color: _remainingDuration.inMinutes < 5
-                          ? Colors.yellow
-                          : Colors.white,
+                      color: isUrgent
+                          ? AppTheme.errorColor
+                          : AppTheme.primaryColor,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       _formatDuration(_remainingDuration),
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: _remainingDuration.inMinutes < 5
-                            ? Colors.yellow
-                            : Colors.white,
+                        fontWeight: FontWeight.w800,
+                        color: isUrgent
+                            ? AppTheme.errorColor
+                            : AppTheme.primaryColor,
                       ),
                     ),
                   ],
@@ -587,9 +598,9 @@ class _ExamSessionPageState extends State<ExamSessionPage>
               value: (totalQuestions > 0)
                   ? (_currentIndex + 1) / totalQuestions
                   : 0,
-              backgroundColor: const Color(0xFFE2E8F0),
+              backgroundColor: AppTheme.borderColor,
               color: AppTheme.primaryColor,
-              minHeight: 4,
+              minHeight: 3,
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -604,7 +615,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                           'Question ${_currentIndex + 1} of $totalQuestions',
                           style: const TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             color: AppTheme.primaryColor,
                           ),
                         ),
@@ -618,7 +629,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                                     ? Icons.flag_rounded
                                     : Icons.flag_outlined,
                                 color: isFlagged
-                                    ? Colors.orange
+                                    ? AppTheme.warningColor
                                     : AppTheme.textSecondaryColor,
                                 size: 20,
                               ),
@@ -626,29 +637,39 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                                   ? 'Unflag Question'
                                   : 'Flag for Review',
                             ),
-                            Text(
-                              _selectedAnswers.containsKey(currentQuestion.id)
-                                  ? 'Answered'
-                                  : 'Unanswered',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
                                 color: _selectedAnswers
                                         .containsKey(currentQuestion.id)
-                                    ? Colors.green
-                                    : AppTheme.textSecondaryColor,
+                                    ? AppTheme.successSoft
+                                    : AppTheme.surfaceMuted,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                _selectedAnswers.containsKey(currentQuestion.id)
+                                    ? 'Answered'
+                                    : 'Unanswered',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: _selectedAnswers
+                                          .containsKey(currentQuestion.id)
+                                      ? AppTheme.successColor
+                                      : AppTheme.textSecondaryColor,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppTheme.spacingSm),
+                    const SizedBox(height: AppTheme.spacingMd),
                     Text(
                       currentQuestion.stem,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimaryColor,
+                            fontWeight: FontWeight.w700,
                             height: 1.4,
                           ),
                     ),
@@ -671,49 +692,49 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                 vertical: AppTheme.spacingMd,
               ),
               decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+                color: AppTheme.surfaceColor,
+                border: Border(top: BorderSide(color: AppTheme.borderColor)),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  OutlinedButton.icon(
-                    onPressed: _currentIndex > 0 ? _previousQuestion : null,
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    label: const Text('Previous'),
-                  ),
-                  if (_currentIndex < totalQuestions - 1)
-                    ElevatedButton.icon(
-                      onPressed: _nextQuestion,
-                      icon: const Icon(Icons.arrow_forward_rounded),
-                      label: const Text('Next'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                      ),
-                    )
-                  else
-                    ElevatedButton.icon(
-                      onPressed: _isSubmitting
-                          ? null
-                          : () => _showSubmitConfirmationDialog(context),
-                      icon: _isSubmitting
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.check_circle_rounded),
-                      label:
-                          Text(_isSubmitting ? 'Submitting...' : 'Submit Exam'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                      ),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _currentIndex > 0 ? _previousQuestion : null,
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      label: const Text('Previous'),
                     ),
+                  ),
+                  const SizedBox(width: AppTheme.spacingMd),
+                  Expanded(
+                    child: _currentIndex < totalQuestions - 1
+                        ? ElevatedButton.icon(
+                            onPressed: _nextQuestion,
+                            icon: const Icon(Icons.arrow_forward_rounded),
+                            label: const Text('Next'),
+                          )
+                        : ElevatedButton.icon(
+                            onPressed: _isSubmitting
+                                ? null
+                                : () =>
+                                    _showSubmitConfirmationDialog(context),
+                            icon: _isSubmitting
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.check_circle_rounded),
+                            label: Text(_isSubmitting
+                                ? 'Submitting...'
+                                : 'Submit Exam'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.successColor,
+                            ),
+                          ),
+                  ),
                 ],
               ),
             ),
@@ -738,33 +759,33 @@ class _ExamSessionPageState extends State<ExamSessionPage>
         child: InkWell(
           onTap: () => _onOptionSelected(questionId, optionId),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
             padding: const EdgeInsets.all(AppTheme.spacingMd),
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppTheme.primaryColor.withValues(alpha: 0.08)
-                  : Colors.white,
+                  ? AppTheme.primaryColor.withValues(alpha: 0.06)
+                  : AppTheme.surfaceColor,
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
               border: Border.all(
-                color: isSelected
-                    ? AppTheme.primaryColor
-                    : const Color(0xFFE2E8F0),
+                color: isSelected ? AppTheme.primaryColor : AppTheme.borderColor,
                 width: isSelected ? 2 : 1,
               ),
+              boxShadow: isSelected ? AppTheme.softShadow : null,
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  radius: 14,
+                  radius: 15,
                   backgroundColor: isSelected
                       ? AppTheme.primaryColor
-                      : const Color(0xFFF1F5F9),
+                      : AppTheme.surfaceMuted,
                   child: Text(
                     optionLabel,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800,
                       color:
                           isSelected ? Colors.white : AppTheme.textPrimaryColor,
                     ),
@@ -777,8 +798,9 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                          isSelected ? FontWeight.w600 : FontWeight.w400,
                       color: AppTheme.textPrimaryColor,
+                      height: 1.35,
                     ),
                   ),
                 ),

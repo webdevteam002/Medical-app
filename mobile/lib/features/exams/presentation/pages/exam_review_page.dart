@@ -225,11 +225,9 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: Text(_review?.examTitle ?? 'Exam Review'),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: [
           if (_review != null)
             IconButton(
@@ -295,7 +293,7 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
             horizontal: AppTheme.spacingLg,
             vertical: AppTheme.spacingSm,
           ),
-          color: const Color(0xFFF1F5F9),
+          color: AppTheme.surfaceMuted,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -303,7 +301,7 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
                 'Question ${_currentIndex + 1} of $totalQuestions',
                 style: const TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: AppTheme.primaryColor,
                 ),
               ),
@@ -311,7 +309,7 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
                 'Score: ${_review!.score}/${_review!.total} (${_review!.percentage.toStringAsFixed(1)}%)',
                 style: const TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimaryColor,
                 ),
               ),
@@ -332,10 +330,10 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: isUnanswered
-                            ? Colors.amber.withValues(alpha: 0.15)
+                            ? AppTheme.warningSoft
                             : detail.isCorrect
-                                ? Colors.green.withValues(alpha: 0.15)
-                                : Colors.red.withValues(alpha: 0.15),
+                                ? AppTheme.successSoft
+                                : AppTheme.errorSoft,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -349,10 +347,10 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
                                     : Icons.cancel_rounded,
                             size: 16,
                             color: isUnanswered
-                                ? Colors.amber.shade900
+                                ? AppTheme.warningColor
                                 : detail.isCorrect
-                                    ? Colors.green
-                                    : Colors.red,
+                                    ? AppTheme.successColor
+                                    : AppTheme.errorColor,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -365,10 +363,10 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: isUnanswered
-                                  ? Colors.amber.shade900
+                                  ? AppTheme.warningColor
                                   : detail.isCorrect
-                                      ? Colors.green.shade900
-                                      : Colors.red.shade900,
+                                      ? AppTheme.successColor
+                                      : AppTheme.errorColor,
                             ),
                           ),
                         ],
@@ -403,7 +401,9 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
                       color: const Color(0xFFEFF6FF),
                       borderRadius:
                           BorderRadius.circular(AppTheme.borderRadiusMd),
-                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,15 +488,15 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
     Widget? trailingIcon;
 
     if (isCorrectOption) {
-      tileBg = Colors.green.withValues(alpha: 0.1);
-      borderColor = Colors.green;
-      trailingIcon =
-          const Icon(Icons.check_circle_rounded, color: Colors.green, size: 20);
+      tileBg = AppTheme.successSoft;
+      borderColor = AppTheme.successColor;
+      trailingIcon = const Icon(Icons.check_circle_rounded,
+          color: AppTheme.successColor, size: 20);
     } else if (isSelected && !isCorrectOption) {
-      tileBg = Colors.red.withValues(alpha: 0.1);
-      borderColor = Colors.red;
-      trailingIcon =
-          const Icon(Icons.cancel_rounded, color: Colors.red, size: 20);
+      tileBg = AppTheme.errorSoft;
+      borderColor = AppTheme.errorColor;
+      trailingIcon = const Icon(Icons.cancel_rounded,
+          color: AppTheme.errorColor, size: 20);
     }
 
     return Padding(
@@ -515,10 +515,10 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
             CircleAvatar(
               radius: 14,
               backgroundColor: isCorrectOption
-                  ? Colors.green
+                  ? AppTheme.successColor
                   : isSelected
-                      ? Colors.red
-                      : const Color(0xFFF1F5F9),
+                      ? AppTheme.errorColor
+                      : AppTheme.surfaceMuted,
               child: Text(
                 optionLabel,
                 style: TextStyle(

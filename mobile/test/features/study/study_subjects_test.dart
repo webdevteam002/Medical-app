@@ -96,7 +96,7 @@ void main() {
       expect(find.text('First Year MBBS Subjects'), findsOneWidget);
       expect(find.text('Anatomy'), findsOneWidget);
       expect(find.text('Physiology'), findsOneWidget);
-      expect(find.text('Slug: anatomy'), findsOneWidget);
+      expect(find.text('Browse topics & study materials'), findsWidgets);
     });
 
     testWidgets('3. Empty subjects response displays empty state message',

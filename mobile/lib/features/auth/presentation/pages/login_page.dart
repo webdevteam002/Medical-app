@@ -6,6 +6,8 @@ import '../../../../core/device/device_id_service.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/storage/secure_storage_service.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/ms_auth_shell.dart';
+import '../../../../core/widgets/ms_primary_button.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../widgets/auth_form_field.dart';
 
@@ -89,7 +91,10 @@ class _LoginPageState extends State<LoginPage> {
       final deviceName = await _deviceIdService.getDeviceName();
 
       String deviceType = 'MOBILE';
-      if (kIsWeb || defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.linux) {
+      if (kIsWeb ||
+          defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.macOS ||
+          defaultTargetPlatform == TargetPlatform.linux) {
         deviceType = 'DESKTOP';
       }
 
@@ -106,10 +111,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login successful! Access token stored securely.'),
-            backgroundColor: AppTheme.secondaryColor,
-          ),
+          const SnackBar(content: Text('Welcome back — signed in securely.')),
         );
         context.go('/home');
       }
@@ -136,158 +138,91 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppTheme.spacingLg),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(
-                    Icons.local_hospital_rounded,
-                    size: 64,
-                    color: AppTheme.primaryColor,
-                  ),
-                  const SizedBox(height: AppTheme.spacingSm),
-                  Text(
-                    AppConstants.appName,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: AppTheme.spacingXs),
-                  Text(
-                    'Sign in to your medical student portal',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: AppTheme.spacingXl),
-                  if (_errorMessage != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(AppTheme.spacingMd),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF2F2),
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusSm),
-                        border: Border.all(color: const Color(0xFFFCA5A5)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error_outline,
-                              color: Colors.redAccent, size: 20),
-                          const SizedBox(width: AppTheme.spacingSm),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: const TextStyle(
-                                color: Color(0xFF991B1B),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacingMd),
-                  ],
-                  AuthFormField(
-                    controller: _emailController,
-                    label: 'Email Address',
-                    hint: 'student@medstudy.org',
-                    keyboardType: TextInputType.emailAddress,
-                    prefixIcon: const Icon(Icons.email_outlined,
-                        color: AppTheme.textSecondaryColor),
-                    validator: _validateEmail,
-                  ),
-                  const SizedBox(height: AppTheme.spacingMd),
-                  AuthFormField(
-                    controller: _passwordController,
-                    label: 'Password',
-                    hint: '••••••••',
-                    obscureText: !_isPasswordVisible,
-                    textInputAction: TextInputAction.done,
-                    prefixIcon: const Icon(Icons.lock_outline,
-                        color: AppTheme.textSecondaryColor),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isPasswordVisible
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: AppTheme.textSecondaryColor,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
-                        });
-                      },
-                    ),
-                    validator: _validatePassword,
-                  ),
-                  const SizedBox(height: AppTheme.spacingLg),
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor:
-                          AppTheme.primaryColor.withValues(alpha: 0.6),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: AppTheme.spacingMd),
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusSm),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text(
-                            'Sign In',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                  ),
-                  const SizedBox(height: AppTheme.spacingLg),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Don't have an account? ",
-                        style: TextStyle(
-                            color: AppTheme.textSecondaryColor, fontSize: 14),
-                      ),
-                      GestureDetector(
-                        onTap: () => context.go('/register'),
-                        child: const Text(
-                          'Register',
-                          style: TextStyle(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+    return MsAuthShell(
+      brandTitle: AppConstants.appName,
+      brandSubtitle:
+          'A clinical study portal for MBBS & FCPS — materials, timed exams, and clear review.',
+      formTitle: 'Welcome back',
+      formSubtitle: 'Sign in to continue your medical preparation.',
+      form: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_errorMessage != null) ...[
+              MsAuthErrorBanner(message: _errorMessage!),
+              const SizedBox(height: 16),
+            ],
+            AuthFormField(
+              controller: _emailController,
+              label: 'Email',
+              hint: 'student@medstudy.org',
+              keyboardType: TextInputType.emailAddress,
+              prefixIcon: const Icon(
+                Icons.mail_outline_rounded,
+                color: AppTheme.textSecondaryColor,
+                size: 22,
               ),
+              validator: _validateEmail,
             ),
-          ),
+            const SizedBox(height: 16),
+            AuthFormField(
+              controller: _passwordController,
+              label: 'Password',
+              hint: 'Enter your password',
+              obscureText: !_isPasswordVisible,
+              textInputAction: TextInputAction.done,
+              prefixIcon: const Icon(
+                Icons.lock_outline_rounded,
+                color: AppTheme.textSecondaryColor,
+                size: 22,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _isPasswordVisible
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: AppTheme.textSecondaryColor,
+                  size: 22,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isPasswordVisible = !_isPasswordVisible;
+                  });
+                },
+              ),
+              validator: _validatePassword,
+            ),
+            const SizedBox(height: 22),
+            MsPrimaryButton(
+              label: 'Sign In',
+              isLoading: _isLoading,
+              onPressed: _handleLogin,
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(child: Divider(color: Colors.grey.shade200)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    'Secure device-bound session',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTheme.textSecondaryColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                ),
+                Expanded(child: Divider(color: Colors.grey.shade200)),
+              ],
+            ),
+          ],
         ),
+      ),
+      footer: MsAuthFooterLink(
+        prompt: "Don't have an account?",
+        actionLabel: 'Create account',
+        onTap: () => context.go('/register'),
       ),
     );
   }

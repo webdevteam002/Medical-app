@@ -32,53 +32,58 @@ class AuthFormField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimaryColor,
-          ),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.1,
+              ),
         ),
-        const SizedBox(height: AppTheme.spacingXs),
+        const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
           obscureText: obscureText,
           validator: validator,
           textInputAction: textInputAction,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textPrimaryColor,
+              ),
+          cursorColor: AppTheme.primaryColor,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-              color: AppTheme.textSecondaryColor,
-              fontSize: 14,
-            ),
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: Colors.white,
+            fillColor: const Color(0xFFF7FAFC),
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spacingMd,
-              vertical: AppTheme.spacingMd,
+              horizontal: 16,
+              vertical: 16,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFFDCE5EF)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFFDCE5EF)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-              borderSide:
-                  const BorderSide(color: AppTheme.primaryColor, width: 2),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: AppTheme.primaryColor,
+                width: 1.8,
+              ),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-              borderSide: const BorderSide(color: Colors.redAccent),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppTheme.errorColor),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-              borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: AppTheme.errorColor,
+                width: 1.8,
+              ),
             ),
           ),
         ),

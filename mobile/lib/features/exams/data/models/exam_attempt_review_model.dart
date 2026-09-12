@@ -100,11 +100,17 @@ class ExamAttemptReviewModel {
       examTitle: json['examTitle'] as String? ?? 'Exam Review',
       score: json['score'] as int? ?? 0,
       total: json['total'] as int? ?? 0,
-      percentage: (json['percentage'] as num?)?.toDouble() ?? 0.0,
+      percentage: _parseDouble(json['percentage']),
       startedAt: parseDate(json['startedAt']),
       completedAt: parseDate(json['completedAt']),
       details: rawDetails,
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 
   Map<String, dynamic> toJson() {

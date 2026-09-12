@@ -54,6 +54,23 @@ void main() {
           equals('The femoral artery supplies the anterior thigh.'));
     });
 
+    test('1b. ExamAttemptReviewModel accepts Prisma Decimal percentage as string',
+        () {
+      final json = {
+        'id': 'att_decimal',
+        'examTitle': 'Anatomy',
+        'score': 3,
+        'total': 13,
+        'percentage': '23.08',
+        'startedAt': '2026-09-03T09:00:00.000Z',
+        'completedAt': '2026-09-03T09:45:00.000Z',
+        'details': [],
+      };
+
+      final review = ExamAttemptReviewModel.fromJson(json);
+      expect(review.percentage, closeTo(23.08, 0.001));
+    });
+
     testWidgets(
         '2. ExamReviewPage renders stem, options with correct/incorrect highlighting, and explanation',
         (WidgetTester tester) async {

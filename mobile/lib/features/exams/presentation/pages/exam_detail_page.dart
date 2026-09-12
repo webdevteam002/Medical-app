@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/ms_card.dart';
+import '../../../../core/widgets/ms_gradient_header.dart';
+import '../../../../core/widgets/ms_primary_button.dart';
 import '../../data/datasources/exams_remote_datasource.dart';
 import '../../data/models/exam_model.dart';
 
@@ -73,7 +76,7 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.message),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -86,7 +89,7 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Failed to start exam session.'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
       }
@@ -96,108 +99,129 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('Exam Overview'),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
       ),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppTheme.spacingLg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.exam.title,
-                      style:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimaryColor,
+                    MsGradientHeader(
+                      padding: const EdgeInsets.all(AppTheme.spacingLg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.exam.title,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              height: 1.25,
+                            ),
+                          ),
+                          const SizedBox(height: AppTheme.spacingMd),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              if (widget.exam.subjectName != null &&
+                                  widget.exam.subjectName!.isNotEmpty)
+                                MsMetaChip(
+                                  icon: Icons.book_rounded,
+                                  label: widget.exam.subjectName!,
+                                  color: Colors.white,
+                                  background:
+                                      Colors.white.withValues(alpha: 0.16),
+                                ),
+                              if (widget.exam.yearName != null &&
+                                  widget.exam.yearName!.isNotEmpty)
+                                MsMetaChip(
+                                  icon: Icons.school_rounded,
+                                  label: widget.exam.yearName!,
+                                  color: Colors.white,
+                                  background:
+                                      Colors.white.withValues(alpha: 0.16),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(AppTheme.spacingLg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildInfoCard(
+                                  icon: Icons.timer_rounded,
+                                  iconColor: AppTheme.warningColor,
+                                  soft: AppTheme.warningSoft,
+                                  title: 'Duration',
+                                  value:
+                                      '${widget.exam.durationMinutes} Minutes',
+                                ),
                               ),
-                    ),
-                    const SizedBox(height: AppTheme.spacingSm),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        if (widget.exam.subjectName != null &&
-                            widget.exam.subjectName!.isNotEmpty)
-                          Chip(
-                            avatar: const Icon(Icons.book_rounded,
-                                size: 16, color: AppTheme.primaryColor),
-                            label: Text(widget.exam.subjectName!),
-                            backgroundColor:
-                                AppTheme.primaryColor.withValues(alpha: 0.1),
-                            side: BorderSide.none,
+                              const SizedBox(width: AppTheme.spacingMd),
+                              Expanded(
+                                child: _buildInfoCard(
+                                  icon: Icons.quiz_rounded,
+                                  iconColor: AppTheme.primaryColor,
+                                  soft: AppTheme.surfaceMuted,
+                                  title: 'Questions',
+                                  value:
+                                      '${widget.exam.questionCount} Questions',
+                                ),
+                              ),
+                            ],
                           ),
-                        if (widget.exam.yearName != null &&
-                            widget.exam.yearName!.isNotEmpty)
-                          Chip(
-                            avatar: const Icon(Icons.school_rounded,
-                                size: 16, color: AppTheme.secondaryColor),
-                            label: Text(widget.exam.yearName!),
-                            backgroundColor:
-                                AppTheme.secondaryColor.withValues(alpha: 0.1),
-                            side: BorderSide.none,
+                          const SizedBox(height: AppTheme.spacingXl),
+                          Text(
+                            'Instructions',
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: AppTheme.spacingLg),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildInfoCard(
-                            context: context,
-                            icon: Icons.timer_rounded,
-                            iconColor: Colors.orange,
-                            title: 'Duration',
-                            value: '${widget.exam.durationMinutes} Minutes',
+                          const SizedBox(height: AppTheme.spacingMd),
+                          MsCard(
+                            elevated: false,
+                            child: Column(
+                              children: [
+                                _buildInstructionTile(
+                                  icon: Icons.access_alarm_rounded,
+                                  text:
+                                      'The countdown starts when you tap Start Exam and runs continuously.',
+                                ),
+                                const Divider(height: 24),
+                                _buildInstructionTile(
+                                  icon: Icons.lock_clock_rounded,
+                                  text:
+                                      'One active attempt at a time per exam.',
+                                ),
+                                const Divider(height: 24),
+                                _buildInstructionTile(
+                                  icon: Icons.fact_check_rounded,
+                                  text:
+                                      'Unanswered questions score zero — review before submit.',
+                                ),
+                                const Divider(height: 24),
+                                _buildInstructionTile(
+                                  icon: Icons.verified_user_rounded,
+                                  text:
+                                      'Session is verified with device binding.',
+                                  isLast: true,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: AppTheme.spacingMd),
-                        Expanded(
-                          child: _buildInfoCard(
-                            context: context,
-                            icon: Icons.quiz_rounded,
-                            iconColor: AppTheme.primaryColor,
-                            title: 'Questions',
-                            value: '${widget.exam.questionCount} Questions',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppTheme.spacingXl),
-                    Text(
-                      'Exam Instructions & Rules',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimaryColor,
-                          ),
-                    ),
-                    const SizedBox(height: AppTheme.spacingMd),
-                    _buildInstructionTile(
-                      icon: Icons.access_alarm_rounded,
-                      text:
-                          'The countdown timer starts as soon as you tap "Start Exam" and runs continuously.',
-                    ),
-                    _buildInstructionTile(
-                      icon: Icons.lock_clock_rounded,
-                      text:
-                          'Single active attempt policy: You can only have one active attempt per exam.',
-                    ),
-                    _buildInstructionTile(
-                      icon: Icons.fact_check_rounded,
-                      text:
-                          'Make sure to answer all questions before submitting. Unanswered questions count as zero.',
-                    ),
-                    _buildInstructionTile(
-                      icon: Icons.verified_user_rounded,
-                      text:
-                          'Your session is securely verified with device binding.',
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -206,45 +230,14 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
             Container(
               padding: const EdgeInsets.all(AppTheme.spacingLg),
               decoration: const BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    offset: Offset(0, -2),
-                  ),
-                ],
+                color: AppTheme.surfaceColor,
+                border: Border(top: BorderSide(color: AppTheme.borderColor)),
               ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: _isStarting ? null : _startExam,
-                  icon: _isStarting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.play_arrow_rounded, size: 24),
-                  label: Text(
-                    _isStarting ? 'Starting Session...' : 'Start Exam',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.borderRadiusMd),
-                    ),
-                    elevation: 0,
-                  ),
-                ),
+              child: MsPrimaryButton(
+                label: _isStarting ? 'Starting Session...' : 'Start Exam',
+                isLoading: _isStarting,
+                icon: Icons.play_arrow_rounded,
+                onPressed: _startExam,
               ),
             ),
           ],
@@ -254,46 +247,45 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
   }
 
   Widget _buildInfoCard({
-    required BuildContext context,
     required IconData icon,
     required Color iconColor,
+    required Color soft,
     required String title,
     required String value,
   }) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingMd),
-        child: Column(
-          children: [
-            CircleAvatar(
-              backgroundColor: iconColor.withValues(alpha: 0.1),
-              radius: 20,
-              child: Icon(icon, color: iconColor, size: 22),
+    return MsCard(
+      elevated: true,
+      child: Column(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: soft,
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(height: AppTheme.spacingSm),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppTheme.textSecondaryColor,
-              ),
+            child: Icon(icon, color: iconColor, size: 22),
+          ),
+          const SizedBox(height: AppTheme.spacingSm),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondaryColor,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
-              ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimaryColor,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -301,9 +293,10 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
   Widget _buildInstructionTile({
     required IconData icon,
     required String text,
+    bool isLast = false,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -315,7 +308,7 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
               style: const TextStyle(
                 fontSize: 14,
                 color: AppTheme.textSecondaryColor,
-                height: 1.4,
+                height: 1.45,
               ),
             ),
           ),

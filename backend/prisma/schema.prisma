@@ -264,12 +264,15 @@ model ExamAttempt {
 }
 
 model ExamAttemptDetail {
-  id               String  @id @default(uuid())
-  attemptId        String  @map("attempt_id")
-  questionId       String  @map("question_id")
-  selectedOptionId String? @map("selected_option_id")
-  isCorrect        Boolean @default(false) @map("is_correct")
-  timeSpentSeconds Int     @default(0) @map("time_spent_seconds")
+  id                 String  @id @default(uuid())
+  attemptId          String  @map("attempt_id")
+  questionId         String  @map("question_id")
+  selectedOptionId   String? @map("selected_option_id")
+  isCorrect          Boolean @default(false) @map("is_correct")
+  timeSpentSeconds   Int     @default(0) @map("time_spent_seconds")
+  aiCorrectOptionId  String? @map("ai_correct_option_id")
+  aiExplanation      String? @map("ai_explanation") @db.Text
+  gradedBy           String  @default("key") @map("graded_by") // "ai" | "key"
 
   attempt  ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
