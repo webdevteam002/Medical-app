@@ -216,8 +216,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         backgroundColor: AppTheme.backgroundColor,
         loadingBannerBuilder: (context, bytesDownloaded, totalBytes) =>
             const Center(child: CircularProgressIndicator()),
-        errorBannerBuilder: (context, error, stackTrace, documentRef) =>
-            Center(
+        errorBannerBuilder: (context, error, stackTrace, documentRef) => Center(
           child: Padding(
             padding: const EdgeInsets.all(AppTheme.spacingLg),
             child: Text(
