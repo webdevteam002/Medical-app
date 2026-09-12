@@ -1,6 +1,8 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    # pgvector-enabled Postgres 16 (required for AI-2 Medical RAG).
+    # Stock postgres:16-alpine does NOT include the vector extension.
+    image: pgvector/pgvector:pg16
     container_name: medstudy-postgres
     restart: unless-stopped
     ports:

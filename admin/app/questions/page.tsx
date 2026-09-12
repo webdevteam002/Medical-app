@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Sidebar from "@/components/Sidebar";
 import CsvImportModal from "@/components/CsvImportModal";
+import AiVerificationModal from "@/components/AiVerificationModal";
 import { Subject, fetchAdminSubjects } from "@/lib/subjects";
 import {
   Question,
@@ -16,6 +17,10 @@ import {
   deleteAdminQuestion,
   validateQuestionPayload,
 } from "@/lib/questions";
+import {
+  AiVerificationRecord,
+  verifyQuestionWithAi,
+} from "@/lib/ai-verifications";
 
 export default function QuestionsManagementPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -29,6 +34,7 @@ export default function QuestionsManagementPage() {
 
   const [pendingPublishId, setPendingPublishId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [pendingVerifyId, setPendingVerifyId] = useState<string | null>(null);
 
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -36,6 +42,14 @@ export default function QuestionsManagementPage() {
   const [isCsvModalOpen, setIsCsvModalOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [modalError, setModalError] = useState<string | null>(null);
+
+  const [verifyOpen, setVerifyOpen] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [verifyRecord, setVerifyRecord] = useState<AiVerificationRecord | null>(
+    null
+  );
+  const [verifyStem, setVerifyStem] = useState<string>("");
 
   // Form Fields
   const [formSubjectId, setFormSubjectId] = useState<string>("");
@@ -244,6 +258,26 @@ export default function QuestionsManagementPage() {
       alert(err instanceof Error ? err.message : "Failed to delete question.");
     } finally {
       setPendingDeleteId(null);
+    }
+  };
+
+  const handleVerifyWithAi = async (question: Question) => {
+    setPendingVerifyId(question.id);
+    setVerifyStem(question.stem);
+    setVerifyRecord(null);
+    setVerifyError(null);
+    setVerifyOpen(true);
+    setVerifyLoading(true);
+    try {
+      const record = await verifyQuestionWithAi(question.id);
+      setVerifyRecord(record);
+    } catch (err: unknown) {
+      setVerifyError(
+        err instanceof Error ? err.message : "AI verification failed."
+      );
+    } finally {
+      setVerifyLoading(false);
+      setPendingVerifyId(null);
     }
   };
 
@@ -481,6 +515,15 @@ export default function QuestionsManagementPage() {
                         </td>
                         <td className="py-4 px-6 text-right space-x-2">
                           <button
+                            onClick={() => handleVerifyWithAi(question)}
+                            disabled={pendingVerifyId === question.id}
+                            className="px-2.5 py-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded transition-colors"
+                          >
+                            {pendingVerifyId === question.id
+                              ? "Verifying..."
+                              : "Verify with AI"}
+                          </button>
+                          <button
                             onClick={() => handleOpenEditModal(question)}
                             className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded transition-colors"
                           >
@@ -529,6 +572,21 @@ export default function QuestionsManagementPage() {
           handleRefresh();
         }}
       />
+
+      {verifyOpen && (
+        <AiVerificationModal
+          record={verifyRecord}
+          isLoading={verifyLoading}
+          error={verifyError}
+          questionStem={verifyStem}
+          onClose={() => {
+            setVerifyOpen(false);
+            setVerifyRecord(null);
+            setVerifyError(null);
+          }}
+          onUpdated={(next) => setVerifyRecord(next)}
+        />
+      )}
 
       {/* Add / Edit Question Modal */}
       {isModalOpen && (

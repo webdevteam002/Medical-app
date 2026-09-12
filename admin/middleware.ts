@@ -9,6 +9,7 @@ const protectedRoutes = [
   "/topics",
   "/materials",
   "/questions",
+  "/ai-verifications",
   "/exams",
   "/users",
   "/content",

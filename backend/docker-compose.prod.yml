@@ -1,7 +1,8 @@
 # Production stack: API + PostgreSQL (for Oracle VM or any VPS)
 services:
   postgres:
-    image: postgres:16-alpine
+    # AI-2 requires pgvector. Confirm CREATE EXTENSION vector; works after deploy.
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-medstudy}

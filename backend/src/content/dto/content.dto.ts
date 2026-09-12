@@ -160,6 +160,20 @@ export class UpdateMaterialDto {
   @IsOptional()
   @IsString()
   pastPaperSession?: string;
+
+  /**
+   * Copyright/AI governance gate. Default false on create.
+   * Only ADMIN/SUPER_ADMIN can set this (this DTO is admin-only).
+   * Students never receive a write path for this field.
+   */
+  @ApiPropertyOptional({
+    description:
+      'Allow AI RAG ingestion. Requires published PDF. Default false. Admin-only.',
+  })
+  @IsOptional()
+  @Transform(toOptionalBoolean)
+  @IsBoolean()
+  aiIngestAllowed?: boolean;
 }
 
 export class GrantSubscriptionDto {

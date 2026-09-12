@@ -122,12 +122,51 @@ List all subs: `GET /v1/admin/subscriptions`
 
 ---
 
+## 8. MedStudy AI (AI-0 → AI-7/8)
+
+See **`docs/AI_PRODUCTION.md`** for the full checklist.
+
+### Required production steps (summary)
+
+1. Use PostgreSQL with **pgvector** (`pgvector/pgvector:pg16` in `docker-compose.prod.yml`).
+2. Confirm `CREATE EXTENSION vector;` after migrate.
+3. Apply all AI Prisma migrations.
+4. Configure `GEMINI_API_KEY` **server-side only** (API container env).
+5. Configure AI flags/quotas (`AI_ENABLED`, `AI_RAG_ENABLED`, daily limits). Keep defaults off until ready.
+6. Keep `AI_EMBEDDING_DIMENSIONS=768` aligned with the migration.
+7. Explicitly set `aiIngestAllowed=true` per material (admin) before reindex.
+8. Reindex only eligible published PDFs via admin API.
+9. Verify `GET /v1/ai/health` (authenticated) after deploy.
+
+### Example `.env.production` AI block
+
+```env
+AI_ENABLED=false
+AI_RAG_ENABLED=false
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-flash-latest
+AI_TIMEOUT_MS=18000
+AI_MAX_OUTPUT_TOKENS=1200
+AI_DAILY_EXPLANATION_LIMIT=20
+AI_DAILY_CHAT_LIMIT=40
+AI_DAILY_ADMIN_VERIFY_LIMIT=40
+AI_EMBEDDING_MODEL=gemini-embedding-001
+AI_EMBEDDING_DIMENSIONS=768
+```
+
+**Production pgvector extension:** NOT VERIFIED from this environment — requires OPS confirmation on the live database.
+
+---
+
 ## Monitoring
 
 - Health: `GET /v1/health`
+- AI health (auth): `GET /v1/ai/health`
 - SSL pins for Flutter: `GET /v1/security/ssl-pins`
 - Logs: `docker compose -f docker-compose.prod.yml logs -f api`
 - Disk: `df -h` (watch uploads/ and DB volume)
+
+AI ops logs use `ai_ops ...` lines with correlation ids — **no API keys, prompts, or PDF text**.
 
 ---
 

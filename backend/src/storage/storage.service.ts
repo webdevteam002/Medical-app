@@ -106,6 +106,23 @@ export class StorageService implements OnModuleInit {
     throw new Error('Presigned URLs require R2. Use stream endpoint in local mode.');
   }
 
+  /**
+   * Server-side download for ingestion / internal jobs.
+   * Supports R2 and local uploads. Does not mint public or student URLs.
+   */
+  async downloadBuffer(key: string): Promise<Buffer> {
+    if (this.mode === 'r2' && this.s3 && this.bucket) {
+      const result = await this.s3.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+      );
+      if (!result.Body) {
+        throw new Error(`Empty object body for key: ${key}`);
+      }
+      return Buffer.from(await result.Body.transformToByteArray());
+    }
+    return this.readLocalFile(key);
+  }
+
   readLocalFile(key: string): Buffer {
     const filePath = join(this.localRoot, key);
     if (!existsSync(filePath)) {

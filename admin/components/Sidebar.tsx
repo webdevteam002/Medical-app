@@ -11,6 +11,7 @@ const navigationItems = [
   { name: "Topics", href: "/topics" },
   { name: "Materials", href: "/materials" },
   { name: "Questions", href: "/questions" },
+  { name: "AI Reviews", href: "/ai-verifications" },
   { name: "Exams", href: "/exams" },
   { name: "Users", href: "/users" },
   { name: "Content", href: "/content" },

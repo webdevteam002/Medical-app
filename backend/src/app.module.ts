@@ -12,6 +12,7 @@ import { ContentModule } from './content/content.module';
 import { ExamsModule } from './exams/exams.module';
 import { HealthModule } from './health/health.module';
 import { SecurityModule } from './security/security.module';
+import { AiModule } from './ai/ai.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 @Module({
@@ -30,6 +31,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     ExamsModule,
     HealthModule,
     SecurityModule,
+    AiModule,
   ],
   providers: [
     {

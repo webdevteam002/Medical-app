@@ -70,6 +70,10 @@ model User {
   examAttempts     ExamAttempt[]
   bookmarks        Bookmark[]
   screenshotEvents ScreenshotEvent[]
+  aiUsageEvents    AiUsageEvent[]
+  aiConversations  AiConversation[]
+  aiVerificationsCreated AiQuestionVerification[] @relation("AiVerificationCreatedBy")
+  aiVerificationsDecided AiQuestionVerification[] @relation("AiVerificationDecidedBy")
 
   @@map("users")
 }
@@ -175,18 +179,22 @@ model Material {
   fileSizeBytes    BigInt       @default(0) @map("file_size_bytes")
   isDownloadable   Boolean      @default(true) @map("is_downloadable")
   isPublished      Boolean      @default(false) @map("is_published")
+  /// Copyright/AI governance gate — default deny. Admin-only mutation.
+  aiIngestAllowed  Boolean      @default(false) @map("ai_ingest_allowed")
   isPastPaper      Boolean      @default(false) @map("is_past_paper")
   pastPaperYear    Int?         @map("past_paper_year")
   pastPaperSession String?      @map("past_paper_session")
   createdAt        DateTime     @default(now()) @map("created_at")
 
-  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  topic     Topic?     @relation(fields: [topicId], references: [id])
-  bookmarks Bookmark[]
+  subject     Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topic       Topic?       @relation(fields: [topicId], references: [id])
+  bookmarks   Bookmark[]
+  aiDocuments AiDocument[]
 
   @@index([subjectId])
   @@index([topicId])
   @@index([isPublished, subjectId])
+  @@index([aiIngestAllowed, isPublished])
   @@map("materials")
 }
 
@@ -206,6 +214,7 @@ model Question {
   subject             Subject              @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   examQuestions       ExamQuestion[]
   examAttemptDetails  ExamAttemptDetail[]
+  aiVerifications     AiQuestionVerification[]
 
   @@index([subjectId])
   @@index([subjectId, isPublished])
@@ -303,4 +312,175 @@ model ScreenshotEvent {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("screenshot_events")
+}
+
+/// AI-0 usage telemetry + daily quota accounting (no prompt/content payloads).
+model AiUsageEvent {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  endpoint     String
+  provider     String
+  model        String
+  success      Boolean  @default(false)
+  latencyMs    Int      @default(0) @map("latency_ms")
+  inputTokens  Int?     @map("input_tokens")
+  outputTokens Int?     @map("output_tokens")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, endpoint, createdAt])
+  @@index([endpoint, createdAt])
+  @@map("ai_usage_events")
+}
+
+enum AiDocumentStatus {
+  PENDING
+  PROCESSING
+  ACTIVE
+  STALE
+  FAILED
+  OCR_REQUIRED
+}
+
+/// AI-2 indexed material version (RAG corpus). Only ACTIVE is retrieved.
+model AiDocument {
+  id                 String           @id @default(uuid())
+  materialId         String           @map("material_id")
+  contentHash        String           @map("content_hash")
+  status             AiDocumentStatus @default(PENDING)
+  embeddingModel     String           @map("embedding_model")
+  embeddingDimensions Int             @map("embedding_dimensions")
+  chunkCount         Int              @default(0) @map("chunk_count")
+  errorCode          String?          @map("error_code")
+  errorMessage       String?          @map("error_message") @db.Text
+  indexedAt          DateTime?        @map("indexed_at")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  material Material          @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  chunks   AiDocumentChunk[]
+
+  @@index([materialId, status])
+  @@index([status, materialId])
+  @@index([contentHash])
+  @@map("ai_documents")
+}
+
+/// AI-2 page-aware chunk + embedding. Vector stored via pgvector (Unsupported in Prisma).
+model AiDocumentChunk {
+  id          String                       @id @default(uuid())
+  documentId  String                       @map("document_id")
+  materialId  String                       @map("material_id")
+  chunkIndex  Int                          @map("chunk_index")
+  text        String                       @db.Text
+  pageStart   Int?                         @map("page_start")
+  pageEnd     Int?                         @map("page_end")
+  charCount   Int                          @default(0) @map("char_count")
+  contentHash String                       @map("content_hash")
+  /// pgvector column — dimension fixed by migration to match AI_EMBEDDING_DIMENSIONS (default 768).
+  embedding   Unsupported("vector")?
+  createdAt   DateTime                     @default(now()) @map("created_at")
+
+  document AiDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, chunkIndex])
+  @@index([materialId])
+  @@index([documentId])
+  @@map("ai_document_chunks")
+}
+
+enum AiMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+/// AI-4 student assistant conversation (owner-scoped).
+model AiConversation {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages AiMessage[]
+
+  @@index([userId, updatedAt])
+  @@map("ai_conversations")
+}
+
+model AiMessage {
+  id             String        @id @default(uuid())
+  conversationId String        @map("conversation_id")
+  role           AiMessageRole
+  content        String        @db.Text
+  grounding      String?
+  citationsJson  Json?         @map("citations_json")
+  toolsUsedJson  Json?         @map("tools_used_json")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("ai_messages")
+}
+
+/// AI-5 admin MCQ verification lifecycle (advisory — never mutates Question).
+enum AiVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FAILED
+}
+
+enum AiVerificationIssueType {
+  NONE
+  AMBIGUOUS
+  POSSIBLE_KEY_ISSUE
+  MULTIPLE_PLAUSIBLE_ANSWERS
+  INSUFFICIENT_INFORMATION
+  EXPLANATION_ISSUE
+  OPTION_QUALITY_ISSUE
+}
+
+/// Persistent AI review of an MCQ. Human approve/reject decides the REVIEW only.
+model AiQuestionVerification {
+  id                      String                   @id @default(uuid())
+  questionId              String                   @map("question_id")
+  status                  AiVerificationStatus     @default(PENDING)
+  /// Official key at verification time (snapshot — never written back to Question).
+  officialCorrectOptionId String                   @map("official_correct_option_id")
+  /// SHA-256 of stem/options/key/explanation/publish/subject/difficulty at verify time.
+  questionContentHash     String                   @map("question_content_hash")
+  issueType               AiVerificationIssueType? @map("issue_type")
+  confidence              Float?
+  reasoning               String?                  @db.Text
+  recommendation          String?                  @db.Text
+  optionAnalysisJson      Json?                    @map("option_analysis_json")
+  qualityFlagsJson        Json?                    @map("quality_flags_json")
+  sourceSupportJson       Json?                    @map("source_support_json")
+  /// Server-built RAG evidence metadata only (never model-invented citations).
+  evidenceJson            Json?                    @map("evidence_json")
+  grounding               String?
+  provider                String?
+  model                   String?
+  createdByAdminId        String                   @map("created_by_admin_id")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  decidedByAdminId        String?                  @map("decided_by_admin_id")
+  decidedAt               DateTime?                @map("decided_at")
+  adminNote               String?                  @map("admin_note") @db.Text
+  errorCode               String?                  @map("error_code")
+  errorMessage            String?                  @map("error_message") @db.Text
+
+  question  Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdBy User     @relation("AiVerificationCreatedBy", fields: [createdByAdminId], references: [id], onDelete: Cascade)
+  decidedBy User?    @relation("AiVerificationDecidedBy", fields: [decidedByAdminId], references: [id], onDelete: SetNull)
+
+  @@index([questionId, createdAt])
+  @@index([status, createdAt])
+  @@index([questionId, questionContentHash, status])
+  @@index([issueType, status])
+  @@map("ai_question_verifications")
 }

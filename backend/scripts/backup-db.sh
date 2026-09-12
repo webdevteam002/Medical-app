@@ -1,5 +1,7 @@
 #!/bin/bash
 # Daily PostgreSQL backup → local file (upload to R2 manually or via cron + rclone)
+# Includes all AI tables (usage, documents/chunks, conversations, verifications).
+# Container name: medstudy-postgres (docker-compose.yml). Adjust for prod compose.
 set -euo pipefail
 
 BACKUP_DIR="${BACKUP_DIR:-/home/ubuntu/backups}"

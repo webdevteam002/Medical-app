@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import '../../features/ai/presentation/pages/ai_assistant_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/exams/data/models/exam_attempt_review_model.dart';
@@ -60,6 +61,14 @@ class AppRouter {
         path: '/subscriptions',
         name: 'subscriptions',
         builder: (context, state) => const SubscriptionPage(),
+      ),
+      GoRoute(
+        path: '/ai-assistant',
+        name: 'aiAssistant',
+        builder: (context, state) {
+          final questionId = state.uri.queryParameters['questionId'];
+          return AiAssistantPage(initialQuestionId: questionId);
+        },
       ),
       GoRoute(
         path: '/subjects/:yearSlug',

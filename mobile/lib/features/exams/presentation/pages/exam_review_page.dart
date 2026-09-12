@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../ai/data/datasources/ai_remote_datasource.dart';
+import '../../../ai/presentation/widgets/mcq_ai_explain_panel.dart';
 import '../../data/datasources/exams_remote_datasource.dart';
 import '../../data/models/exam_attempt_review_model.dart';
+import '../../data/models/question_option_model.dart';
 
 class ExamReviewPage extends StatefulWidget {
   final String attemptId;
   final ExamsRemoteDataSource? examsRemoteDataSource;
   final ExamAttemptReviewModel? initialReview;
+  final AiRemoteDataSource? aiRemoteDataSource;
 
   const ExamReviewPage({
     super.key,
     required this.attemptId,
     this.examsRemoteDataSource,
     this.initialReview,
+    this.aiRemoteDataSource,
   });
 
   @override
@@ -220,6 +225,18 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
         ),
       ],
     );
+  }
+
+  String _optionText(
+    List<QuestionOptionModel> options,
+    String? optionId, {
+    String emptyLabel = '',
+  }) {
+    if (optionId == null) return emptyLabel;
+    for (final opt in options) {
+      if (opt.id == optionId) return opt.text;
+    }
+    return emptyLabel;
   }
 
   @override
@@ -436,6 +453,28 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
                     ),
                   ),
                 ],
+                const SizedBox(height: AppTheme.spacingLg),
+                McqAiExplainPanel(
+                  key: ValueKey(
+                    'ai-${detail.questionId}-${detail.selectedOptionId ?? 'none'}',
+                  ),
+                  questionId: detail.questionId,
+                  selectedOptionId: detail.selectedOptionId,
+                  selectedOptionLabel:
+                      (detail.selectedOptionId ?? '—').toUpperCase(),
+                  selectedOptionText: _optionText(
+                    detail.options,
+                    detail.selectedOptionId,
+                    emptyLabel: 'No answer selected',
+                  ),
+                  correctOptionLabel: detail.correctOptionId.toUpperCase(),
+                  correctOptionText: _optionText(
+                    detail.options,
+                    detail.correctOptionId,
+                  ),
+                  isCorrect: detail.isCorrect,
+                  aiRemoteDataSource: widget.aiRemoteDataSource,
+                ),
               ],
             ),
           ),

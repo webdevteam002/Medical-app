@@ -117,6 +117,50 @@ class ProfileDestinationView extends StatelessWidget {
                     ),
                     const SizedBox(height: AppTheme.spacingMd),
                     MsCard(
+                      key: const Key('profile_ai_assistant_card'),
+                      onTap: () => context.push('/ai-assistant'),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color:
+                                  AppTheme.primaryColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.auto_awesome_rounded,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: AppTheme.spacingMd),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'AI Assistant',
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                ),
+                                Text(
+                                  'Ask about subjects, materials & concepts',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 16,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingMd),
+                    MsCard(
                       onTap: () => context.push('/subscriptions'),
                       child: Row(
                         children: [
