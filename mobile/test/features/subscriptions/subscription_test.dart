@@ -232,11 +232,18 @@ void main() {
       ));
 
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Continue to Payment'));
+
+      final continueButton = find.widgetWithText(
+        ElevatedButton,
+        'Continue to Payment',
+      );
+      await tester.ensureVisible(continueButton);
+      await tester.tap(continueButton);
       await tester.pump();
       await tester.pumpAndSettle();
 
       expect(fakeDataSource.createManualIntentCallCount, equals(1));
+      expect(find.text('How to pay & get access'), findsWidgets);
     });
   });
 }

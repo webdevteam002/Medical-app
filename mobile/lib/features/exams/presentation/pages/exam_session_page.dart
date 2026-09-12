@@ -761,7 +761,8 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isUrgent ? AppTheme.errorSoft : AppTheme.surfaceMuted,
+                    color:
+                        isUrgent ? AppTheme.errorSoft : AppTheme.surfaceMuted,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isUrgent
@@ -896,7 +897,8 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                     ),
                     decoration: const BoxDecoration(
                       color: AppTheme.surfaceColor,
-                      border: Border(top: BorderSide(color: AppTheme.borderColor)),
+                      border:
+                          Border(top: BorderSide(color: AppTheme.borderColor)),
                     ),
                     child: Row(
                       children: [
@@ -919,8 +921,8 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                               : ElevatedButton.icon(
                                   onPressed: _isSubmitting
                                       ? null
-                                      : () =>
-                                          _showSubmitConfirmationDialog(context),
+                                      : () => _showSubmitConfirmationDialog(
+                                          context),
                                   icon: _isSubmitting
                                       ? const SizedBox(
                                           width: 16,
@@ -999,7 +1001,8 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                   : AppTheme.surfaceColor,
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
               border: Border.all(
-                color: isSelected ? AppTheme.primaryColor : AppTheme.borderColor,
+                color:
+                    isSelected ? AppTheme.primaryColor : AppTheme.borderColor,
                 width: isSelected ? 2 : 1,
               ),
               boxShadow: isSelected ? AppTheme.softShadow : null,

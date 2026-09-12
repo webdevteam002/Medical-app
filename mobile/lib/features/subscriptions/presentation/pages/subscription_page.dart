@@ -119,8 +119,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     await _loadData();
     if (!mounted) return;
     setState(() => _isRefreshing = false);
-    final hasAccess =
-        (_userSubscriptions?.accessibleYears.isNotEmpty ?? false);
+    final hasAccess = (_userSubscriptions?.accessibleYears.isNotEmpty ?? false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -242,7 +241,17 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               ),
             )
           else
-            ..._availablePlans.map(_buildPlanTile),
+            RadioGroup<String>(
+              groupValue: _selectedPlanType,
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _selectedPlanType = val);
+                }
+              },
+              child: Column(
+                children: _availablePlans.map(_buildPlanTile).toList(),
+              ),
+            ),
           const SizedBox(height: AppTheme.spacingLg),
           SizedBox(
             width: double.infinity,
@@ -398,12 +407,6 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             children: [
               Radio<String>(
                 value: plan.planType,
-                groupValue: _selectedPlanType,
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() => _selectedPlanType = val);
-                  }
-                },
                 activeColor: AppTheme.primaryColor,
               ),
               const SizedBox(width: AppTheme.spacingSm),

@@ -110,7 +110,7 @@ void main() {
       expect(fakeDataSource.getExamsCallCount, equals(1));
       expect(find.text('Anatomy Midterm Mock Exam 2026'), findsOneWidget);
       expect(find.text('Physiology Comprehensive Test'), findsOneWidget);
-      expect(find.text('60 mins'), findsOneWidget);
+      expect(find.text('60 min'), findsOneWidget);
       expect(find.text('50 questions'), findsOneWidget);
     });
 

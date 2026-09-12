@@ -169,8 +169,8 @@ class ExamSubmitResultPage extends StatelessWidget {
                             child: Text(
                               'No question details returned. Open Exam History to review later.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: AppTheme.textSecondaryColor),
+                              style:
+                                  TextStyle(color: AppTheme.textSecondaryColor),
                             ),
                           )
                         else
@@ -274,104 +274,104 @@ class _QuestionReviewCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
       child: MsCard(
-      elevated: false,
-      padding: const EdgeInsets.all(AppTheme.spacingMd),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'Q$number',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const Spacer(),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusBg,
-                  borderRadius: BorderRadius.circular(20),
+        elevated: false,
+        padding: const EdgeInsets.all(AppTheme.spacingMd),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Q$number',
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
-                child: Text(
-                  detail.isCorrect ? 'Correct' : 'Incorrect',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: statusColor,
+                const Spacer(),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusBg,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppTheme.spacingSm),
-          Text(
-            detail.stem.isNotEmpty
-                ? detail.stem
-                : 'Question ${detail.questionId}',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimaryColor,
-              height: 1.35,
-            ),
-          ),
-          const SizedBox(height: AppTheme.spacingSm),
-          Text(
-            'Your answer: ${_optionText(detail.selectedOptionId)}',
-            style: TextStyle(
-              fontSize: 13,
-              color: statusColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (!detail.isCorrect) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Correct answer: ${_optionText(detail.correctOptionId)}',
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppTheme.successColor,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-          if (detail.explanation.isNotEmpty) ...[
-            const SizedBox(height: AppTheme.spacingSm),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppTheme.spacingSm),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceMuted,
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Explanation',
+                  child: Text(
+                    detail.isCorrect ? 'Correct' : 'Incorrect',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.textSecondaryColor,
+                      color: statusColor,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    detail.explanation,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      color: AppTheme.textPrimaryColor,
-                    ),
-                  ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.spacingSm),
+            Text(
+              detail.stem.isNotEmpty
+                  ? detail.stem
+                  : 'Question ${detail.questionId}',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimaryColor,
+                height: 1.35,
               ),
             ),
+            const SizedBox(height: AppTheme.spacingSm),
+            Text(
+              'Your answer: ${_optionText(detail.selectedOptionId)}',
+              style: TextStyle(
+                fontSize: 13,
+                color: statusColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (!detail.isCorrect) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Correct answer: ${_optionText(detail.correctOptionId)}',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppTheme.successColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+            if (detail.explanation.isNotEmpty) ...[
+              const SizedBox(height: AppTheme.spacingSm),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppTheme.spacingSm),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceMuted,
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Explanation',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      detail.explanation,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: AppTheme.textPrimaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
-    ),
     );
   }
 }

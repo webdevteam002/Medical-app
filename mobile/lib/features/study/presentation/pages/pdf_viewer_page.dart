@@ -102,7 +102,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     if (path == null || path.isEmpty) return;
     try {
       if (Platform.isWindows) {
-        await Process.start('cmd', ['/c', 'start', '', path], runInShell: false);
+        await Process.start('cmd', ['/c', 'start', '', path],
+            runInShell: false);
       } else if (Platform.isMacOS) {
         await Process.start('open', [path]);
       } else {

@@ -60,16 +60,20 @@ class AuthRemoteDataSource {
         }
       } else {
         return AuthTokens(
-          accessToken: 'demo_access_token_${DateTime.now().millisecondsSinceEpoch}',
-          refreshToken: 'demo_refresh_token_${DateTime.now().millisecondsSinceEpoch}',
+          accessToken:
+              'demo_access_token_${DateTime.now().millisecondsSinceEpoch}',
+          refreshToken:
+              'demo_refresh_token_${DateTime.now().millisecondsSinceEpoch}',
           expiresIn: 3600,
         );
       }
     } catch (e) {
       if (e is Failure) rethrow;
       return AuthTokens(
-        accessToken: 'demo_access_token_${DateTime.now().millisecondsSinceEpoch}',
-        refreshToken: 'demo_refresh_token_${DateTime.now().millisecondsSinceEpoch}',
+        accessToken:
+            'demo_access_token_${DateTime.now().millisecondsSinceEpoch}',
+        refreshToken:
+            'demo_refresh_token_${DateTime.now().millisecondsSinceEpoch}',
         expiresIn: 3600,
       );
     }
@@ -130,16 +134,20 @@ class AuthRemoteDataSource {
         }
       } else {
         return AuthTokens(
-          accessToken: 'demo_access_token_${DateTime.now().millisecondsSinceEpoch}',
-          refreshToken: 'demo_refresh_token_${DateTime.now().millisecondsSinceEpoch}',
+          accessToken:
+              'demo_access_token_${DateTime.now().millisecondsSinceEpoch}',
+          refreshToken:
+              'demo_refresh_token_${DateTime.now().millisecondsSinceEpoch}',
           expiresIn: 3600,
         );
       }
     } catch (e) {
       if (e is Failure) rethrow;
       return AuthTokens(
-        accessToken: 'demo_access_token_${DateTime.now().millisecondsSinceEpoch}',
-        refreshToken: 'demo_refresh_token_${DateTime.now().millisecondsSinceEpoch}',
+        accessToken:
+            'demo_access_token_${DateTime.now().millisecondsSinceEpoch}',
+        refreshToken:
+            'demo_refresh_token_${DateTime.now().millisecondsSinceEpoch}',
         expiresIn: 3600,
       );
     }

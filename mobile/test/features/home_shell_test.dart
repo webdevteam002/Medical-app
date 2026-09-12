@@ -232,7 +232,7 @@ void main() {
       await tester.tap(profileRailDest);
       await tester.pumpAndSettle();
 
-      expect(find.text('Subscriptions & Access'), findsOneWidget);
+      expect(find.text('Subscription'), findsOneWidget);
     });
   });
 }

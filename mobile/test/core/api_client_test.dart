@@ -218,13 +218,11 @@ void main() {
       expect(adapter.callCount, equals(1));
     });
 
-    test(
-        '3. Parallel 401s share one refresh lock and keep the session',
+    test('3. Parallel 401s share one refresh lock and keep the session',
         () async {
       fakeStorage.storage[SecureStorageService.accessTokenKey] =
           'expired_access';
-      fakeStorage.storage[SecureStorageService.refreshTokenKey] =
-          'refresh_old';
+      fakeStorage.storage[SecureStorageService.refreshTokenKey] = 'refresh_old';
 
       var refreshCalls = 0;
 

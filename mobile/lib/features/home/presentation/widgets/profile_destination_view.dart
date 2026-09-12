@@ -182,8 +182,8 @@ class ProfileDestinationView extends StatelessWidget {
                             vertical: AppTheme.spacingMd,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                AppTheme.borderRadiusSm),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.borderRadiusSm),
                           ),
                         ),
                       ),

@@ -53,7 +53,8 @@ class MsEmptyState extends StatelessWidget {
               const SizedBox(height: AppTheme.spacingLg),
               SizedBox(
                 width: 200,
-                child: MsPrimaryButton(label: actionLabel!, onPressed: onAction),
+                child:
+                    MsPrimaryButton(label: actionLabel!, onPressed: onAction),
               ),
             ],
           ],

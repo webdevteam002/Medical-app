@@ -83,7 +83,8 @@ void main() {
       expect(fakeDataSource.fetchCount, equals(1));
       expect(find.text('First Year MBBS'), findsOneWidget);
       expect(find.text('Second Year MBBS'), findsOneWidget);
-      expect(find.text('Slug: 1st-year'), findsOneWidget);
+      expect(find.text('Open subjects & materials'), findsWidgets);
+      expect(find.text('Y1'), findsOneWidget);
     });
 
     testWidgets('3. Empty response displays empty state message',

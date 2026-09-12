@@ -219,8 +219,7 @@ class ApiClient {
         return recovered;
       }
 
-      if (e is DioException &&
-          (_isSessionRevoked(e) || _isDeviceMismatch(e))) {
+      if (e is DioException && (_isSessionRevoked(e) || _isDeviceMismatch(e))) {
         await _authSessionService.clearSession();
       }
       completer.complete(null);

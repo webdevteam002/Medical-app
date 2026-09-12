@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:medstudy/core/device/device_id_service.dart';
 import 'package:medstudy/core/errors/failures.dart';
 import 'package:medstudy/core/storage/secure_storage_service.dart';
@@ -25,26 +26,18 @@ class FakeSecureStorageService extends SecureStorageService {
 class FakeDeviceIdService extends DeviceIdService {
   final String fakeId;
   final String fakeName;
-  final SecureStorageService _storage;
 
   FakeDeviceIdService({
     this.fakeId = 'fake-device-uuid-1234',
     this.fakeName = 'Test Device Name',
     super.secureStorageService,
-  }) : _storage = secureStorageService ?? SecureStorageService();
+  });
 
   @override
-  Future<String> getOrCreateDeviceId() async {
-    final existing = await _storage.getDeviceId();
-    if (existing != null && existing.isNotEmpty) return existing;
-    await _storage.saveDeviceId(fakeId);
-    return fakeId;
-  }
+  Future<String> getOrCreateDeviceId() async => fakeId;
 
   @override
-  Future<String> getDeviceName() async {
-    return fakeName;
-  }
+  Future<String> getDeviceName() async => fakeName;
 }
 
 class FakeAuthRemoteDataSource extends AuthRemoteDataSource {
@@ -75,6 +68,7 @@ class FakeAuthRemoteDataSource extends AuthRemoteDataSource {
     required String password,
     required String deviceId,
     required String deviceName,
+    required String deviceType,
   }) async {
     loginCallCount++;
     lastDeviceId = deviceId;
@@ -93,6 +87,7 @@ class FakeAuthRemoteDataSource extends AuthRemoteDataSource {
     required String fullName,
     required String deviceId,
     required String deviceName,
+    required String deviceType,
   }) async {
     registerCallCount++;
     lastRegisterEmail = email;
@@ -110,26 +105,58 @@ class FakeAuthRemoteDataSource extends AuthRemoteDataSource {
 
 void main() {
   Widget createWidgetUnderTest(Widget child) {
-    return MaterialApp(
-      home: child,
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(path: '/', builder: (context, state) => child),
+        GoRoute(
+          path: '/home',
+          builder: (context, state) =>
+              const Scaffold(body: Text('Home Destination')),
+        ),
+        GoRoute(
+          path: '/login',
+          builder: (context, state) =>
+              const Scaffold(body: Text('Login Destination')),
+        ),
+        GoRoute(
+          path: '/register',
+          builder: (context, state) =>
+              const Scaffold(body: Text('Register Destination')),
+        ),
+      ],
     );
+
+    return MaterialApp.router(routerConfig: router);
+  }
+
+  Future<void> setTallSurface(WidgetTester tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() async {
+      await tester.binding.setSurfaceSize(null);
+    });
   }
 
   group('LoginPage Day 7 Tests', () {
     testWidgets('1. Login screen renders expected branding and fields',
         (WidgetTester tester) async {
+      await setTallSurface(tester);
       await tester.pumpWidget(createWidgetUnderTest(const LoginPage()));
 
       expect(find.text('MedStudy'), findsOneWidget);
+      expect(find.text('Welcome back'), findsOneWidget);
       expect(
-          find.text('Sign in to your medical student portal'), findsOneWidget);
-      expect(find.text('Email Address'), findsOneWidget);
+        find.text('Sign in to continue your medical preparation.'),
+        findsOneWidget,
+      );
+      expect(find.text('Email'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
       expect(find.widgetWithText(ElevatedButton, 'Sign In'), findsOneWidget);
     });
 
     testWidgets('2. Successful login obtains real device ID and stores tokens',
         (WidgetTester tester) async {
+      await setTallSurface(tester);
       final fakeDataSource = FakeAuthRemoteDataSource();
       final fakeStorage = FakeSecureStorageService();
       final deviceIdService =
@@ -147,7 +174,9 @@ void main() {
           find.byType(TextFormField).at(0), 'student@medstudy.org');
       await tester.enterText(find.byType(TextFormField).at(1), 'password123');
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+      final signInButton = find.widgetWithText(ElevatedButton, 'Sign In');
+      await tester.ensureVisible(signInButton);
+      await tester.tap(signInButton);
       await tester.pump();
       await tester.pumpAndSettle();
 
@@ -161,26 +190,33 @@ void main() {
   group('RegisterPage Day 7 Integration Tests', () {
     testWidgets('1. Register screen renders expected title and fields',
         (WidgetTester tester) async {
+      await setTallSurface(tester);
       await tester.pumpWidget(createWidgetUnderTest(const RegisterPage()));
 
-      expect(find.text('Create Account'), findsOneWidget);
-      expect(find.text('Full Name'), findsOneWidget);
-      expect(find.text('Email Address'), findsOneWidget);
+      expect(find.text('Create account'), findsOneWidget);
+      expect(find.text('Full name'), findsOneWidget);
+      expect(find.text('Email'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
-      expect(find.text('Confirm Password'), findsOneWidget);
-      expect(find.widgetWithText(ElevatedButton, 'Register'), findsOneWidget);
+      expect(find.text('Confirm password'), findsOneWidget);
+      expect(
+        find.widgetWithText(ElevatedButton, 'Create Account'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('2. Password mismatch shows validation error',
         (WidgetTester tester) async {
+      await setTallSurface(tester);
       await tester.pumpWidget(createWidgetUnderTest(const RegisterPage()));
 
+      await tester.enterText(find.byType(TextFormField).at(0), 'Ali Khan');
       await tester.enterText(
           find.byType(TextFormField).at(1), 'student@medstudy.org');
       await tester.enterText(find.byType(TextFormField).at(2), 'password123');
       await tester.enterText(find.byType(TextFormField).at(3), 'password456');
 
-      final buttonFinder = find.widgetWithText(ElevatedButton, 'Register');
+      final buttonFinder =
+          find.widgetWithText(ElevatedButton, 'Create Account');
       await tester.ensureVisible(buttonFinder);
       await tester.tap(buttonFinder);
       await tester.pumpAndSettle();
@@ -190,6 +226,7 @@ void main() {
 
     testWidgets('3. Successful registration stores tokens and reuses device ID',
         (WidgetTester tester) async {
+      await setTallSurface(tester);
       final fakeDataSource = FakeAuthRemoteDataSource();
       final fakeStorage = FakeSecureStorageService();
       final deviceIdService =
@@ -209,7 +246,8 @@ void main() {
       await tester.enterText(find.byType(TextFormField).at(2), 'password123');
       await tester.enterText(find.byType(TextFormField).at(3), 'password123');
 
-      final buttonFinder = find.widgetWithText(ElevatedButton, 'Register');
+      final buttonFinder =
+          find.widgetWithText(ElevatedButton, 'Create Account');
       await tester.ensureVisible(buttonFinder);
       await tester.tap(buttonFinder);
       await tester.pump();
@@ -227,6 +265,7 @@ void main() {
 
     testWidgets('4. Registration API error displays error banner',
         (WidgetTester tester) async {
+      await setTallSurface(tester);
       final fakeDataSource = FakeAuthRemoteDataSource(
         shouldFail: true,
         errorMessage: 'Email already registered',
@@ -243,12 +282,14 @@ void main() {
         ),
       ));
 
+      await tester.enterText(find.byType(TextFormField).at(0), 'Ali Khan');
       await tester.enterText(
           find.byType(TextFormField).at(1), 'existing@medstudy.org');
       await tester.enterText(find.byType(TextFormField).at(2), 'password123');
       await tester.enterText(find.byType(TextFormField).at(3), 'password123');
 
-      final buttonFinder = find.widgetWithText(ElevatedButton, 'Register');
+      final buttonFinder =
+          find.widgetWithText(ElevatedButton, 'Create Account');
       await tester.ensureVisible(buttonFinder);
       await tester.tap(buttonFinder);
       await tester.pump();

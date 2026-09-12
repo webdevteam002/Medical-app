@@ -33,8 +33,10 @@ class StudyRemoteDataSource {
       YearModel(id: 'y3', name: 'Year 3', slug: 'year-3', sortOrder: 3),
       YearModel(id: 'y4', name: 'Year 4', slug: 'year-4', sortOrder: 4),
       YearModel(id: 'y5', name: 'Year 5', slug: 'year-5', sortOrder: 5),
-      YearModel(id: 'fcps1', name: 'FCPS Part 1', slug: 'fcps-part-1', sortOrder: 6),
-      YearModel(id: 'fcps2', name: 'FCPS Part 2', slug: 'fcps-part-2', sortOrder: 7),
+      YearModel(
+          id: 'fcps1', name: 'FCPS Part 1', slug: 'fcps-part-1', sortOrder: 6),
+      YearModel(
+          id: 'fcps2', name: 'FCPS Part 2', slug: 'fcps-part-2', sortOrder: 7),
     ];
   }
 
@@ -52,11 +54,36 @@ class StudyRemoteDataSource {
     } catch (_) {}
 
     return [
-      SubjectModel(id: 's1', name: 'Anatomy', slug: 'anatomy', sortOrder: 1, yearId: yearSlug),
-      SubjectModel(id: 's2', name: 'Physiology', slug: 'physiology', sortOrder: 2, yearId: yearSlug),
-      SubjectModel(id: 's3', name: 'Biochemistry', slug: 'biochemistry', sortOrder: 3, yearId: yearSlug),
-      SubjectModel(id: 's4', name: 'Pathology', slug: 'pathology', sortOrder: 4, yearId: yearSlug),
-      SubjectModel(id: 's5', name: 'Pharmacology', slug: 'pharmacology', sortOrder: 5, yearId: yearSlug),
+      SubjectModel(
+          id: 's1',
+          name: 'Anatomy',
+          slug: 'anatomy',
+          sortOrder: 1,
+          yearId: yearSlug),
+      SubjectModel(
+          id: 's2',
+          name: 'Physiology',
+          slug: 'physiology',
+          sortOrder: 2,
+          yearId: yearSlug),
+      SubjectModel(
+          id: 's3',
+          name: 'Biochemistry',
+          slug: 'biochemistry',
+          sortOrder: 3,
+          yearId: yearSlug),
+      SubjectModel(
+          id: 's4',
+          name: 'Pathology',
+          slug: 'pathology',
+          sortOrder: 4,
+          yearId: yearSlug),
+      SubjectModel(
+          id: 's5',
+          name: 'Pharmacology',
+          slug: 'pharmacology',
+          sortOrder: 5,
+          yearId: yearSlug),
     ];
   }
 

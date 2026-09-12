@@ -93,7 +93,7 @@ class _SubjectsPageState extends State<SubjectsPage> {
   }
 
   IconData _iconForSubject(String slug, String name) {
-    final key = '${slug}_${name}'.toLowerCase();
+    final key = '${slug}_$name'.toLowerCase();
     if (key.contains('past') || key.contains('paper')) {
       return Icons.description_outlined;
     }
@@ -221,9 +221,10 @@ class _SubjectsPageState extends State<SubjectsPage> {
                     children: [
                       Text(
                         subject.name,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                       ),
                       const SizedBox(height: 4),
                       Text(

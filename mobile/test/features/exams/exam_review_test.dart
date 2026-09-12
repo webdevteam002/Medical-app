@@ -54,7 +54,8 @@ void main() {
           equals('The femoral artery supplies the anterior thigh.'));
     });
 
-    test('1b. ExamAttemptReviewModel accepts Prisma Decimal percentage as string',
+    test(
+        '1b. ExamAttemptReviewModel accepts Prisma Decimal percentage as string',
         () {
       final json = {
         'id': 'att_decimal',
