@@ -145,3 +145,93 @@ export async function createAdminSubject(
   const data = await response.json();
   return data as Subject;
 }
+
+export async function updateAdminSubject(
+  id: string,
+  payload: CreateSubjectPayload,
+  customBaseUrl?: string
+): Promise<Subject> {
+  const validation = validateSubjectPayload(payload);
+  if (!validation.isValid) {
+    const firstError = Object.values(validation.errors)[0];
+    throw new Error(firstError || "Subject validation failed.");
+  }
+
+  const baseUrl = customBaseUrl || getApiBaseUrl();
+  const token = getAdminToken();
+
+  const response = await fetch(
+    `${baseUrl}/admin/subjects/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "X-Device-Id": "admin-web-dashboard",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        yearId: payload.yearId.trim(),
+        name: payload.name.trim(),
+        slug: payload.slug.trim(),
+        sortOrder: Number(payload.sortOrder),
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    let errorMessage = `Failed to update subject (HTTP ${response.status})`;
+    try {
+      const errData = await response.json();
+      if (errData.message) {
+        errorMessage = Array.isArray(errData.message)
+          ? errData.message.join(", ")
+          : errData.message;
+      }
+    } catch {
+      // Ignore parse errors
+    }
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json();
+  return data as Subject;
+}
+
+export async function deleteAdminSubject(
+  id: string,
+  customBaseUrl?: string
+): Promise<boolean> {
+  const baseUrl = customBaseUrl || getApiBaseUrl();
+  const token = getAdminToken();
+
+  const response = await fetch(
+    `${baseUrl}/admin/subjects/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "X-Device-Id": "admin-web-dashboard",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    }
+  );
+
+  if (!response.ok) {
+    let errorMessage = `Failed to delete subject (HTTP ${response.status})`;
+    try {
+      const errData = await response.json();
+      if (errData.message) {
+        errorMessage = Array.isArray(errData.message)
+          ? errData.message.join(", ")
+          : errData.message;
+      }
+    } catch {
+      // Ignore parse errors
+    }
+    throw new Error(errorMessage);
+  }
+
+  return true;
+}

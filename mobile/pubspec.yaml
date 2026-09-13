@@ -24,6 +24,7 @@ dependencies:
   purchases_flutter: ^8.6.0
   google_fonts: ^8.2.1
   pdfrx: ^2.6.1
+  flutter_html: ^3.0.0-beta.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -5,12 +5,14 @@ class ExamQuestionModel {
   final String stem;
   final List<QuestionOptionModel> options;
   final String? imageKey;
+  final String? imageUrl;
 
   const ExamQuestionModel({
     required this.id,
     required this.stem,
     required this.options,
     this.imageKey,
+    this.imageUrl,
   });
 
   factory ExamQuestionModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class ExamQuestionModel {
       stem: json['stem'] as String? ?? '',
       options: rawOptions,
       imageKey: json['imageKey'] as String?,
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 
@@ -37,6 +40,7 @@ class ExamQuestionModel {
       'stem': stem,
       'options': options.map((o) => o.toJson()).toList(),
       'imageKey': imageKey,
+      'imageUrl': imageUrl,
     };
   }
 }

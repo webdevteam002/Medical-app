@@ -13,6 +13,7 @@ import { ExamsModule } from './exams/exams.module';
 import { HealthModule } from './health/health.module';
 import { SecurityModule } from './security/security.module';
 import { AiModule } from './ai/ai.module';
+import { MediaModule } from './media/media.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 @Module({
@@ -23,6 +24,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     }),
     PrismaModule,
     StorageModule,
+    MediaModule,
     SubscriptionsModule,
     AuthModule,
     UsersModule,

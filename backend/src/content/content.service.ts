@@ -3,9 +3,10 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
@@ -15,6 +16,7 @@ import {
   CreateTopicDto,
   CreateYearDto,
   UpdateMaterialDto,
+  UpdateSubjectDto,
 } from './dto/content.dto';
 import { randomUUID } from 'crypto';
 
@@ -145,13 +147,17 @@ export class ContentService {
     const subject = await this.getSubjectWithYear(material.subjectId);
     await this.assertYearAccess(user, subject.year.slug);
 
-    if (!this.storage.localFileExists(material.fileKey)) {
+    if (!(await this.storage.exists(material.fileKey))) {
       throw new NotFoundException({ code: 'NOT_FOUND', message: 'File not found on server' });
     }
 
+    const opened = await this.storage.openReadStream(material.fileKey);
     return {
-      stream: this.storage.createLocalReadStream(material.fileKey),
-      contentType: material.type === 'PDF' ? 'application/pdf' : 'application/octet-stream',
+      stream: opened.stream,
+      contentType:
+        material.type === 'PDF'
+          ? 'application/pdf'
+          : opened.contentType || 'application/octet-stream',
       filename: material.title,
     };
   }
@@ -167,7 +173,10 @@ export class ContentService {
   }
 
   createSubject(dto: CreateSubjectDto) {
-    return this.prisma.subject.create({ data: dto });
+    return this.prisma.subject.create({
+      data: dto,
+      include: { year: { select: { name: true, slug: true } } },
+    });
   }
 
   listAllSubjects(yearId?: string) {
@@ -176,6 +185,69 @@ export class ContentService {
       orderBy: { sortOrder: 'asc' },
       include: { year: { select: { name: true, slug: true } } },
     });
+  }
+
+  async updateSubject(id: string, dto: UpdateSubjectDto) {
+    const existing = await this.prisma.subject.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException({ code: 'NOT_FOUND', message: 'Subject not found' });
+    }
+
+    if (dto.yearId) {
+      const year = await this.prisma.year.findUnique({ where: { id: dto.yearId } });
+      if (!year) {
+        throw new NotFoundException({ code: 'NOT_FOUND', message: 'Academic year not found' });
+      }
+    }
+
+    try {
+      return await this.prisma.subject.update({
+        where: { id },
+        data: dto,
+        include: { year: { select: { name: true, slug: true } } },
+      });
+    } catch (err: unknown) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        throw new ConflictException({
+          code: 'SLUG_CONFLICT',
+          message: 'A subject with this slug already exists for the selected year',
+        });
+      }
+      throw err;
+    }
+  }
+
+  async deleteSubject(id: string) {
+    const subject = await this.prisma.subject.findUnique({
+      where: { id },
+      include: {
+        materials: { select: { fileKey: true } },
+        questions: { select: { imageKey: true } },
+      },
+    });
+    if (!subject) {
+      throw new NotFoundException({ code: 'NOT_FOUND', message: 'Subject not found' });
+    }
+
+    for (const material of subject.materials) {
+      try {
+        await this.storage.delete(material.fileKey);
+      } catch {
+        // Best-effort: DB row cascade still proceeds if storage delete fails.
+      }
+    }
+
+    for (const question of subject.questions) {
+      if (!question.imageKey) continue;
+      try {
+        await this.storage.delete(question.imageKey);
+      } catch {
+        // Best-effort cleanup for optional question images.
+      }
+    }
+
+    await this.prisma.subject.delete({ where: { id } });
+    return { success: true };
   }
 
   createTopic(dto: CreateTopicDto) {
@@ -226,7 +298,12 @@ export class ContentService {
         pastPaperSession: meta.pastPaperSession,
         isPublished: false,
       },
-    }).then((m) => ({ ...m, fileSizeBytes: m.fileSizeBytes.toString() }));
+    }).then((m) => ({
+      ...m,
+      fileSizeBytes: m.fileSizeBytes.toString(),
+      storage: this.storage.getMode(),
+      destination: fileKey,
+    }));
   }
 
   async updateMaterial(id: string, dto: UpdateMaterialDto) {

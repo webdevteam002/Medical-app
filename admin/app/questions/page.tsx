@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Sidebar from "@/components/Sidebar";
 import CsvImportModal from "@/components/CsvImportModal";
+import QuestionImagesPanel from "@/components/QuestionImagesPanel";
 import AiVerificationModal from "@/components/AiVerificationModal";
 import { Subject, fetchAdminSubjects } from "@/lib/subjects";
 import {
@@ -11,7 +12,9 @@ import {
   QuestionOption,
   CreateQuestionPayload,
   UpdateQuestionPayload,
+  QuestionSubjectSummary,
   fetchAdminQuestions,
+  fetchAdminQuestionSummary,
   createAdminQuestion,
   updateAdminQuestion,
   deleteAdminQuestion,
@@ -24,6 +27,7 @@ import {
 
 export default function QuestionsManagementPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [summaries, setSummaries] = useState<QuestionSubjectSummary[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>("");
   const [selectedDifficultyFilter, setSelectedDifficultyFilter] = useState<string>("");
@@ -66,10 +70,10 @@ export default function QuestionsManagementPage() {
 
   useEffect(() => {
     let isMounted = true;
-    Promise.all([fetchAdminQuestions(), fetchAdminSubjects()])
-      .then(([questionsData, subjectsData]) => {
+    Promise.all([fetchAdminQuestionSummary(), fetchAdminSubjects()])
+      .then(([summaryData, subjectsData]) => {
         if (isMounted) {
-          setQuestions(questionsData);
+          setSummaries(summaryData);
           setSubjects(subjectsData);
           setIsLoading(false);
         }
@@ -91,8 +95,14 @@ export default function QuestionsManagementPage() {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const data = await fetchAdminQuestions(selectedSubjectFilter || undefined);
-      setQuestions(data);
+      const summaryData = await fetchAdminQuestionSummary();
+      setSummaries(summaryData);
+      if (selectedSubjectFilter) {
+        const data = await fetchAdminQuestions(selectedSubjectFilter);
+        setQuestions(data);
+      } else {
+        setQuestions([]);
+      }
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error ? err.message : "Failed to load questions."
@@ -107,8 +117,14 @@ export default function QuestionsManagementPage() {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const data = await fetchAdminQuestions(subjectIdFilter || undefined);
-      setQuestions(data);
+      if (!subjectIdFilter) {
+        setQuestions([]);
+        const summaryData = await fetchAdminQuestionSummary();
+        setSummaries(summaryData);
+      } else {
+        const data = await fetchAdminQuestions(subjectIdFilter);
+        setQuestions(data);
+      }
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error ? err.message : "Failed to filter questions."
@@ -313,12 +329,15 @@ export default function QuestionsManagementPage() {
                 onChange={(e) => handleSubjectFilterChange(e.target.value)}
                 className="px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
               >
-                <option value="">All Subjects ({subjects.length})</option>
-                {subjects.map((subject) => (
-                  <option key={subject.id} value={subject.id}>
-                    {subject.name} ({subject.year?.name || subject.slug})
-                  </option>
-                ))}
+                <option value="">Select a subject to view questions…</option>
+                {subjects.map((subject) => {
+                  const count = summaries.find((s) => s.subjectId === subject.id)?.total ?? 0;
+                  return (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.name} ({subject.year?.name || subject.slug}) — {count}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -395,6 +414,8 @@ export default function QuestionsManagementPage() {
 
         {/* Content Area */}
         <div className="p-8 max-w-7xl space-y-6">
+          <QuestionImagesPanel />
+
           {/* Success Banner */}
           {successMessage && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3 text-xs text-emerald-900 shadow-sm">
@@ -428,6 +449,60 @@ export default function QuestionsManagementPage() {
               >
                 Retry Request
               </button>
+            </div>
+          ) : !selectedSubjectFilter ? (
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-200">
+                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                  Questions by Subject
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Select a subject above to browse its full question bank (large banks are not loaded all at once).
+                </p>
+              </div>
+              {summaries.length === 0 ? (
+                <div className="p-12 text-center text-xs text-slate-500">
+                  No questions in the database yet. Import a CSV or add a question.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        <th className="py-3.5 px-6">Year</th>
+                        <th className="py-3.5 px-6">Subject</th>
+                        <th className="py-3.5 px-6">Total</th>
+                        <th className="py-3.5 px-6">Published</th>
+                        <th className="py-3.5 px-6">Draft</th>
+                        <th className="py-3.5 px-6 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 text-xs">
+                      {summaries.map((row) => (
+                        <tr key={row.subjectId} className="hover:bg-slate-50/80">
+                          <td className="py-4 px-6 text-slate-700">
+                            {row.subject?.year?.name || "—"}
+                          </td>
+                          <td className="py-4 px-6 font-semibold text-slate-900">
+                            {row.subject?.name || row.subjectId}
+                          </td>
+                          <td className="py-4 px-6 font-mono">{row.total}</td>
+                          <td className="py-4 px-6 text-emerald-700 font-semibold">{row.published}</td>
+                          <td className="py-4 px-6 text-amber-700 font-semibold">{row.unpublished}</td>
+                          <td className="py-4 px-6 text-right">
+                            <button
+                              onClick={() => handleSubjectFilterChange(row.subjectId)}
+                              className="px-2.5 py-1 text-[11px] font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded hover:bg-teal-100"
+                            >
+                              Open bank
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           ) : filteredQuestions.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-sm">

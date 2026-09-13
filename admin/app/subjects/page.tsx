@@ -8,6 +8,8 @@ import {
   CreateSubjectPayload,
   fetchAdminSubjects,
   createAdminSubject,
+  updateAdminSubject,
+  deleteAdminSubject,
   slugify,
   validateSubjectPayload,
 } from "@/lib/subjects";
@@ -22,7 +24,9 @@ export default function SubjectsManagementPage() {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
 
   // Form Fields
@@ -91,21 +95,38 @@ export default function SubjectsManagementPage() {
     }
   };
 
-  const handleOpenModal = () => {
+  const resetFormForCreate = () => {
     const defaultYearId = selectedYearId || (years.length > 0 ? years[0].id : "");
-    const filteredForOrder = formYearId
-      ? subjects.filter((s) => s.yearId === formYearId)
+    const filteredForOrder = defaultYearId
+      ? subjects.filter((s) => s.yearId === defaultYearId)
       : subjects;
     const nextOrder =
       filteredForOrder.length > 0
         ? Math.max(...filteredForOrder.map((s) => s.sortOrder)) + 1
         : 1;
 
+    setEditingSubject(null);
     setFormYearId(defaultYearId);
     setFormName("");
     setFormSlug("");
     setIsAutoSlug(true);
     setFormSortOrder(nextOrder);
+    setFieldErrors({});
+    setModalError(null);
+  };
+
+  const handleOpenCreateModal = () => {
+    resetFormForCreate();
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (subject: Subject) => {
+    setEditingSubject(subject);
+    setFormYearId(subject.yearId);
+    setFormName(subject.name);
+    setFormSlug(subject.slug);
+    setIsAutoSlug(false);
+    setFormSortOrder(subject.sortOrder);
     setFieldErrors({});
     setModalError(null);
     setIsModalOpen(true);
@@ -150,26 +171,53 @@ export default function SubjectsManagementPage() {
     setModalError(null);
 
     try {
-      const created = await createAdminSubject(payload);
-      // Re-fetch subjects to ensure year object inclusion
-      const updatedList = await fetchAdminSubjects(selectedYearId || undefined);
-      setSubjects(updatedList);
-      setIsModalOpen(false);
-      setSuccessMessage(`Subject "${created.name}" created successfully.`);
+      if (editingSubject) {
+        const updated = await updateAdminSubject(editingSubject.id, payload);
+        const updatedList = await fetchAdminSubjects(selectedYearId || undefined);
+        setSubjects(updatedList);
+        setIsModalOpen(false);
+        setSuccessMessage(`Subject "${updated.name}" updated successfully.`);
+      } else {
+        const created = await createAdminSubject(payload);
+        const updatedList = await fetchAdminSubjects(selectedYearId || undefined);
+        setSubjects(updatedList);
+        setIsModalOpen(false);
+        setSuccessMessage(`Subject "${created.name}" created successfully.`);
+      }
       setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err: unknown) {
       setModalError(
-        err instanceof Error ? err.message : "Failed to create subject."
+        err instanceof Error
+          ? err.message
+          : editingSubject
+            ? "Failed to update subject."
+            : "Failed to create subject."
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleActionDeferred = (actionName: string) => {
-    alert(
-      `${actionName} action is deferred pending Person 1 NestJS backend API implementation (PATCH/DELETE /admin/subjects/:id).`
-    );
+  const handleDelete = async (subject: Subject) => {
+    if (
+      !confirm(
+        `Delete "${subject.name}"?\n\nThis permanently removes its topics, materials, questions, and exams.`
+      )
+    ) {
+      return;
+    }
+
+    setPendingDeleteId(subject.id);
+    try {
+      await deleteAdminSubject(subject.id);
+      setSubjects((prev) => prev.filter((s) => s.id !== subject.id));
+      setSuccessMessage(`Subject "${subject.name}" deleted.`);
+      setTimeout(() => setSuccessMessage(null), 4000);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to delete subject.");
+    } finally {
+      setPendingDeleteId(null);
+    }
   };
 
   return (
@@ -231,7 +279,7 @@ export default function SubjectsManagementPage() {
             </button>
 
             <button
-              onClick={handleOpenModal}
+              onClick={handleOpenCreateModal}
               className="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors shadow-sm flex items-center gap-1.5"
             >
               <svg
@@ -254,17 +302,6 @@ export default function SubjectsManagementPage() {
 
         {/* Content Area */}
         <div className="p-8 max-w-6xl space-y-6">
-          {/* Deferred Action Notice */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 text-xs text-amber-900 shadow-sm">
-            <span className="text-amber-600 text-base">ℹ️</span>
-            <div>
-              <p className="font-semibold">Backend API Contract Notice</p>
-              <p className="mt-0.5 text-amber-800 leading-relaxed">
-                Person 1 NestJS backend provides <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono">GET /v1/admin/subjects</code> (List & Filter) and <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono">POST /v1/admin/subjects</code> (Create). Edit and Delete endpoints are not available on the backend yet and are deferred.
-              </p>
-            </div>
-          </div>
-
           {/* Success Banner */}
           {successMessage && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3 text-xs text-emerald-900 shadow-sm">
@@ -313,7 +350,7 @@ export default function SubjectsManagementPage() {
                   : "There are currently no medical subjects configured in the system. Click below to add the first subject."}
               </p>
               <button
-                onClick={handleOpenModal}
+                onClick={handleOpenCreateModal}
                 className="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors inline-flex items-center gap-1.5"
               >
                 + Add First Subject
@@ -372,18 +409,17 @@ export default function SubjectsManagementPage() {
                         </td>
                         <td className="py-4 px-6 text-right space-x-2">
                           <button
-                            onClick={() => handleActionDeferred("Edit")}
-                            className="px-2.5 py-1 text-[11px] font-medium text-slate-400 bg-slate-50 border border-slate-200 rounded hover:text-slate-600 transition-colors cursor-not-allowed"
-                            title="Edit action deferred until NestJS backend provides PATCH /admin/subjects/:id"
+                            onClick={() => handleOpenEditModal(subject)}
+                            className="px-2.5 py-1 text-[11px] font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded hover:bg-teal-100 transition-colors"
                           >
                             Edit
                           </button>
                           <button
-                            onClick={() => handleActionDeferred("Delete")}
-                            className="px-2.5 py-1 text-[11px] font-medium text-slate-400 bg-slate-50 border border-slate-200 rounded hover:text-slate-600 transition-colors cursor-not-allowed"
-                            title="Delete action deferred until NestJS backend provides DELETE /admin/subjects/:id"
+                            onClick={() => handleDelete(subject)}
+                            disabled={pendingDeleteId === subject.id}
+                            className="px-2.5 py-1 text-[11px] font-medium text-red-700 bg-red-50 border border-red-200 rounded hover:bg-red-100 disabled:opacity-50 transition-colors"
                           >
-                            Delete
+                            {pendingDeleteId === subject.id ? "Deleting..." : "Delete"}
                           </button>
                         </td>
                       </tr>
@@ -396,17 +432,19 @@ export default function SubjectsManagementPage() {
         </div>
       </main>
 
-      {/* Create Subject Modal */}
+      {/* Create / Edit Subject Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-100">
             <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div>
                 <h3 className="text-base font-bold text-slate-900">
-                  Add Medical Subject
+                  {editingSubject ? "Edit Medical Subject" : "Add Medical Subject"}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Assign subject to parent academic year and configure sequence
+                  {editingSubject
+                    ? "Update subject name, slug, year assignment, or sort order"
+                    : "Assign subject to parent academic year and configure sequence"}
                 </p>
               </div>
               <button
@@ -524,7 +562,13 @@ export default function SubjectsManagementPage() {
                   disabled={isSubmitting}
                   className="px-4 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 rounded-lg transition-colors shadow-sm flex items-center gap-1.5"
                 >
-                  {isSubmitting ? "Creating..." : "Create Subject"}
+                  {isSubmitting
+                    ? editingSubject
+                      ? "Saving..."
+                      : "Creating..."
+                    : editingSubject
+                      ? "Save Changes"
+                      : "Create Subject"}
                 </button>
               </div>
             </form>

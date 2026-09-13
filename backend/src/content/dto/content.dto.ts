@@ -61,6 +61,32 @@ export class CreateSubjectDto {
   sortOrder!: number;
 }
 
+export class UpdateSubjectDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  yearId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  name?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  slug?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
+}
+
 export class CreateTopicDto {
   @ApiProperty()
   @IsUUID()

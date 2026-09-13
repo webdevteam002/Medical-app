@@ -32,6 +32,7 @@ import {
   CreateYearDto,
   UploadMaterialDto,
   UpdateMaterialDto,
+  UpdateSubjectDto,
 } from './dto/content.dto';
 
 @ApiTags('admin-content')
@@ -67,6 +68,18 @@ export class AdminContentController {
   @ApiOperation({ summary: 'Create a subject' })
   createSubject(@Body() dto: CreateSubjectDto) {
     return this.contentService.createSubject(dto);
+  }
+
+  @Patch('subjects/:id')
+  @ApiOperation({ summary: 'Update a subject' })
+  updateSubject(@Param('id') id: string, @Body() dto: UpdateSubjectDto) {
+    return this.contentService.updateSubject(id, dto);
+  }
+
+  @Delete('subjects/:id')
+  @ApiOperation({ summary: 'Delete a subject and cascaded content' })
+  deleteSubject(@Param('id') id: string) {
+    return this.contentService.deleteSubject(id);
   }
 
   // Topics
@@ -109,7 +122,7 @@ export class AdminContentController {
       },
     },
   })
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 500 * 1024 * 1024 } }))
   uploadMaterial(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadMaterialDto,

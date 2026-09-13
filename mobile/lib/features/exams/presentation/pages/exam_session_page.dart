@@ -7,6 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../data/datasources/exams_remote_datasource.dart';
 import '../../data/models/exam_start_session_model.dart';
 import '../../data/models/submit_exam_dto.dart';
+import '../widgets/question_stem_view.dart';
 
 class ExamSessionPage extends StatefulWidget {
   final String examTitle;
@@ -866,16 +867,9 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                             ],
                           ),
                           const SizedBox(height: AppTheme.spacingSm),
-                          Text(
-                            currentQuestion.stem,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.textPrimaryColor,
-                                  height: 1.4,
-                                ),
+                          QuestionStemView(
+                            stem: currentQuestion.stem,
+                            imageUrl: currentQuestion.imageUrl,
                           ),
                           const SizedBox(height: AppTheme.spacingXl),
                           ...currentQuestion.options.map(

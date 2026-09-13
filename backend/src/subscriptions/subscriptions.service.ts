@@ -19,6 +19,9 @@ const PLAN_YEAR_SLUGS: Record<PlanType, string[]> = {
     'year-5',
     'fcps-part-1',
     'fcps-part-2',
+    'usmle-step-1',
+    'usmle-step-2-ck',
+    'usmle-step-3',
   ],
 };
 

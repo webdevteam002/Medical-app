@@ -56,12 +56,26 @@ export interface UpdateQuestionPayload {
 
 export interface CsvImportResult {
   dryRun: boolean;
+  published?: boolean;
   imported: number;
   skipped: number;
   errors: Array<{
     row: number;
     reason: string;
   }>;
+}
+
+export interface QuestionSubjectSummary {
+  subjectId: string;
+  total: number;
+  published: number;
+  unpublished: number;
+  subject: {
+    id: string;
+    name: string;
+    slug: string;
+    year?: { name: string; slug: string };
+  } | null;
 }
 
 export interface QuestionValidationResult {
@@ -151,6 +165,81 @@ export async function fetchAdminQuestions(
 
   const data = await response.json();
   return data as Question[];
+}
+
+export async function fetchAdminQuestionSummary(
+  customBaseUrl?: string
+): Promise<QuestionSubjectSummary[]> {
+  const baseUrl = customBaseUrl || getApiBaseUrl();
+  const token = getAdminToken();
+
+  const response = await fetch(`${baseUrl}/admin/questions/summary`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "X-Device-Id": "admin-web-dashboard",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Failed to fetch question summary (HTTP ${response.status})`;
+    try {
+      const errData = await response.json();
+      if (errData.message) {
+        errorMessage = Array.isArray(errData.message)
+          ? errData.message.join(", ")
+          : errData.message;
+      }
+    } catch {
+      // Ignore parse error
+    }
+    throw new Error(errorMessage);
+  }
+
+  return (await response.json()) as QuestionSubjectSummary[];
+}
+
+export async function bulkPublishAdminQuestions(
+  subjectId?: string,
+  isPublished = true,
+  customBaseUrl?: string
+): Promise<{ updated: number; isPublished: boolean }> {
+  const baseUrl = customBaseUrl || getApiBaseUrl();
+  const token = getAdminToken();
+
+  const response = await fetch(`${baseUrl}/admin/questions/publish`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "X-Device-Id": "admin-web-dashboard",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({
+      ...(subjectId ? { subjectId } : {}),
+      isPublished,
+    }),
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Failed to bulk publish questions (HTTP ${response.status})`;
+    try {
+      const errData = await response.json();
+      if (errData.message) {
+        errorMessage = Array.isArray(errData.message)
+          ? errData.message.join(", ")
+          : errData.message;
+      }
+    } catch {
+      // Ignore parse error
+    }
+    throw new Error(errorMessage);
+  }
+
+  return (await response.json()) as { updated: number; isPublished: boolean };
 }
 
 export async function createAdminQuestion(
@@ -297,6 +386,7 @@ export async function importAdminQuestionsCsv(
   const formData = new FormData();
   formData.append("file", file);
   formData.append("subjectId", subjectId.trim());
+  formData.append("publish", "true");
   if (dryRun) {
     formData.append("dryRun", "true");
   }

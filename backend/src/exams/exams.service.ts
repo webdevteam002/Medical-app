@@ -19,6 +19,8 @@ import {
   UpdateQuestionDto,
 } from './dto/exams.dto';
 import { GeminiGradingService } from './gemini-grading.service';
+import { QuestionMediaService } from '../media/question-media.service';
+import { StorageService } from '../storage/storage.service';
 
 type QuestionOption = { id: string; text: string };
 
@@ -31,6 +33,8 @@ export class ExamsService {
     private subscriptions: SubscriptionsService,
     private geminiGrading: GeminiGradingService,
     private config: ConfigService,
+    private questionMedia: QuestionMediaService,
+    private storage: StorageService,
   ) {}
 
   // ─── Student ───────────────────────────────────────────────
@@ -96,20 +100,51 @@ export class ExamsService {
           data: { status: AttemptStatus.ABANDONED, completedAt: new Date() },
         });
       } else {
+        let resumeQuestions = examQuestions
+          .map((eq) => eq.question)
+          .filter((q) => q.isPublished);
+        if (exam.shuffleQuestions) {
+          resumeQuestions = this.shuffle(resumeQuestions);
+        }
+        const drawCount = Math.min(
+          exam.questionCount > 0 ? exam.questionCount : resumeQuestions.length,
+          resumeQuestions.length,
+        );
+        resumeQuestions = resumeQuestions.slice(0, drawCount);
         return {
           attemptId: existing.id,
           durationMinutes: exam.durationMinutes,
           startedAt: existing.startedAt,
-          questions: examQuestions.map((eq) => this.toClientQuestion(eq.question, exam.shuffleOptions)),
+          questions: await Promise.all(
+            resumeQuestions.map((q) =>
+              this.toClientQuestion(q, exam.shuffleOptions),
+            ),
+          ),
         };
       }
     }
 
-    let questions = examQuestions.map((eq) => eq.question);
+    let questions = examQuestions
+      .map((eq) => eq.question)
+      .filter((q) => q.isPublished);
+
+    if (!questions.length) {
+      throw new BadRequestException({
+        code: 'NO_PUBLISHED_QUESTIONS',
+        message: 'Exam has no published questions',
+      });
+    }
 
     if (exam.shuffleQuestions) {
       questions = this.shuffle(questions);
     }
+
+    // questionCount = questions drawn per attempt; exam_questions can be a larger bank.
+    const drawCount = Math.min(
+      exam.questionCount > 0 ? exam.questionCount : questions.length,
+      questions.length,
+    );
+    questions = questions.slice(0, drawCount);
 
     const attempt = await this.prisma.examAttempt.create({
       data: {
@@ -124,7 +159,9 @@ export class ExamsService {
       attemptId: attempt.id,
       durationMinutes: exam.durationMinutes,
       startedAt: attempt.startedAt,
-      questions: questions.map((q) => this.toClientQuestion(q, exam.shuffleOptions)),
+      questions: await Promise.all(
+        questions.map((q) => this.toClientQuestion(q, exam.shuffleOptions)),
+      ),
     };
   }
 
@@ -381,7 +418,73 @@ export class ExamsService {
         ...(published !== undefined ? { isPublished: published } : {}),
       },
       orderBy: { createdAt: 'desc' },
+      include: {
+        subject: {
+          select: {
+            name: true,
+            slug: true,
+            year: { select: { name: true, slug: true } },
+          },
+        },
+      },
+      // Guard admin UI from loading multi‑MB full banks without a subject filter.
+      ...(subjectId ? {} : { take: 200 }),
     });
+  }
+
+  async listQuestionSubjectCounts() {
+    const rows = await this.prisma.question.groupBy({
+      by: ['subjectId', 'isPublished'],
+      _count: { _all: true },
+    });
+
+    const subjects = await this.prisma.subject.findMany({
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        year: { select: { name: true, slug: true } },
+      },
+    });
+
+    const byId = new Map(subjects.map((s) => [s.id, s]));
+    const summary = new Map<
+      string,
+      {
+        subjectId: string;
+        subject: (typeof subjects)[number] | null;
+        total: number;
+        published: number;
+        unpublished: number;
+      }
+    >();
+
+    for (const row of rows) {
+      const current = summary.get(row.subjectId) ?? {
+        subjectId: row.subjectId,
+        subject: byId.get(row.subjectId) ?? null,
+        total: 0,
+        published: 0,
+        unpublished: 0,
+      };
+      current.total += row._count._all;
+      if (row.isPublished) current.published += row._count._all;
+      else current.unpublished += row._count._all;
+      summary.set(row.subjectId, current);
+    }
+
+    return [...summary.values()].sort((a, b) => b.total - a.total);
+  }
+
+  async bulkSetPublished(subjectId: string | undefined, isPublished: boolean) {
+    const result = await this.prisma.question.updateMany({
+      where: {
+        ...(subjectId ? { subjectId } : {}),
+        isPublished: !isPublished,
+      },
+      data: { isPublished },
+    });
+    return { success: true, updated: result.count, isPublished };
   }
 
   async updateQuestion(id: string, dto: UpdateQuestionDto) {
@@ -402,8 +505,17 @@ export class ExamsService {
     return { success: true };
   }
 
-  async importQuestionsCsv(subjectId: string, csvContent: string, dryRun = false) {
-    const subject = await this.prisma.subject.findUnique({ where: { id: subjectId } });
+  async importQuestionsCsv(
+    subjectId: string,
+    csvContent: string,
+    dryRun = false,
+    publish = true,
+    sourceFile?: { originalName?: string; buffer?: Buffer },
+  ) {
+    const subject = await this.prisma.subject.findUnique({
+      where: { id: subjectId },
+      include: { year: { select: { slug: true } } },
+    });
     if (!subject) {
       throw new NotFoundException({ code: 'NOT_FOUND', message: 'Subject not found' });
     }
@@ -419,9 +531,13 @@ export class ExamsService {
 
     const results = {
       dryRun,
+      published: publish && !dryRun,
       imported: 0,
       skipped: 0,
       errors: [] as { row: number; reason: string }[],
+      storage: this.storage.getMode() as 'r2' | 'local',
+      archiveKey: null as string | null,
+      destination: 'postgres:questions',
     };
 
     for (let i = 1; i < lines.length; i++) {
@@ -460,7 +576,7 @@ export class ExamsService {
               difficulty,
               tags,
               imageKey: record.image_key || null,
-              isPublished: false,
+              isPublished: publish,
             },
           });
         }
@@ -470,6 +586,25 @@ export class ExamsService {
           row: i + 1,
           reason: err instanceof Error ? err.message : 'Unknown error',
         });
+      }
+    }
+
+    if (!dryRun && results.imported > 0) {
+      const safeName = (sourceFile?.originalName || 'questions.csv')
+        .replace(/[^a-zA-Z0-9._-]+/g, '_')
+        .slice(0, 120);
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const archiveKey = `imports/csv/${subject.year.slug}/${subject.slug}/${stamp}-${safeName}`;
+      const buffer = sourceFile?.buffer ?? Buffer.from(csvContent, 'utf8');
+      try {
+        await this.storage.upload(archiveKey, buffer, 'text/csv');
+        results.archiveKey = archiveKey;
+      } catch (err) {
+        this.logger.warn(
+          `CSV archive upload failed for ${archiveKey}: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+        );
       }
     }
 
@@ -512,7 +647,7 @@ export class ExamsService {
     return { success: true };
   }
 
-  async setExamQuestions(examId: string, questionIds: string[]) {
+  async setExamQuestions(examId: string, questionIds: string[], drawCount?: number) {
     const exam = await this.prisma.exam.findUnique({ where: { id: examId } });
     if (!exam) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Exam not found' });
 
@@ -526,9 +661,14 @@ export class ExamsService {
       })),
     });
 
+    const resolvedDraw =
+      drawCount && drawCount > 0
+        ? Math.min(drawCount, questionIds.length)
+        : Math.min(exam.questionCount > 0 ? exam.questionCount : questionIds.length, questionIds.length);
+
     return this.prisma.exam.update({
       where: { id: examId },
-      data: { questionCount: questionIds.length },
+      data: { questionCount: resolvedDraw || questionIds.length },
     });
   }
 
@@ -589,7 +729,7 @@ export class ExamsService {
     return this.geminiGrading.isEnabled();
   }
 
-  private toClientQuestion(
+  private async toClientQuestion(
     question: { id: string; stem: string; options: unknown; imageKey: string | null },
     shuffleOptions: boolean,
   ) {
@@ -597,11 +737,18 @@ export class ExamsService {
     if (shuffleOptions) {
       options = this.shuffle([...options]);
     }
+
+    const media = await this.questionMedia.enrichQuestionMedia({
+      stem: question.stem,
+      imageKey: question.imageKey,
+    });
+
     return {
       id: question.id,
-      stem: question.stem,
+      stem: media.stem,
       options,
-      imageKey: question.imageKey,
+      imageKey: media.imageKey,
+      imageUrl: media.imageUrl,
     };
   }
 

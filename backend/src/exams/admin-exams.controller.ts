@@ -27,6 +27,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import {
   AddExamQuestionsDto,
+  BulkPublishQuestionsDto,
   CreateExamDto,
   CreateQuestionDto,
   ImportQuestionsDto,
@@ -45,15 +46,27 @@ export class AdminExamsController {
 
   // Questions
   @Get('questions')
-  @ApiOperation({ summary: 'List questions' })
+  @ApiOperation({ summary: 'List questions (pass subjectId for full subject bank)' })
   listQuestions(@Query('subjectId') subjectId?: string) {
     return this.examsService.listQuestions(subjectId);
+  }
+
+  @Get('questions/summary')
+  @ApiOperation({ summary: 'Question counts grouped by subject' })
+  listQuestionSummary() {
+    return this.examsService.listQuestionSubjectCounts();
   }
 
   @Post('questions')
   @ApiOperation({ summary: 'Create question' })
   createQuestion(@Body() dto: CreateQuestionDto) {
     return this.examsService.createQuestion(dto);
+  }
+
+  @Post('questions/publish')
+  @ApiOperation({ summary: 'Bulk publish or unpublish questions' })
+  bulkPublish(@Body() dto: BulkPublishQuestionsDto) {
+    return this.examsService.bulkSetPublished(dto.subjectId, dto.isPublished ?? true);
   }
 
   @Patch('questions/:id')
@@ -71,13 +84,21 @@ export class AdminExamsController {
   @Post('questions/import')
   @ApiOperation({ summary: 'Import questions from CSV file' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 100 * 1024 * 1024 } }),
+  )
   importCsv(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: ImportQuestionsDto,
   ) {
     const content = file.buffer.toString('utf-8');
-    return this.examsService.importQuestionsCsv(dto.subjectId, content, dto.dryRun ?? false);
+    return this.examsService.importQuestionsCsv(
+      dto.subjectId,
+      content,
+      dto.dryRun ?? false,
+      dto.publish ?? true,
+      { originalName: file.originalname, buffer: file.buffer },
+    );
   }
 
   // Exams
@@ -108,7 +129,7 @@ export class AdminExamsController {
   @Post('exams/:id/questions')
   @ApiOperation({ summary: 'Set exam questions' })
   setQuestions(@Param('id') id: string, @Body() dto: AddExamQuestionsDto) {
-    return this.examsService.setExamQuestions(id, dto.questionIds);
+    return this.examsService.setExamQuestions(id, dto.questionIds, dto.drawCount);
   }
 
   @Get('exams/:id/analytics')
