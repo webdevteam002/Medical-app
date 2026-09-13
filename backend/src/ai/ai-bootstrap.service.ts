@@ -36,8 +36,8 @@ export class AiBootstrapService implements OnModuleInit {
 
     this.logger.log(
       `AI bootstrap enabled=${cfg.enabled} rag=${cfg.rag.enabled} providerReady=${Boolean(
-        cfg.enabled && cfg.geminiApiKey,
-      )} embedDims=${cfg.rag.embeddingDimensions}`,
+        cfg.enabled && cfg.geminiApiKeys.length > 0,
+      )} keyPool=${cfg.geminiApiKeys.length} cooldownMs=${cfg.geminiKeyCooldownMs} embedDims=${cfg.rag.embeddingDimensions}`,
     );
   }
 }

@@ -21,11 +21,21 @@ export function validateAiConfig(cfg: AiConfig, opts?: {
   const nodeEnv = (opts?.nodeEnv ?? process.env.NODE_ENV ?? 'development').toLowerCase();
   const isProd = nodeEnv === 'production';
 
-  if (cfg.enabled && !cfg.geminiApiKey) {
+  if (cfg.enabled && cfg.geminiApiKeys.length === 0 && !cfg.geminiApiKey) {
     issues.push({
       code: 'AI_KEY_MISSING',
-      message: 'AI_ENABLED=true but GEMINI_API_KEY is empty',
+      message:
+        'AI_ENABLED=true but no Gemini keys set (GEMINI_API_KEY or GEMINI_API_KEYS)',
       severity: isProd ? 'error' : 'warning',
+    });
+  }
+
+  if (cfg.geminiApiKeys.length > 12) {
+    issues.push({
+      code: 'AI_KEY_POOL_TOO_LARGE',
+      message:
+        `GEMINI_API_KEYS has ${cfg.geminiApiKeys.length} entries — prefer fewer paid projects over many free accounts (ToS / ops risk)`,
+      severity: 'warning',
     });
   }
 

@@ -117,8 +117,10 @@ describe('AI-7/8 hardening', () => {
     it('health never returns API key material', () => {
       const src = readFileSync(join(aiDir, 'ai.controller.ts'), 'utf8');
       expect(src).toContain('apiKeyConfigured');
+      expect(src).toContain('apiKeyPool');
       expect(src).not.toContain('geminiApiKey:');
       expect(src).not.toContain('cfg.geminiApiKey,');
+      expect(src).not.toContain('slot.key');
     });
   });
 });

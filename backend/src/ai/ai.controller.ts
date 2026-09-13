@@ -28,6 +28,7 @@ import { McqExplainService } from './mcq-explain.service';
 import { AiChatService } from './assistant/ai-chat.service';
 import { aiConfigFrom } from './ai.config';
 import { AI_PROVIDER, AiProvider } from './providers/ai-provider';
+import { GeminiKeyPoolService } from './providers/gemini-key-pool.service';
 
 @ApiTags('ai')
 @ApiBearerAuth()
@@ -39,6 +40,7 @@ export class AiController {
     private readonly mcqExplain: McqExplainService,
     private readonly chatService: AiChatService,
     private readonly config: ConfigService,
+    private readonly keyPool: GeminiKeyPoolService,
     @Inject(AI_PROVIDER) private readonly aiProvider: AiProvider,
   ) {}
 
@@ -47,12 +49,27 @@ export class AiController {
   @ApiOperation({ summary: 'AI module health / dry-run readiness (no Gemini call)' })
   health() {
     const cfg = aiConfigFrom(this.config);
+    const pool = this.keyPool.getStatus();
     return {
       enabled: cfg.enabled,
       provider: cfg.provider,
       modelConfigured: Boolean(cfg.geminiModel),
-      /** True when enabled + API key present — never returns the key. */
-      apiKeyConfigured: Boolean(cfg.geminiApiKey),
+      /** True when enabled + at least one API key present — never returns keys. */
+      apiKeyConfigured: pool.configured > 0,
+      apiKeyPool: {
+        configured: pool.configured,
+        healthy: pool.healthy,
+        inCooldown: pool.inCooldown,
+        disabled: pool.disabled,
+        /** Masked labels only. */
+        slots: pool.slots.map((s) => ({
+          label: s.label,
+          healthy: s.healthy,
+          inCooldown: s.inCooldown,
+          disabled: s.disabled,
+          cooldownRemainingMs: s.cooldownRemainingMs,
+        })),
+      },
       providerReady: this.aiProvider.isReady(),
       dailyExplanationLimit: cfg.dailyExplanationLimit,
       dailyChatLimit: cfg.dailyChatLimit,

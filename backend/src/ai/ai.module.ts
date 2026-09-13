@@ -6,6 +6,7 @@ import { AdminAiController } from './admin-ai.controller';
 import { McqExplainService } from './mcq-explain.service';
 import { AiUsageService } from './ai-usage.service';
 import { GeminiProvider } from './providers/gemini.provider';
+import { GeminiKeyPoolService } from './providers/gemini-key-pool.service';
 import { AI_PROVIDER } from './providers/ai-provider';
 import { PdfExtractionService } from './rag/pdf-extraction.service';
 import { ChunkingService } from './rag/chunking.service';
@@ -22,6 +23,7 @@ import { AiBootstrapService } from './ai-bootstrap.service';
   imports: [StorageModule, SubscriptionsModule],
   controllers: [AiController, AdminAiController],
   providers: [
+    GeminiKeyPoolService,
     GeminiProvider,
     {
       provide: AI_PROVIDER,
@@ -42,6 +44,7 @@ import { AiBootstrapService } from './ai-bootstrap.service';
   ],
   exports: [
     AI_PROVIDER,
+    GeminiKeyPoolService,
     AiUsageService,
     McqExplainService,
     RagService,

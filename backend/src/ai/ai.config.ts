@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+import { parseGeminiApiKeys } from './providers/gemini-key-pool';
 
 export type AiProviderName = 'gemini';
 
@@ -18,7 +19,12 @@ export interface AiRagConfig {
 export interface AiConfig {
   enabled: boolean;
   provider: AiProviderName;
+  /** First key (backward compatible). Prefer geminiApiKeys for pools. */
   geminiApiKey: string;
+  /** Deduped key pool from GEMINI_API_KEY + GEMINI_API_KEYS. */
+  geminiApiKeys: string[];
+  /** Cooldown after quota/rate-limit before retrying a key (ms). */
+  geminiKeyCooldownMs: number;
   geminiModel: string;
   timeoutMs: number;
   maxOutputTokens: number;
@@ -68,10 +74,21 @@ export function loadAiConfig(get: EnvGetter): AiConfig {
     AI_DEFAULT_EMBEDDING_DIMENSIONS,
   );
 
+  const geminiApiKeys = parseGeminiApiKeys({
+    primary: get('GEMINI_API_KEY', ''),
+    pool: get('GEMINI_API_KEYS', ''),
+  });
+  const geminiKeyCooldownMs = parsePositiveInt(
+    get('GEMINI_KEY_COOLDOWN_MS', '300000'),
+    300_000,
+  );
+
   return {
     enabled: enabledRaw === 'true' || enabledRaw === '1',
     provider,
-    geminiApiKey: (get('GEMINI_API_KEY', '') || '').trim(),
+    geminiApiKey: geminiApiKeys[0] ?? '',
+    geminiApiKeys,
+    geminiKeyCooldownMs,
     geminiModel: (get('GEMINI_MODEL', 'gemini-flash-latest') || 'gemini-flash-latest').trim(),
     timeoutMs,
     maxOutputTokens,
@@ -117,6 +134,7 @@ function clampLoaded(cfg: AiConfig): AiConfig {
     ...cfg,
     timeoutMs: Math.min(Math.max(cfg.timeoutMs, 1000), 60_000),
     maxOutputTokens: Math.min(Math.max(cfg.maxOutputTokens, 64), 4096),
+    geminiKeyCooldownMs: Math.min(Math.max(cfg.geminiKeyCooldownMs, 5_000), 3_600_000),
     chatHistoryLimit: Math.min(Math.max(cfg.chatHistoryLimit, 1), 32),
     chatMaxMessageChars: Math.min(Math.max(cfg.chatMaxMessageChars, 100), 4000),
     dailyExplanationLimit: Math.min(cfg.dailyExplanationLimit, 500),

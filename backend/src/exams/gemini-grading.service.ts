@@ -1,5 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import {
+  GeminiKeyPoolService,
+  GeminiRotatableError,
+} from '../ai/providers/gemini-key-pool.service';
+import {
+  classifyGeminiErrorBody,
+  classifyGeminiHttpStatus,
+} from '../ai/providers/gemini-key-pool';
 
 export type GradeableOption = { id: string; text: string };
 
@@ -25,11 +33,14 @@ export class GeminiGradingService {
   private static readonly OVERALL_BUDGET_MS = 12_000;
   private static readonly PER_CALL_TIMEOUT_MS = 8_000;
 
-  constructor(private config: ConfigService) {}
+  constructor(
+    private config: ConfigService,
+    private readonly keyPool: GeminiKeyPoolService,
+  ) {}
 
   isEnabled(): boolean {
     const mode = (this.config.get<string>('EXAM_GRADING_MODE') || 'ai').toLowerCase();
-    return mode === 'ai' && Boolean(this.config.get<string>('GEMINI_API_KEY')?.trim());
+    return mode === 'ai' && this.keyPool.hasKeys();
   }
 
   /**
@@ -37,8 +48,7 @@ export class GeminiGradingService {
    * fall back to answer-key grading and never fail the student submit.
    */
   async gradeQuestions(questions: GradeableQuestion[]): Promise<AiGradeResult[] | null> {
-    const apiKey = this.config.get<string>('GEMINI_API_KEY')?.trim();
-    if (!apiKey || !questions.length) return null;
+    if (!this.keyPool.hasKeys() || !questions.length) return null;
 
     let settled = false;
 
@@ -53,7 +63,7 @@ export class GeminiGradingService {
           resolve(null);
         }, GeminiGradingService.OVERALL_BUDGET_MS);
 
-        this.gradeAll(apiKey, questions)
+        this.gradeAll(questions)
           .then((result) => {
             if (settled) return;
             settled = true;
@@ -75,23 +85,20 @@ export class GeminiGradingService {
   }
 
   private async gradeAll(
-    apiKey: string,
     questions: GradeableQuestion[],
   ): Promise<AiGradeResult[] | null> {
     const preferred =
       this.config.get<string>('GEMINI_MODEL')?.trim() || 'gemini-flash-latest';
-    // Keep the list short — long fallbacks burn the submit budget.
     const modelsToTry = [preferred, 'gemini-flash-latest', 'gemini-2.5-flash'].filter(
       (m, i, arr) => m && arr.indexOf(m) === i,
     );
 
-    // One batch for typical mock exams (≤15 Qs) keeps latency low.
     const batchSize = questions.length <= 16 ? questions.length : 5;
     const allResults: AiGradeResult[] = [];
 
     for (let i = 0; i < questions.length; i += batchSize) {
       const batch = questions.slice(i, i + batchSize);
-      const batchResults = await this.gradeBatchWithRetries(apiKey, modelsToTry, batch);
+      const batchResults = await this.gradeBatchWithRetries(modelsToTry, batch);
       if (!batchResults) {
         this.logger.warn(
           `AI grading failed for batch ${i / batchSize + 1}; aborting AI path for fallback.`,
@@ -105,7 +112,6 @@ export class GeminiGradingService {
   }
 
   private async gradeBatchWithRetries(
-    apiKey: string,
     models: string[],
     questions: GradeableQuestion[],
   ): Promise<AiGradeResult[] | null> {
@@ -113,10 +119,19 @@ export class GeminiGradingService {
     let lastError = '';
 
     for (const model of models) {
-      // At most 2 quick attempts per model (503 / empty).
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-          const result = await this.callGemini(apiKey, model, prompt);
+          const result = await this.keyPool.executeWithFailover(
+            (slot) => this.callGemini(slot.key, model, prompt, slot.label),
+            {
+              operation: `exam-grade:${model}`,
+              classifyFailure: (err) => {
+                if (err instanceof GeminiRotatableError) return err.geminiFailureKind;
+                return 'other';
+              },
+            },
+          );
+
           if (result.kind === 'ok') {
             const parsed = this.parseGrades(result.text, questions);
             if (parsed.length === questions.length) {
@@ -158,13 +173,12 @@ export class GeminiGradingService {
     apiKey: string,
     model: string,
     prompt: string,
+    keyLabel: string,
   ): Promise<
     | { kind: 'ok'; text: string }
     | { kind: 'err'; retryable: boolean; error: string }
   > {
-    const url =
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent` +
-      `?key=${encodeURIComponent(apiKey)}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
 
     const controller = new AbortController();
     const timeout = setTimeout(
@@ -175,7 +189,10 @@ export class GeminiGradingService {
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
         signal: controller.signal,
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -187,17 +204,42 @@ export class GeminiGradingService {
       });
 
       const bodyText = await response.text();
+      const bodyKind = classifyGeminiErrorBody(bodyText);
+      const statusKind = classifyGeminiHttpStatus(response.status);
 
       if (response.status === 404) {
         return { kind: 'err', retryable: false, error: bodyText };
       }
 
-      if (response.status === 429 || response.status === 503) {
-        return { kind: 'err', retryable: true, error: `HTTP ${response.status}: ${bodyText}` };
+      if (
+        response.status === 429 ||
+        response.status === 503 ||
+        bodyKind === 'quota' ||
+        statusKind === 'quota'
+      ) {
+        throw new GeminiRotatableError(
+          'quota',
+          `HTTP ${response.status} via ${keyLabel}`,
+        );
+      }
+
+      if (
+        response.status === 401 ||
+        response.status === 403 ||
+        bodyKind === 'auth'
+      ) {
+        throw new GeminiRotatableError(
+          'auth',
+          `HTTP ${response.status} via ${keyLabel}`,
+        );
       }
 
       if (!response.ok) {
-        return { kind: 'err', retryable: false, error: `HTTP ${response.status}: ${bodyText}` };
+        return {
+          kind: 'err',
+          retryable: response.status >= 500,
+          error: `HTTP ${response.status}: ${bodyText}`,
+        };
       }
 
       const data = JSON.parse(bodyText) as {
@@ -205,9 +247,14 @@ export class GeminiGradingService {
       };
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? '';
       if (!text) {
-        return { kind: 'err', retryable: true, error: 'Empty Gemini response' };
+        throw new GeminiRotatableError('transient', 'Empty Gemini response');
       }
       return { kind: 'ok', text };
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new GeminiRotatableError('timeout', 'Gemini grading timed out');
+      }
+      throw err;
     } finally {
       clearTimeout(timeout);
     }

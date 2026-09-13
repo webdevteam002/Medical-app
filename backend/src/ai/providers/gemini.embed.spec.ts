@@ -1,6 +1,11 @@
 import { GeminiProvider, l2Normalize } from '../providers/gemini.provider';
 import { ConfigService } from '@nestjs/config';
 import { AiHttpException } from '../ai.errors';
+import { GeminiKeyPoolService } from './gemini-key-pool.service';
+
+function makePool(config: ConfigService): GeminiKeyPoolService {
+  return new GeminiKeyPoolService(config);
+}
 
 describe('GeminiProvider.embed', () => {
   const configMap: Record<string, string> = {
@@ -43,7 +48,7 @@ describe('GeminiProvider.embed', () => {
         }),
     }) as unknown as typeof fetch;
 
-    const provider = new GeminiProvider(config);
+    const provider = new GeminiProvider(config, makePool(config));
     const result = await provider.embed({
       texts: ['hello'],
       dimensions: 4,
@@ -65,7 +70,7 @@ describe('GeminiProvider.embed', () => {
       return Promise.reject(err);
     }) as unknown as typeof fetch;
 
-    const provider = new GeminiProvider(config);
+    const provider = new GeminiProvider(config, makePool(config));
     await expect(provider.embed({ texts: ['x'], dimensions: 4 })).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'AI_TIMEOUT' }),
     });
@@ -78,7 +83,7 @@ describe('GeminiProvider.embed', () => {
       text: async () => 'busy',
     }) as unknown as typeof fetch;
 
-    const provider = new GeminiProvider(config);
+    const provider = new GeminiProvider(config, makePool(config));
     await expect(provider.embed({ texts: ['x'], dimensions: 4 })).rejects.toBeInstanceOf(
       AiHttpException,
     );
@@ -91,7 +96,7 @@ describe('GeminiProvider.embed', () => {
       text: async () => 'not-json',
     }) as unknown as typeof fetch;
 
-    const provider = new GeminiProvider(config);
+    const provider = new GeminiProvider(config, makePool(config));
     await expect(provider.embed({ texts: ['x'], dimensions: 4 })).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'AI_INVALID_RESPONSE' }),
     });
@@ -107,7 +112,7 @@ describe('GeminiProvider.embed', () => {
         }),
     }) as unknown as typeof fetch;
 
-    const provider = new GeminiProvider(config);
+    const provider = new GeminiProvider(config, makePool(config));
     await expect(provider.embed({ texts: ['x'], dimensions: 4 })).rejects.toMatchObject({
       response: expect.objectContaining({ code: 'AI_INVALID_RESPONSE' }),
     });

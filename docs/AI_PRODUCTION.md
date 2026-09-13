@@ -12,7 +12,11 @@ It does **not** claim these steps were executed against your live production dat
    - `20260912120000_ai_rag_pgvector` (vector **768**)
    - `20260912130000_ai_assistant_conversations`
    - `20260912140000_ai_admin_verification`
-4. Server-side `GEMINI_API_KEY` only (never Flutter / Next.js client).
+4. Server-side Gemini keys only (never Flutter / Next.js client).
+   - `GEMINI_API_KEY` — single key (still supported)
+   - `GEMINI_API_KEYS` — comma-separated pool for automatic failover when one key hits quota/rate-limit/auth failure
+   - Prefer a small number of legitimate Google AI Studio / Cloud projects over many personal free accounts (ToS risk)
+   - Check `/v1/ai/health` → `apiKeyPool` for masked status (never returns raw keys)
 
 ## Environment (safe defaults)
 
@@ -22,6 +26,8 @@ Keep AI off until ready:
 AI_ENABLED=false
 AI_RAG_ENABLED=false
 GEMINI_API_KEY=
+GEMINI_API_KEYS=
+GEMINI_KEY_COOLDOWN_MS=300000
 GEMINI_MODEL=gemini-flash-latest
 AI_TIMEOUT_MS=18000
 AI_MAX_OUTPUT_TOKENS=1200
@@ -37,7 +43,8 @@ AI_RAG_TOP_K=6
 
 When enabling in production:
 
-- Set `AI_ENABLED=true` and a real `GEMINI_API_KEY`.
+- Set `AI_ENABLED=true` and at least one of `GEMINI_API_KEY` / `GEMINI_API_KEYS`.
+- Optional: set `GEMINI_API_KEYS=key1,key2,key3` so quota exhaustion on one key fails over to the next (cooldown default 5 minutes).
 - Set `AI_RAG_ENABLED=true` only after pgvector is confirmed.
 - Keep `AI_EMBEDDING_DIMENSIONS=768` unless you migrate the vector column **and** reindex everything.
 
