@@ -1,0 +1,61 @@
+name: Windows Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'mobile/**'
+      - 'packaging/**'
+      - '.github/workflows/windows-build.yml'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress
+
+      - name: Install dependencies
+        working-directory: ./mobile
+        run: flutter pub get
+
+      - name: Build Windows release
+        working-directory: ./mobile
+        run: flutter build windows --release --dart-define=API_BASE_URL=http://92.5.56.120:3000/v1
+
+      - name: Create dist directory
+        run: New-Item -ItemType Directory -Path dist -Force
+
+      - name: Compile Inno Setup Installer
+        run: iscc packaging/windows/setup.iss
+
+      - name: Create Portable Zip
+        working-directory: ./mobile/build/windows/x64/runner/Release
+        run: Compress-Archive -Path * -DestinationPath ..\..\..\..\..\dist\MedStudy_Windows.zip -Force
+
+      - name: Upload Installer Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MedStudy_Setup
+          path: dist/MedStudy_Setup.exe
+
+      - name: Upload Portable Zip Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MedStudy_Windows
+          path: dist/MedStudy_Windows.zip
