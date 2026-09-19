@@ -266,7 +266,7 @@ class _StudyDestinationViewState extends State<StudyDestinationView> {
                     color: AppTheme.surfaceMuted,
                     shape: BoxShape.circle,
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 14,
@@ -302,7 +302,7 @@ class _HeaderIconButton extends StatelessWidget {
         color: AppTheme.surfaceColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: AppTheme.borderColor),
+          side: BorderSide(color: AppTheme.borderColor),
         ),
         child: InkWell(
           onTap: onPressed,

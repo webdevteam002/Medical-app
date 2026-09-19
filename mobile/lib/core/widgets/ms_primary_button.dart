@@ -186,7 +186,7 @@ class _MsSecondaryButtonState extends State<MsSecondaryButton> {
                 child: widget.icon == null
                     ? Text(
                         widget.label,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
@@ -207,7 +207,7 @@ class _MsSecondaryButtonState extends State<MsSecondaryButton> {
                               widget.label,
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,

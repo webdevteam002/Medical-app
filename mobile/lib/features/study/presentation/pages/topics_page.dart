@@ -211,7 +211,7 @@ class _TopicsPageState extends State<TopicsPage> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.picture_as_pdf_outlined,
                             size: 13,
                             color: AppTheme.textSecondaryColor,
@@ -238,7 +238,7 @@ class _TopicsPageState extends State<TopicsPage> {
                     color: AppTheme.surfaceMuted,
                     shape: BoxShape.circle,
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 13,

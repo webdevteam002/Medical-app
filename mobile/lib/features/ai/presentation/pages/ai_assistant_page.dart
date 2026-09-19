@@ -161,15 +161,15 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           children: [
             Icon(
               Icons.auto_awesome_rounded,
               color: AppTheme.secondaryColor,
               size: 20,
             ),
-            SizedBox(width: 8),
-            Text('MedStudy AI Assistant'),
+            const SizedBox(width: 8),
+            const Text('MedStudy AI Assistant'),
           ],
         ),
         actions: [
@@ -203,14 +203,14 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                           color: AppTheme.secondaryColor.withValues(alpha: 0.25),
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
                           Icon(
                             Icons.info_outline_rounded,
                             color: AppTheme.secondaryColor,
                             size: 18,
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               'This chat is linked to the question you were reviewing. Ask anything about that MCQ.',
@@ -262,7 +262,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                         children: [
                           Text(
                             _error!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               color: AppTheme.textPrimaryColor,
                             ),
@@ -302,7 +302,7 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                 AppTheme.spacingMd,
                 AppTheme.spacingMd,
               ),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
                 border: Border(top: BorderSide(color: AppTheme.borderColor)),
               ),
@@ -381,7 +381,7 @@ class _IntroCard extends StatelessWidget {
                   color: AppTheme.secondarySoft,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.auto_awesome_rounded,
                   color: AppTheme.secondaryColor,
                   size: 18,
@@ -398,7 +398,7 @@ class _IntroCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Ask about MedStudy subjects, materials, exams, or medical concepts from content you can access. Not a substitute for a clinician.',
             style: TextStyle(
               fontSize: 13,
@@ -417,7 +417,7 @@ class _IntroCard extends StatelessWidget {
                     backgroundColor: AppTheme.surfaceMuted,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
-                      side: const BorderSide(color: AppTheme.borderColor),
+                      side: BorderSide(color: AppTheme.borderColor),
                     ),
                     onPressed:
                         onSuggestion == null ? null : () => onSuggestion!(s),
@@ -480,7 +480,7 @@ class _Bubble extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.auto_awesome_rounded,
                     size: 14,
                     color: AppTheme.secondaryColor,
@@ -513,7 +513,7 @@ class _Bubble extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'Grounding: $grounding',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   color: AppTheme.textSecondaryColor,
                 ),

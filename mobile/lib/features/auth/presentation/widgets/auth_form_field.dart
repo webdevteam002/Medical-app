@@ -69,7 +69,7 @@ class AuthFormField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(
+              borderSide: BorderSide(
                 color: AppTheme.primaryColor,
                 width: 1.8,
               ),

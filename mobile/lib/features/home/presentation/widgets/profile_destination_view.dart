@@ -33,122 +33,142 @@ class ProfileDestinationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppTheme.spacingLg,
-          AppTheme.spacingMd,
-          AppTheme.spacingLg,
-          AppTheme.spacingLg,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const MsSectionHeader(
-              title: 'Student Profile',
-              subtitle: 'Account & portal settings',
+    return ValueListenableBuilder<AppThemeMode>(
+      valueListenable: ThemeController.currentTheme,
+      builder: (context, activeMode, _) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTheme.spacingLg,
+              AppTheme.spacingMd,
+              AppTheme.spacingLg,
+              AppTheme.spacingLg,
             ),
-            const SizedBox(height: AppTheme.spacingLg),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    MsCard(
-                      padding: const EdgeInsets.all(AppTheme.spacingLg),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 84,
-                            height: 84,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  AppTheme.primaryDark,
-                                  AppTheme.primaryColor,
-                                  AppTheme.secondaryColor,
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(28),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppTheme.primaryColor
-                                      .withValues(alpha: 0.25),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.person_rounded,
-                                size: 44,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: AppTheme.spacingMd),
-                          Text(
-                            'Medical Student',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.3,
-                                ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'student@medstudy.org',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: AppTheme.spacingLg),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(AppTheme.spacingMd),
-                            decoration: BoxDecoration(
-                              color: AppTheme.surfaceMuted,
-                              borderRadius: BorderRadius.circular(
-                                  AppTheme.borderRadiusSm),
-                              border: Border.all(color: AppTheme.borderColor),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.verified_rounded,
-                                      size: 16,
-                                      color: AppTheme.secondaryColor,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Platform',
-                                      style:
-                                          Theme.of(context).textTheme.bodySmall,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const MsSectionHeader(
+                  title: 'Student Profile',
+                  subtitle: 'Account & portal settings',
+                ),
+                const SizedBox(height: AppTheme.spacingLg),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        MsCard(
+                          padding: const EdgeInsets.all(AppTheme.spacingLg),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 84,
+                                height: 84,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      AppTheme.primaryDark,
+                                      AppTheme.primaryColor,
+                                      AppTheme.secondaryColor,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(28),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.primaryColor
+                                          .withValues(alpha: 0.25),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 6),
                                     ),
                                   ],
                                 ),
-                                Flexible(
-                                  child: Text(
-                                    '${AppConstants.appName} v${AppConstants.appVersion}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w700),
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.end,
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.person_rounded,
+                                    size: 44,
+                                    color: Colors.white,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: AppTheme.spacingMd),
+                              Text(
+                                'Medical Student',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.3,
+                                      color: AppTheme.textPrimaryColor,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'student@medstudy.org',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: AppTheme.textSecondaryColor,
+                                    ),
+                              ),
+                              const SizedBox(height: AppTheme.spacingLg),
+                              Container(
+                                width: double.infinity,
+                                padding:
+                                    const EdgeInsets.all(AppTheme.spacingMd),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.surfaceMuted,
+                                  borderRadius: BorderRadius.circular(
+                                      AppTheme.borderRadiusSm),
+                                  border:
+                                      Border.all(color: AppTheme.borderColor),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.verified_rounded,
+                                          size: 16,
+                                          color: AppTheme.secondaryColor,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Platform',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color:
+                                                    AppTheme.textSecondaryColor,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                    Flexible(
+                                      child: Text(
+                                        '${AppConstants.appName} v${AppConstants.appVersion}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                              color: AppTheme.textPrimaryColor,
+                                            ),
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.end,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
                     const SizedBox(height: AppTheme.spacingMd),
                     MsCard(
                       key: const Key('profile_ai_assistant_card'),
@@ -178,7 +198,7 @@ class ProfileDestinationView extends StatelessWidget {
                                     .withValues(alpha: 0.2),
                               ),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Icon(
                                 Icons.auto_awesome_rounded,
                                 color: AppTheme.primaryColor,
@@ -215,7 +235,7 @@ class ProfileDestinationView extends StatelessWidget {
                               color: AppTheme.surfaceMuted,
                               shape: BoxShape.circle,
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Icon(
                                 Icons.arrow_forward_ios_rounded,
                                 size: 13,
@@ -253,7 +273,7 @@ class ProfileDestinationView extends StatelessWidget {
                                     .withValues(alpha: 0.25),
                               ),
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Icon(
                                 Icons.workspace_premium_rounded,
                                 color: AppTheme.secondaryColor,
@@ -273,12 +293,18 @@ class ProfileDestinationView extends StatelessWidget {
                                       .titleMedium
                                       ?.copyWith(
                                         fontWeight: FontWeight.w700,
+                                        color: AppTheme.textPrimaryColor,
                                       ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   'Manage your study access plan',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: AppTheme.textSecondaryColor,
+                                      ),
                                 ),
                               ],
                             ),
@@ -290,7 +316,7 @@ class ProfileDestinationView extends StatelessWidget {
                               color: AppTheme.surfaceMuted,
                               shape: BoxShape.circle,
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Icon(
                                 Icons.arrow_forward_ios_rounded,
                                 size: 13,
@@ -344,6 +370,8 @@ class ProfileDestinationView extends StatelessWidget {
         ),
       ),
     );
+  },
+);
   }
 
   Widget _buildThemeSelectionSection(BuildContext context) {

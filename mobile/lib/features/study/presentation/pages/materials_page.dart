@@ -472,9 +472,9 @@ class _MaterialsPageState extends State<MaterialsPage> {
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: AppTheme.surfaceMuted,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: TextField(
         controller: _searchController,
@@ -482,12 +482,12 @@ class _MaterialsPageState extends State<MaterialsPage> {
         decoration: InputDecoration(
           hintText: 'Search materials by title...',
           hintStyle:
-              const TextStyle(fontSize: 14, color: AppTheme.textSecondaryColor),
+              TextStyle(fontSize: 14, color: AppTheme.textSecondaryColor),
           prefixIcon:
-              const Icon(Icons.search_rounded, color: AppTheme.primaryColor),
+              Icon(Icons.search_rounded, color: AppTheme.primaryColor),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear_rounded,
+                  icon: Icon(Icons.clear_rounded,
                       color: AppTheme.textSecondaryColor),
                   onPressed: () {
                     _searchController.clear();
@@ -529,7 +529,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 15, color: AppTheme.textPrimaryColor),
               ),
               const SizedBox(height: AppTheme.spacingLg),
@@ -553,7 +553,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.folder_open_rounded,
+            Icon(Icons.folder_open_rounded,
                 size: 64, color: AppTheme.textSecondaryColor),
             const SizedBox(height: AppTheme.spacingMd),
             Text(
@@ -561,7 +561,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
                   ? 'No materials found matching "$_searchQuery"'
                   : 'No materials available for this topic',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textPrimaryColor,
@@ -572,7 +572,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
               _searchQuery.isNotEmpty
                   ? 'Try searching for another keyword.'
                   : 'Check back later for updated study materials.',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 color: AppTheme.textSecondaryColor,
               ),
@@ -639,7 +639,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
                         material.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.textPrimaryColor,
@@ -659,7 +659,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
                             ),
                             child: Text(
                               material.type,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 color: AppTheme.secondaryColor,
@@ -670,7 +670,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
                             const SizedBox(width: 8),
                             Text(
                               sizeFormatted,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 color: AppTheme.textSecondaryColor,
                               ),
@@ -726,7 +726,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
                             color: AppTheme.successColor)
                       else
                         IconButton(
-                          icon: const Icon(Icons.download_for_offline_outlined,
+                          icon: Icon(Icons.download_for_offline_outlined,
                               color: AppTheme.primaryColor),
                           onPressed: () => _downloadMaterial(material),
                         ),
@@ -739,7 +739,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(color: AppTheme.borderColor),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Online Only',
                           style: TextStyle(
                             fontSize: 10,
@@ -750,7 +750,7 @@ class _MaterialsPageState extends State<MaterialsPage> {
                       ),
                     ],
                     const SizedBox(width: 4),
-                    const Icon(Icons.chevron_right_rounded,
+                    Icon(Icons.chevron_right_rounded,
                         color: AppTheme.textSecondaryColor),
                   ],
                 ),

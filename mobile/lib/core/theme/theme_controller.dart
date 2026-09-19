@@ -145,8 +145,8 @@ class ThemeController {
   }
 
   static Future<void> setTheme(AppThemeMode mode) async {
-    currentTheme.value = mode;
     AppTheme.setThemeMode(mode);
+    currentTheme.value = mode;
     try {
       await _storage.write(key: _storageKey, value: mode.name);
     } catch (_) {}

@@ -312,7 +312,7 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
           ),
           decoration: BoxDecoration(
             color: AppTheme.surfaceColor,
-            border: const Border(bottom: BorderSide(color: AppTheme.borderColor)),
+            border: Border(bottom: BorderSide(color: AppTheme.borderColor)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.02),
@@ -334,11 +334,11 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.quiz_rounded, size: 13, color: AppTheme.primaryColor),
+                    Icon(Icons.quiz_rounded, size: 13, color: AppTheme.primaryColor),
                     const SizedBox(width: 5),
                     Text(
                       'Question ${_currentIndex + 1} of $totalQuestions',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         color: AppTheme.primaryColor,
@@ -466,11 +466,11 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
                             Icon(Icons.lightbulb_outline_rounded,
                                 size: 18, color: AppTheme.primaryColor),
-                            SizedBox(width: 6),
+                            const SizedBox(width: 6),
                             Text(
                               'Explanation',
                               style: TextStyle(
@@ -484,7 +484,7 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
                         const SizedBox(height: AppTheme.spacingSm),
                         Text(
                           detail.explanation,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             color: AppTheme.textPrimaryColor,
                             height: 1.4,

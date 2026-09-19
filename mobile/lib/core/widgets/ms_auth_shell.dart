@@ -478,7 +478,7 @@ class MsAuthFooterLink extends StatelessWidget {
           ),
           child: Text(
             actionLabel,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.primaryColor,
               fontWeight: FontWeight.w800,
               fontSize: 14,

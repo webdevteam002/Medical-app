@@ -158,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
               label: 'Email',
               hint: 'student@medstudy.org',
               keyboardType: TextInputType.emailAddress,
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.mail_outline_rounded,
                 color: AppTheme.textSecondaryColor,
                 size: 22,
@@ -172,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
               hint: 'Enter your password',
               obscureText: !_isPasswordVisible,
               textInputAction: TextInputAction.done,
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.lock_outline_rounded,
                 color: AppTheme.textSecondaryColor,
                 size: 22,

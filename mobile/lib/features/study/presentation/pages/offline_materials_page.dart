@@ -225,7 +225,7 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: AppTheme.spacingXs),
-              const Text(
+              Text(
                 'AES-256 Encrypted Private Storage',
                 style: TextStyle(
                   fontSize: 13,
@@ -261,7 +261,7 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
             Text(
               _errorMessage!,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 15, color: AppTheme.textPrimaryColor),
             ),
             const SizedBox(height: AppTheme.spacingLg),
@@ -284,10 +284,10 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.download_for_offline_outlined,
+            Icon(Icons.download_for_offline_outlined,
                 size: 64, color: AppTheme.textSecondaryColor),
             const SizedBox(height: AppTheme.spacingMd),
-            const Text(
+            Text(
               'No offline materials',
               style: TextStyle(
                 fontSize: 16,
@@ -296,7 +296,7 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
               ),
             ),
             const SizedBox(height: AppTheme.spacingXs),
-            const Text(
+            Text(
               'Downloaded materials will appear here for offline study.',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -337,8 +337,8 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
                 horizontal: AppTheme.spacingLg,
                 vertical: AppTheme.spacingSm,
               ),
-              leading: const CircleAvatar(
-                backgroundColor: Color(0xFFE2E8F0),
+              leading: CircleAvatar(
+                backgroundColor: AppTheme.surfaceMuted,
                 child: Icon(
                   Icons.lock_clock_rounded,
                   color: AppTheme.primaryColor,
@@ -348,7 +348,7 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
                 item.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimaryColor,
@@ -359,7 +359,7 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
                 children: [
                   Text(
                     'Downloaded $dateFormatted',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       color: AppTheme.textSecondaryColor,
                     ),
@@ -368,7 +368,7 @@ class _OfflineMaterialsPageState extends State<OfflineMaterialsPage> {
                     const SizedBox(width: 6),
                     Text(
                       '($sizeFormatted)',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondaryColor,
                       ),

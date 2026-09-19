@@ -155,7 +155,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                   ),
                   child: Text(
                     '${_currentPage + 1} / $_totalPages',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.primaryColor,
@@ -222,7 +222,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
                   '${_currentPage + 1} of $_totalPages',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppTheme.textPrimaryColor,
@@ -281,7 +281,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                 color: AppTheme.primaryColor.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.picture_as_pdf_rounded,
                 size: 38,
                 color: AppTheme.primaryColor,
@@ -290,7 +290,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             const SizedBox(height: AppTheme.spacingMd),
             Text(
               widget.title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textPrimaryColor,
@@ -302,12 +302,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     }
 
     if (_isLoadingFile) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: AppTheme.spacingMd),
+            const CircularProgressIndicator(),
+            const SizedBox(height: AppTheme.spacingMd),
             Text(
               'Loading PDF…',
               style: TextStyle(
@@ -336,7 +336,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               Text(
                 _errorMessage,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   color: AppTheme.textPrimaryColor,
                 ),
@@ -366,7 +366,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             child: Text(
               'Could not open PDF in the app.\n$error',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppTheme.textPrimaryColor),
+              style: TextStyle(color: AppTheme.textPrimaryColor),
             ),
           ),
         ),

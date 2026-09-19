@@ -156,7 +156,7 @@ class ExamSubmitResultPage extends StatelessWidget {
                                       result.gradedBy == 'ai'
                                           ? 'Graded with MedStudy AI'
                                           : 'Exam Attempt Recorded',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
                                         color: AppTheme.primaryColor,
                                         fontWeight: FontWeight.w700,
@@ -296,7 +296,7 @@ class _MetricTile extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             color: AppTheme.textSecondaryColor,
             fontWeight: FontWeight.w500,
@@ -376,7 +376,7 @@ class _QuestionReviewCard extends StatelessWidget {
                   ),
                   child: Text(
                     'Question $number',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
                       color: AppTheme.primaryColor,
@@ -420,7 +420,7 @@ class _QuestionReviewCard extends StatelessWidget {
               detail.stem.isNotEmpty
                   ? detail.stem
                   : 'Question ${detail.questionId}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textPrimaryColor,
@@ -431,9 +431,9 @@ class _QuestionReviewCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: AppTheme.surfaceMuted,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: AppTheme.borderColor),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -492,23 +492,23 @@ class _QuestionReviewCard extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0FDFA),
+                  color: AppTheme.surfaceMuted,
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-                  border: Border.all(color: const Color(0xFFCCFBF1)),
+                  border: Border.all(color: AppTheme.borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.lightbulb_outline_rounded, size: 15, color: Color(0xFF0D9488)),
-                        SizedBox(width: 5),
+                        Icon(Icons.lightbulb_outline_rounded, size: 15, color: AppTheme.secondaryColor),
+                        const SizedBox(width: 5),
                         Text(
                           'Clinical Rationale',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF0D9488),
+                            color: AppTheme.secondaryColor,
                           ),
                         ),
                       ],
@@ -516,7 +516,7 @@ class _QuestionReviewCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       detail.explanation,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         height: 1.45,
                         color: AppTheme.textPrimaryColor,

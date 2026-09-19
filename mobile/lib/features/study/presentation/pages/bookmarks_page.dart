@@ -231,7 +231,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: AppTheme.spacingXs),
-              const Text(
+              Text(
                 'Quick access to your saved study materials',
                 style: TextStyle(
                   fontSize: 13,
@@ -269,7 +269,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 15, color: AppTheme.textPrimaryColor),
               ),
               const SizedBox(height: AppTheme.spacingLg),
@@ -293,10 +293,10 @@ class _BookmarksPageState extends State<BookmarksPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.bookmark_outline_rounded,
+            Icon(Icons.bookmark_outline_rounded,
                 size: 64, color: AppTheme.textSecondaryColor),
             const SizedBox(height: AppTheme.spacingMd),
-            const Text(
+            Text(
               'No bookmarked materials',
               style: TextStyle(
                 fontSize: 16,
@@ -305,7 +305,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
               ),
             ),
             const SizedBox(height: AppTheme.spacingXs),
-            const Text(
+            Text(
               'Materials you bookmark will appear here for quick access.',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -358,7 +358,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                 item.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimaryColor,
@@ -370,7 +370,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                   if (dateFormatted.isNotEmpty)
                     Text(
                       'Saved $dateFormatted',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondaryColor,
                       ),
@@ -379,7 +379,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                     if (dateFormatted.isNotEmpty) const SizedBox(width: 6),
                     Text(
                       '($sizeFormatted)',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondaryColor,
                       ),
@@ -398,7 +398,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                     )
                   else
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.bookmark_rounded,
                         color: AppTheme.primaryColor,
                       ),
@@ -406,7 +406,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
                       onPressed: () => _removeBookmark(item),
                     ),
                   const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right_rounded,
+                  Icon(Icons.chevron_right_rounded,
                       color: AppTheme.textSecondaryColor),
                 ],
               ),

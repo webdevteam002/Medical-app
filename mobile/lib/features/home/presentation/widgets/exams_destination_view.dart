@@ -163,7 +163,7 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
                           width: 1.2,
                         ),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.assignment_turned_in_rounded,
                           color: AppTheme.secondaryColor,
@@ -203,7 +203,7 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
                               ),
                               child: Text(
                                 exam.subjectName!,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 11,
@@ -221,7 +221,7 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
                         color: AppTheme.surfaceMuted,
                         shape: BoxShape.circle,
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.arrow_forward_ios_rounded,
                           size: 13,
@@ -270,7 +270,7 @@ class _HistoryButton extends StatelessWidget {
         color: AppTheme.surfaceColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: AppTheme.borderColor),
+          side: BorderSide(color: AppTheme.borderColor),
         ),
         child: InkWell(
           onTap: onPressed,
@@ -278,7 +278,7 @@ class _HistoryButton extends StatelessWidget {
           hoverColor: AppTheme.primaryColor.withValues(alpha: 0.05),
           focusColor: AppTheme.primaryColor.withValues(alpha: 0.10),
           mouseCursor: SystemMouseCursors.click,
-          child: const SizedBox(
+          child: SizedBox(
             width: 42,
             height: 42,
             child: Icon(

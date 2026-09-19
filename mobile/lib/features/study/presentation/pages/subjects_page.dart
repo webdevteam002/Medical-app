@@ -113,7 +113,7 @@ class _SubjectsPageState extends State<SubjectsPage> {
   }
 
   Color _accentForIndex(int index) {
-    const accents = [
+    final accents = [
       AppTheme.primaryColor,
       AppTheme.secondaryColor,
       Color(0xFF0369A1),
@@ -241,7 +241,7 @@ class _SubjectsPageState extends State<SubjectsPage> {
                     color: AppTheme.surfaceMuted,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 14,
                     color: AppTheme.primaryColor,

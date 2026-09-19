@@ -255,21 +255,21 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
                                   text:
                                       'The timer starts immediately upon tapping Start Exam and runs without pausing.',
                                 ),
-                                const Divider(height: 24, color: AppTheme.borderColor),
+                                Divider(height: 24, color: AppTheme.borderColor),
                                 _buildInstructionTile(
                                   icon: Icons.devices_rounded,
                                   title: 'Single Active Attempt',
                                   text:
                                       'Only one active attempt at a time is permitted per exam across your devices.',
                                 ),
-                                const Divider(height: 24, color: AppTheme.borderColor),
+                                Divider(height: 24, color: AppTheme.borderColor),
                                 _buildInstructionTile(
                                   icon: Icons.fact_check_rounded,
                                   title: 'Scoring Rules',
                                   text:
                                       'Unanswered questions score zero points. Review your answers before final submission.',
                                 ),
-                                const Divider(height: 24, color: AppTheme.borderColor),
+                                Divider(height: 24, color: AppTheme.borderColor),
                                 _buildInstructionTile(
                                   icon: Icons.verified_user_rounded,
                                   title: 'Verified Anti-Cheating Session',
@@ -291,7 +291,7 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
               padding: const EdgeInsets.all(AppTheme.spacingLg),
               decoration: BoxDecoration(
                 color: AppTheme.surfaceColor,
-                border: const Border(top: BorderSide(color: AppTheme.borderColor)),
+                border: Border(top: BorderSide(color: AppTheme.borderColor)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),
@@ -336,7 +336,7 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
           const SizedBox(height: AppTheme.spacingSm),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               color: AppTheme.textSecondaryColor,
               fontWeight: FontWeight.w500,
@@ -346,7 +346,7 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
           Text(
             value,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
               color: AppTheme.textPrimaryColor,
@@ -388,7 +388,7 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
                 if (title != null) ...[
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.textPrimaryColor,
@@ -399,7 +399,7 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
                 ],
                 Text(
                   text,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     color: AppTheme.textSecondaryColor,
                     height: 1.45,

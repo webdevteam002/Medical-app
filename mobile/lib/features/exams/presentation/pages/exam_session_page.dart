@@ -299,7 +299,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Are you sure you want to finish and submit your exam answers?',
                 style:
                     TextStyle(fontSize: 14, color: AppTheme.textPrimaryColor),
@@ -308,9 +308,9 @@ class _ExamSessionPageState extends State<ExamSessionPage>
               Container(
                 padding: const EdgeInsets.all(AppTheme.spacingMd),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
+                  color: AppTheme.surfaceMuted,
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: AppTheme.borderColor),
                 ),
                 child: Column(
                   children: [
@@ -393,7 +393,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
         Icon(icon, size: 16, color: color),
         const SizedBox(width: 8),
         Text(label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 13, color: AppTheme.textSecondaryColor)),
         const Spacer(),
         Text(value,
@@ -624,9 +624,9 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                 final isAnswered = _selectedAnswers.containsKey(question.id);
                 final isFlagged = _flaggedQuestionIds.contains(question.id);
 
-                Color tileBg = const Color(0xFFF1F5F9);
+                Color tileBg = AppTheme.surfaceMuted;
                 Color textColor = AppTheme.textPrimaryColor;
-                Border border = Border.all(color: const Color(0xFFE2E8F0));
+                Border border = Border.all(color: AppTheme.borderColor);
 
                 if (isCurrent) {
                   border = Border.all(
@@ -815,7 +815,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                           ? (_currentIndex + 1) / totalQuestions
                           : 0,
                       child: Container(
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           gradient: AppTheme.primaryGradient,
                         ),
                       ),
@@ -845,7 +845,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.help_outline_rounded,
                                       size: 14,
                                       color: AppTheme.primaryColor,
@@ -853,7 +853,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                                     const SizedBox(width: 6),
                                     Text(
                                       'Question ${_currentIndex + 1} of $totalQuestions',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w800,
                                         color: AppTheme.primaryColor,
@@ -1001,7 +1001,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                     ),
                     decoration: BoxDecoration(
                       color: AppTheme.surfaceColor,
-                      border: const Border(top: BorderSide(color: AppTheme.borderColor)),
+                      border: Border(top: BorderSide(color: AppTheme.borderColor)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.04),
@@ -1022,7 +1022,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
                               ),
-                              side: const BorderSide(color: AppTheme.borderColor),
+                              side: BorderSide(color: AppTheme.borderColor),
                             ),
                           ),
                         ),
@@ -1083,7 +1083,7 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                     Expanded(
                       child: questionContent,
                     ),
-                    const VerticalDivider(
+                    VerticalDivider(
                       width: 1,
                       thickness: 1,
                       color: AppTheme.borderColor,
@@ -1166,16 +1166,16 @@ class _InteractiveOptionTileState extends State<_InteractiveOptionTile> {
           padding: const EdgeInsets.all(AppTheme.spacingMd),
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFFEFF6FF)
+                ? AppTheme.primaryColor.withValues(alpha: 0.12)
                 : _isHovered
-                    ? const Color(0xFFF8FAFC)
+                    ? AppTheme.surfaceMuted
                     : AppTheme.surfaceColor,
             borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
             border: Border.all(
               color: isSelected
                   ? AppTheme.primaryColor
                   : _isHovered
-                      ? const Color(0xFF0D9488)
+                      ? AppTheme.secondaryColor
                       : AppTheme.borderColor,
               width: isSelected ? 2 : 1,
             ),
@@ -1210,7 +1210,7 @@ class _InteractiveOptionTileState extends State<_InteractiveOptionTile> {
                   border: Border.all(
                     color: isSelected
                         ? Colors.transparent
-                        : const Color(0xFFCBD5E1),
+                        : AppTheme.borderColor,
                   ),
                 ),
                 alignment: Alignment.center,
@@ -1241,8 +1241,8 @@ class _InteractiveOptionTileState extends State<_InteractiveOptionTile> {
                 ),
               ),
               if (isSelected)
-                const Padding(
-                  padding: EdgeInsets.only(top: 4, left: 8),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, left: 8),
                   child: Icon(
                     Icons.check_circle_rounded,
                     color: AppTheme.primaryColor,

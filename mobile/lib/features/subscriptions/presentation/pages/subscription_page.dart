@@ -230,7 +230,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: AppTheme.spacingXs),
-          const Text(
+          Text(
             '1) Choose a plan  2) Pay via JazzCash/Easypaisa  3) WhatsApp screenshot  4) Admin activates',
             style: TextStyle(fontSize: 13, color: AppTheme.textSecondaryColor),
           ),
@@ -355,7 +355,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                           : pendingSubs.isNotEmpty
                               ? 'Admin will activate after WhatsApp receipt verification'
                               : 'Upgrade to unlock modules, past papers, and mock exams',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondaryColor,
                       ),
@@ -367,9 +367,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           ),
           if (accessibleYears.isNotEmpty) ...[
             const SizedBox(height: AppTheme.spacingMd),
-            const Divider(height: 1, color: AppTheme.borderColor),
+            Divider(height: 1, color: AppTheme.borderColor),
             const SizedBox(height: AppTheme.spacingMd),
-            const Text(
+            Text(
               'Unlocked Academic Modules:',
               style: TextStyle(
                 fontSize: 12,
@@ -393,7 +393,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   ),
                   child: Text(
                     slug.toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       color: AppTheme.primaryColor,
@@ -442,7 +442,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 child: const Icon(Icons.payment_rounded, color: Colors.white, size: 20),
               ),
               const SizedBox(width: AppTheme.spacingMd),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Payment & Activation Instructions',
                   style: TextStyle(
@@ -458,7 +458,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           const SizedBox(height: 10),
           Text(
             data.instructions,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               color: AppTheme.textSecondaryColor,
               height: 1.45,
@@ -526,7 +526,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.textSecondaryColor,
@@ -535,7 +535,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   const SizedBox(height: 2),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                       color: AppTheme.textPrimaryColor,
@@ -548,7 +548,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             IconButton(
               tooltip: 'Copy $label',
               onPressed: () => _copyText(label, value),
-              icon: const Icon(Icons.copy_rounded, size: 18, color: AppTheme.primaryColor),
+              icon: Icon(Icons.copy_rounded, size: 18, color: AppTheme.primaryColor),
             ),
           ],
         ),
@@ -643,7 +643,7 @@ class _InteractivePlanTileState extends State<_InteractivePlanTile> {
                   children: [
                     Text(
                       plan.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         color: AppTheme.textPrimaryColor,
@@ -653,11 +653,11 @@ class _InteractivePlanTileState extends State<_InteractivePlanTile> {
                     const SizedBox(height: 3),
                     Row(
                       children: [
-                        const Icon(Icons.schedule_rounded, size: 13, color: AppTheme.textSecondaryColor),
+                        Icon(Icons.schedule_rounded, size: 13, color: AppTheme.textSecondaryColor),
                         const SizedBox(width: 4),
                         Text(
                           '${plan.durationDays} Days Full Access',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             color: AppTheme.textSecondaryColor,
                             fontWeight: FontWeight.w500,

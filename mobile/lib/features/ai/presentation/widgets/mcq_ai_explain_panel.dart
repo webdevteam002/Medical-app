@@ -160,7 +160,7 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
         children: [
           Row(
             children: [
-              const Icon(Icons.auto_awesome_rounded,
+              Icon(Icons.auto_awesome_rounded,
                   size: 18, color: AppTheme.primaryColor),
               const SizedBox(width: 6),
               Text(
@@ -174,7 +174,7 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
           ),
           if (unanswered) ...[
             const SizedBox(height: AppTheme.spacingSm),
-            const Text(
+            Text(
               'AI explanation is available after you select an answer.',
               style: TextStyle(
                 fontSize: 13,
@@ -184,7 +184,7 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
           ],
           if (_loading && _result == null) ...[
             const SizedBox(height: AppTheme.spacingMd),
-            const Text(
+            Text(
               'Generating AI explanation…',
               style: TextStyle(
                 fontSize: 13,
@@ -226,7 +226,7 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
                 label: const Text('Ask about this question'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppTheme.primaryColor,
-                  side: const BorderSide(color: AppTheme.primaryColor),
+                  side: BorderSide(color: AppTheme.primaryColor),
                 ),
               ),
             ),
@@ -264,7 +264,7 @@ class _ErrorBanner extends StatelessWidget {
         children: [
           Text(
             message,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               color: AppTheme.textPrimaryColor,
               height: 1.35,
@@ -334,7 +334,7 @@ class _ExplanationBody extends StatelessWidget {
           body: result.whyCorrect,
         ),
         if (result.whyOtherOptions.isNotEmpty) ...[
-          const Text(
+          Text(
             'Other Options',
             style: TextStyle(
               fontSize: 13,
@@ -348,7 +348,7 @@ class _ExplanationBody extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: AppTheme.spacingSm),
               child: Text(
                 '${o.option} — ${o.explanation}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   height: 1.4,
                   color: AppTheme.textPrimaryColor,
@@ -373,7 +373,7 @@ class _ExplanationBody extends StatelessWidget {
             ),
             child: Text(
               'Note: ${result.questionConcern}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 color: AppTheme.textPrimaryColor,
                 height: 1.35,
@@ -389,7 +389,7 @@ class _ExplanationBody extends StatelessWidget {
         ] else ...[
           Text(
             'Grounding: ${result.grounding}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               color: AppTheme.textSecondaryColor,
             ),
@@ -477,7 +477,7 @@ class _Section extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               body,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 height: 1.45,
                 color: AppTheme.textPrimaryColor,

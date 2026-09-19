@@ -181,7 +181,7 @@ class _RegisterPageState extends State<RegisterPage> {
               label: 'Full name',
               hint: 'Ali Khan',
               keyboardType: TextInputType.name,
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.person_outline_rounded,
                 color: AppTheme.textSecondaryColor,
                 size: 22,
@@ -193,7 +193,7 @@ class _RegisterPageState extends State<RegisterPage> {
               label: 'Email',
               hint: 'student@medstudy.org',
               keyboardType: TextInputType.emailAddress,
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.mail_outline_rounded,
                 color: AppTheme.textSecondaryColor,
                 size: 22,
@@ -206,7 +206,7 @@ class _RegisterPageState extends State<RegisterPage> {
               label: 'Password',
               hint: 'At least 8 characters',
               obscureText: !_isPasswordVisible,
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.lock_outline_rounded,
                 color: AppTheme.textSecondaryColor,
                 size: 22,
@@ -234,7 +234,7 @@ class _RegisterPageState extends State<RegisterPage> {
               hint: 'Re-enter password',
               obscureText: !_isConfirmPasswordVisible,
               textInputAction: TextInputAction.done,
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.verified_user_outlined,
                 color: AppTheme.textSecondaryColor,
                 size: 22,

@@ -99,22 +99,34 @@ class AppThemePalette {
 class AppTheme {
   AppTheme._();
 
-  // Brand / clinical palette - compile-time constants for const widgets
-  static const Color primaryColor = Color(0xFF0B3A66);
-  static const Color primarySoft = Color(0xFF145A96);
-  static const Color primaryDark = Color(0xFF072545);
-  static const Color secondaryColor = Color(0xFF0D9488);
-  static const Color secondarySoft = Color(0xFFCCFBF1);
-  static const Color backgroundColor = Color(0xFFF4F7FB);
-  static const Color surfaceColor = Colors.white;
-  static const Color surfaceMuted = Color(0xFFEEF3F9);
-  static const Color surfaceSubtle = Color(0xFFF8FAFC);
-  static const Color textPrimaryColor = Color(0xFF0F172A);
-  static const Color textSecondaryColor = Color(0xFF64748B);
-  static const Color textMutedColor = Color(0xFF94A3B8);
-  static const Color borderColor = Color(0xFFE2E8F0);
-  static const Color borderSubtle = Color(0xFFEDF2F7);
-  static const Color borderHover = Color(0xFFCBD5E1);
+  // Active theme tracking
+  static AppThemeMode _activeMode = AppThemeMode.clinicalLight;
+
+  static void setThemeMode(AppThemeMode mode) {
+    _activeMode = mode;
+  }
+
+  static AppThemeMode get activeMode => _activeMode;
+
+  static AppThemePalette get currentPalette => paletteFor(_activeMode);
+
+  // Dynamic getters forwarding to current active theme palette
+  static Color get primaryColor => currentPalette.primary;
+  static Color get primarySoft => currentPalette.primarySoft;
+  static Color get primaryDark => currentPalette.primaryDark;
+  static Color get secondaryColor => currentPalette.secondary;
+  static Color get secondarySoft => currentPalette.secondarySoft;
+  static Color get backgroundColor => currentPalette.background;
+  static Color get surfaceColor => currentPalette.surface;
+  static Color get surfaceMuted => currentPalette.surfaceMuted;
+  static Color get surfaceSubtle => currentPalette.surfaceSubtle;
+  static Color get textPrimaryColor => currentPalette.textPrimary;
+  static Color get textSecondaryColor => currentPalette.textSecondary;
+  static Color get textMutedColor => currentPalette.textMuted;
+  static Color get borderColor => currentPalette.border;
+  static Color get borderSubtle => currentPalette.borderSubtle;
+  static Color get borderHover => currentPalette.borderHover;
+  static bool get isDark => currentPalette.isDark;
 
   // Semantic status colors
   static const Color successColor = Color(0xFF059669);
@@ -142,54 +154,15 @@ class AppTheme {
 
   static const double buttonHeight = 52.0;
 
-  // Static gradients & shadows
-  static const LinearGradient primaryGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [primaryDark, primaryColor, secondaryColor],
-  );
-
-  static const LinearGradient heroGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [primaryColor, primarySoft, secondaryColor],
-  );
-
-  static const LinearGradient tealGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [secondaryColor, secondarySoft],
-  );
-
-  static const LinearGradient subtleCardGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [surfaceColor, Color(0x66EEF3F9)],
-  );
-
-  static const List<BoxShadow> softShadow = [
-    BoxShadow(
-      color: Color(0x0D0F172A),
-      blurRadius: 10,
-      offset: Offset(0, 2),
-    ),
-  ];
-
-  static const List<BoxShadow> cardHoverShadow = [
-    BoxShadow(
-      color: Color(0x1A0B3A66),
-      blurRadius: 18,
-      offset: Offset(0, 6),
-    ),
-  ];
-
-  static List<BoxShadow> glowShadow([Color? customColor]) => [
-        BoxShadow(
-          color: (customColor ?? secondaryColor).withValues(alpha: 0.35),
-          blurRadius: 16,
-          offset: const Offset(0, 4),
-        ),
-      ];
+  // Dynamic gradients & shadows forwarding to active palette
+  static LinearGradient get primaryGradient => currentPalette.primaryGradient;
+  static LinearGradient get heroGradient => currentPalette.heroGradient;
+  static LinearGradient get tealGradient => currentPalette.tealGradient;
+  static LinearGradient get subtleCardGradient => currentPalette.subtleCardGradient;
+  static List<BoxShadow> get softShadow => currentPalette.softShadow;
+  static List<BoxShadow> get cardHoverShadow => currentPalette.cardHoverShadow;
+  static List<BoxShadow> glowShadow([Color? customColor]) =>
+      currentPalette.glowShadow(customColor);
 
   // 6 Predefined study palettes
   static const AppThemePalette _clinicalLightPalette = AppThemePalette(
@@ -306,15 +279,6 @@ class AppTheme {
     isDark: true,
   );
 
-  static AppThemeMode _activeMode = AppThemeMode.clinicalLight;
-
-  static void setThemeMode(AppThemeMode mode) {
-    _activeMode = mode;
-  }
-
-  static AppThemeMode get activeMode => _activeMode;
-
-  static AppThemePalette get currentPalette => paletteFor(_activeMode);
 
   static AppThemePalette paletteFor(AppThemeMode mode) {
     switch (mode) {

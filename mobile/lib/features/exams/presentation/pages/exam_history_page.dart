@@ -88,7 +88,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: AppTheme.spacingXs),
-              const Text(
+              Text(
                 'Review your completed mock exams and answer explanations',
                 style:
                     TextStyle(fontSize: 14, color: AppTheme.textSecondaryColor),
@@ -176,7 +176,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                         item.examTitle,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.textPrimaryColor,
@@ -198,7 +198,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                               ),
                               child: Text(
                                 item.subjectName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
                                   color: AppTheme.primaryColor,
@@ -209,7 +209,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                           ],
                           Text(
                             _formatDate(item.completedAt),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: AppTheme.textSecondaryColor,
                               fontWeight: FontWeight.w500,
@@ -255,7 +255,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                     const SizedBox(height: 4),
                     Text(
                       '${item.score}/${item.total} pts',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.textSecondaryColor,
