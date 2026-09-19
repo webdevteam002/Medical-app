@@ -235,8 +235,8 @@ class ExamSubmitResultPage extends StatelessWidget {
                         ),
                         const SizedBox(height: AppTheme.spacingSm),
                         if (result.details.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 24),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
                             child: Text(
                               'No question details returned. Open Exam History to review later.',
                               textAlign: TextAlign.center,
