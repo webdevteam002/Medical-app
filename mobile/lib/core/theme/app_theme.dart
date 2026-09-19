@@ -279,6 +279,81 @@ class AppTheme {
     isDark: true,
   );
 
+  static const AppThemePalette _luxuryGoldPalette = AppThemePalette(
+    primary: Color(0xFFD4AF37),
+    primarySoft: Color(0xFFF3D89F),
+    primaryDark: Color(0xFF8A6D24),
+    secondary: Color(0xFFF59E0B),
+    secondarySoft: Color(0xFF2B220C),
+    background: Color(0xFF0C0C0E),
+    surface: Color(0xFF17171C),
+    surfaceMuted: Color(0xFF1F1F26),
+    surfaceSubtle: Color(0xFF282832),
+    textPrimary: Color(0xFFFAF7F0),
+    textSecondary: Color(0xFFD1C7B7),
+    textMuted: Color(0xFF8A8275),
+    border: Color(0xFF332E24),
+    borderSubtle: Color(0xFF242018),
+    borderHover: Color(0xFFD4AF37),
+    isDark: true,
+  );
+
+  static const AppThemePalette _royalAmethystPalette = AppThemePalette(
+    primary: Color(0xFFA855F7),
+    primarySoft: Color(0xFFC084FC),
+    primaryDark: Color(0xFF6B21A8),
+    secondary: Color(0xFFEC4899),
+    secondarySoft: Color(0xFF3B1228),
+    background: Color(0xFF0D0B18),
+    surface: Color(0xFF171426),
+    surfaceMuted: Color(0xFF1F1A33),
+    surfaceSubtle: Color(0xFF292242),
+    textPrimary: Color(0xFFF8FAFC),
+    textSecondary: Color(0xFFDDD6FE),
+    textMuted: Color(0xFF9CA3AF),
+    border: Color(0xFF31284E),
+    borderSubtle: Color(0xFF221C38),
+    borderHover: Color(0xFFA855F7),
+    isDark: true,
+  );
+
+  static const AppThemePalette _cyberAbyssPalette = AppThemePalette(
+    primary: Color(0xFF06B6D4),
+    primarySoft: Color(0xFF22D3EE),
+    primaryDark: Color(0xFF0E7490),
+    secondary: Color(0xFF3B82F6),
+    secondarySoft: Color(0xFF082F49),
+    background: Color(0xFF050B14),
+    surface: Color(0xFF0D1929),
+    surfaceMuted: Color(0xFF13243A),
+    surfaceSubtle: Color(0xFF1C314E),
+    textPrimary: Color(0xFFF0FDFE),
+    textSecondary: Color(0xFFA5F3FC),
+    textMuted: Color(0xFF64748B),
+    border: Color(0xFF1E3A5F),
+    borderSubtle: Color(0xFF12253E),
+    borderHover: Color(0xFF06B6D4),
+    isDark: true,
+  );
+
+  static const AppThemePalette _minimalistPearlPalette = AppThemePalette(
+    primary: Color(0xFF4F46E5),
+    primarySoft: Color(0xFF6366F1),
+    primaryDark: Color(0xFF3730A3),
+    secondary: Color(0xFF0284C7),
+    secondarySoft: Color(0xFFE0F2FE),
+    background: Color(0xFFF8F9FA),
+    surface: Colors.white,
+    surfaceMuted: Color(0xFFF1F3F5),
+    surfaceSubtle: Color(0xFFE9ECEF),
+    textPrimary: Color(0xFF0F172A),
+    textSecondary: Color(0xFF475569),
+    textMuted: Color(0xFF94A3B8),
+    border: Color(0xFFE2E8F0),
+    borderSubtle: Color(0xFFEDF2F7),
+    borderHover: Color(0xFFCBD5E1),
+    isDark: false,
+  );
 
   static AppThemePalette paletteFor(AppThemeMode mode) {
     switch (mode) {
@@ -294,6 +369,14 @@ class AppTheme {
         return _warmSepiaPalette;
       case AppThemeMode.forestEmerald:
         return _forestEmeraldPalette;
+      case AppThemeMode.luxuryGold:
+        return _luxuryGoldPalette;
+      case AppThemeMode.royalAmethyst:
+        return _royalAmethystPalette;
+      case AppThemeMode.cyberAbyss:
+        return _cyberAbyssPalette;
+      case AppThemeMode.minimalistPearl:
+        return _minimalistPearlPalette;
     }
   }
 

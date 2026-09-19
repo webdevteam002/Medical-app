@@ -9,6 +9,10 @@ enum AppThemeMode {
   obsidianOled,
   warmSepia,
   forestEmerald,
+  luxuryGold,
+  royalAmethyst,
+  cyberAbyss,
+  minimalistPearl,
 }
 
 class AppThemeInfo {
@@ -125,6 +129,62 @@ class ThemeController {
         Color(0xFF059669),
       ],
       icon: Icons.spa_rounded,
+    ),
+    const AppThemeInfo(
+      mode: AppThemeMode.luxuryGold,
+      name: 'Luxury Gold',
+      badge: 'Black & Gold',
+      description: 'Fancy modern noir aesthetic with polished metallic gold accents and champagne typography.',
+      isDark: true,
+      previewColors: [
+        Color(0xFF0C0C0E),
+        Color(0xFF17171C),
+        Color(0xFFD4AF37),
+        Color(0xFFF3D89F),
+      ],
+      icon: Icons.workspace_premium_rounded,
+    ),
+    const AppThemeInfo(
+      mode: AppThemeMode.royalAmethyst,
+      name: 'Royal Amethyst',
+      badge: 'Velvet Night',
+      description: 'Deep obsidian purple canvas with glowing amethyst accents for relaxed nighttime focus.',
+      isDark: true,
+      previewColors: [
+        Color(0xFF0D0B18),
+        Color(0xFF171426),
+        Color(0xFFA855F7),
+        Color(0xFFDDD6FE),
+      ],
+      icon: Icons.nights_stay_rounded,
+    ),
+    const AppThemeInfo(
+      mode: AppThemeMode.cyberAbyss,
+      name: 'Cyber Abyss',
+      badge: 'Deep Marine',
+      description: 'Abyssal deep sea dark mode with glowing electric cyan accents and crisp contrast.',
+      isDark: true,
+      previewColors: [
+        Color(0xFF050B14),
+        Color(0xFF0D1929),
+        Color(0xFF06B6D4),
+        Color(0xFF22D3EE),
+      ],
+      icon: Icons.waves_rounded,
+    ),
+    const AppThemeInfo(
+      mode: AppThemeMode.minimalistPearl,
+      name: 'Minimalist Pearl',
+      badge: 'Studio Light',
+      description: 'Modern studio light mode with graphite typography, crisp cards, and royal indigo accents.',
+      isDark: false,
+      previewColors: [
+        Color(0xFFF8F9FA),
+        Color(0xFFFFFFFF),
+        Color(0xFF4F46E5),
+        Color(0xFF0F172A),
+      ],
+      icon: Icons.wb_sunny_outlined,
     ),
   ];
 
