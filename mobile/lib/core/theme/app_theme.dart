@@ -1,25 +1,262 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'theme_controller.dart';
+
+class AppThemePalette {
+  final Color primary;
+  final Color primarySoft;
+  final Color primaryDark;
+  final Color secondary;
+  final Color secondarySoft;
+  final Color background;
+  final Color surface;
+  final Color surfaceMuted;
+  final Color surfaceSubtle;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textMuted;
+  final Color border;
+  final Color borderSubtle;
+  final Color borderHover;
+  final bool isDark;
+
+  const AppThemePalette({
+    required this.primary,
+    required this.primarySoft,
+    required this.primaryDark,
+    required this.secondary,
+    required this.secondarySoft,
+    required this.background,
+    required this.surface,
+    required this.surfaceMuted,
+    required this.surfaceSubtle,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textMuted,
+    required this.border,
+    required this.borderSubtle,
+    required this.borderHover,
+    required this.isDark,
+  });
+
+  LinearGradient get primaryGradient => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [primaryDark, primary, secondary],
+      );
+
+  LinearGradient get heroGradient => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [primary, primarySoft, secondary],
+      );
+
+  LinearGradient get tealGradient => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [secondary, secondarySoft],
+      );
+
+  LinearGradient get subtleCardGradient => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          surface,
+          isDark
+              ? surface.withValues(alpha: 0.85)
+              : surfaceMuted.withValues(alpha: 0.40),
+        ],
+      );
+
+  List<BoxShadow> get softShadow => [
+        BoxShadow(
+          color: isDark
+              ? Colors.black.withValues(alpha: 0.40)
+              : const Color(0xFF0F172A).withValues(alpha: 0.05),
+          blurRadius: 10,
+          offset: const Offset(0, 2),
+        ),
+      ];
+
+  List<BoxShadow> get cardHoverShadow => [
+        BoxShadow(
+          color: isDark
+              ? Colors.black.withValues(alpha: 0.60)
+              : const Color(0xFF0B3A66).withValues(alpha: 0.10),
+          blurRadius: 18,
+          offset: const Offset(0, 6),
+        ),
+      ];
+
+  List<BoxShadow> get glowShadow => [
+        BoxShadow(
+          color: secondary.withValues(alpha: isDark ? 0.35 : 0.25),
+          blurRadius: 16,
+          offset: const Offset(0, 4),
+        ),
+      ];
+}
 
 class AppTheme {
   AppTheme._();
 
-  // Brand / clinical palette
-  static const Color primaryColor = Color(0xFF0B3A66);
-  static const Color primarySoft = Color(0xFF145A96);
-  static const Color primaryDark = Color(0xFF072545);
-  static const Color secondaryColor = Color(0xFF0D9488);
-  static const Color secondarySoft = Color(0xFFCCFBF1);
-  static const Color backgroundColor = Color(0xFFF4F7FB);
-  static const Color surfaceColor = Colors.white;
-  static const Color surfaceMuted = Color(0xFFEEF3F9);
-  static const Color surfaceSubtle = Color(0xFFF8FAFC);
-  static const Color textPrimaryColor = Color(0xFF0F172A);
-  static const Color textSecondaryColor = Color(0xFF64748B);
-  static const Color textMutedColor = Color(0xFF94A3B8);
-  static const Color borderColor = Color(0xFFE2E8F0);
-  static const Color borderSubtle = Color(0xFFEDF2F7);
-  static const Color borderHover = Color(0xFFCBD5E1);
+  static const AppThemePalette _clinicalLightPalette = AppThemePalette(
+    primary: Color(0xFF0B3A66),
+    primarySoft: Color(0xFF145A96),
+    primaryDark: Color(0xFF072545),
+    secondary: Color(0xFF0D9488),
+    secondarySoft: Color(0xFFCCFBF1),
+    background: Color(0xFFF4F7FB),
+    surface: Colors.white,
+    surfaceMuted: Color(0xFFEEF3F9),
+    surfaceSubtle: Color(0xFFF8FAFC),
+    textPrimary: Color(0xFF0F172A),
+    textSecondary: Color(0xFF64748B),
+    textMuted: Color(0xFF94A3B8),
+    border: Color(0xFFE2E8F0),
+    borderSubtle: Color(0xFFEDF2F7),
+    borderHover: Color(0xFFCBD5E1),
+    isDark: false,
+  );
+
+  static const AppThemePalette _midnightNavyPalette = AppThemePalette(
+    primary: Color(0xFF38BDF8),
+    primarySoft: Color(0xFF60A5FA),
+    primaryDark: Color(0xFF0B132B),
+    secondary: Color(0xFF14B8A6),
+    secondarySoft: Color(0xFF134E4A),
+    background: Color(0xFF0B132B),
+    surface: Color(0xFF1C2541),
+    surfaceMuted: Color(0xFF151E38),
+    surfaceSubtle: Color(0xFF1E294B),
+    textPrimary: Color(0xFFF1F5F9),
+    textSecondary: Color(0xFF94A3B8),
+    textMuted: Color(0xFF64748B),
+    border: Color(0xFF2E3856),
+    borderSubtle: Color(0xFF1E2746),
+    borderHover: Color(0xFF3D4A70),
+    isDark: true,
+  );
+
+  static const AppThemePalette _nordicFrostPalette = AppThemePalette(
+    primary: Color(0xFF88C0D0),
+    primarySoft: Color(0xFF81A1C1),
+    primaryDark: Color(0xFF2E3440),
+    secondary: Color(0xFFA3BE8C),
+    secondarySoft: Color(0xFF3B4A3F),
+    background: Color(0xFF242933),
+    surface: Color(0xFF2E3440),
+    surfaceMuted: Color(0xFF3B4252),
+    surfaceSubtle: Color(0xFF434C5E),
+    textPrimary: Color(0xFFECEFF4),
+    textSecondary: Color(0xFFD8DEE9),
+    textMuted: Color(0xFF94A3B8),
+    border: Color(0xFF4C566A),
+    borderSubtle: Color(0xFF3B4252),
+    borderHover: Color(0xFF5E6A82),
+    isDark: true,
+  );
+
+  static const AppThemePalette _obsidianOledPalette = AppThemePalette(
+    primary: Color(0xFF10B981),
+    primarySoft: Color(0xFF34D399),
+    primaryDark: Color(0xFF000000),
+    secondary: Color(0xFF06B6D4),
+    secondarySoft: Color(0xFF164E63),
+    background: Color(0xFF000000),
+    surface: Color(0xFF121212),
+    surfaceMuted: Color(0xFF1A1A1A),
+    surfaceSubtle: Color(0xFF242424),
+    textPrimary: Color(0xFFF9FAFB),
+    textSecondary: Color(0xFF9CA3AF),
+    textMuted: Color(0xFF6B7280),
+    border: Color(0xFF27272A),
+    borderSubtle: Color(0xFF18181B),
+    borderHover: Color(0xFF3F3F46),
+    isDark: true,
+  );
+
+  static const AppThemePalette _warmSepiaPalette = AppThemePalette(
+    primary: Color(0xFF78350F),
+    primarySoft: Color(0xFF92400E),
+    primaryDark: Color(0xFF451A03),
+    secondary: Color(0xFFD97706),
+    secondarySoft: Color(0xFFFEF3C7),
+    background: Color(0xFFF7F3E9),
+    surface: Color(0xFFFFFDF8),
+    surfaceMuted: Color(0xFFEFE9DA),
+    surfaceSubtle: Color(0xFFFBF8F2),
+    textPrimary: Color(0xFF2D231E),
+    textSecondary: Color(0xFF715F54),
+    textMuted: Color(0xFF9C8B80),
+    border: Color(0xFFE5DDD0),
+    borderSubtle: Color(0xFFEFE8DB),
+    borderHover: Color(0xFFD3C6B3),
+    isDark: false,
+  );
+
+  static const AppThemePalette _forestEmeraldPalette = AppThemePalette(
+    primary: Color(0xFF10B981),
+    primarySoft: Color(0xFF34D399),
+    primaryDark: Color(0xFF062B22),
+    secondary: Color(0xFF0D9488),
+    secondarySoft: Color(0xFF134E4A),
+    background: Color(0xFF07241C),
+    surface: Color(0xFF0F3E33),
+    surfaceMuted: Color(0xFF174F42),
+    surfaceSubtle: Color(0xFF1E5D4F),
+    textPrimary: Color(0xFFF0FDF4),
+    textSecondary: Color(0xFFA7F3D0),
+    textMuted: Color(0xFF6EE7B7),
+    border: Color(0xFF1F5F50),
+    borderSubtle: Color(0xFF164A3E),
+    borderHover: Color(0xFF2E7B69),
+    isDark: true,
+  );
+
+  static AppThemeMode _activeMode = AppThemeMode.clinicalLight;
+  static AppThemePalette _palette = _clinicalLightPalette;
+
+  static void setThemeMode(AppThemeMode mode) {
+    _activeMode = mode;
+    _palette = paletteFor(mode);
+  }
+
+  static AppThemeMode get activeMode => _activeMode;
+
+  static AppThemePalette paletteFor(AppThemeMode mode) {
+    switch (mode) {
+      case AppThemeMode.clinicalLight:
+        return _clinicalLightPalette;
+      case AppThemeMode.midnightNavy:
+        return _midnightNavyPalette;
+      case AppThemeMode.nordicFrost:
+        return _nordicFrostPalette;
+      case AppThemeMode.obsidianOled:
+        return _obsidianOledPalette;
+      case AppThemeMode.warmSepia:
+        return _warmSepiaPalette;
+      case AppThemeMode.forestEmerald:
+        return _forestEmeraldPalette;
+    }
+  }
+
+  // Dynamic getters reflecting the active theme
+  static Color get primaryColor => _palette.primary;
+  static Color get primarySoft => _palette.primarySoft;
+  static Color get primaryDark => _palette.primaryDark;
+  static Color get secondaryColor => _palette.secondary;
+  static Color get secondarySoft => _palette.secondarySoft;
+  static Color get backgroundColor => _palette.background;
+  static Color get surfaceColor => _palette.surface;
+  static Color get surfaceMuted => _palette.surfaceMuted;
+  static Color get surfaceSubtle => _palette.surfaceSubtle;
+  static Color get textPrimaryColor => _palette.textPrimary;
+  static Color get textSecondaryColor => _palette.textSecondary;
+  static Color get textMutedColor => _palette.textMuted;
+  static Color get borderColor => _palette.border;
+  static Color get borderSubtle => _palette.borderSubtle;
+  static Color get borderHover => _palette.borderHover;
+  static bool get isDark => _palette.isDark;
 
   // Semantic status colors
   static const Color successColor = Color(0xFF059669);
@@ -48,204 +285,177 @@ class AppTheme {
   static const double buttonHeight = 52.0;
 
   // Gradients
-  static const LinearGradient primaryGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF072545), Color(0xFF0B3A66), Color(0xFF0D9488)],
-  );
-
-  static const LinearGradient heroGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF0B3A66), Color(0xFF145A96), Color(0xFF0D9488)],
-  );
-
-  static const LinearGradient tealGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
-  );
-
-  static const LinearGradient subtleCardGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Colors.white, Color(0xFFFAFBFD)],
-  );
+  static LinearGradient get primaryGradient => _palette.primaryGradient;
+  static LinearGradient get heroGradient => _palette.heroGradient;
+  static LinearGradient get tealGradient => _palette.tealGradient;
+  static LinearGradient get subtleCardGradient => _palette.subtleCardGradient;
 
   // Shadows
-  static List<BoxShadow> get softShadow => [
-        BoxShadow(
-          color: primaryColor.withValues(alpha: 0.05),
-          blurRadius: 20,
-          offset: const Offset(0, 6),
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.02),
-          blurRadius: 6,
-          offset: const Offset(0, 1),
-        ),
-      ];
+  static List<BoxShadow> get softShadow => _palette.softShadow;
+  static List<BoxShadow> get cardHoverShadow => _palette.cardHoverShadow;
+  static List<BoxShadow> get glowShadow => _palette.glowShadow;
 
-  static List<BoxShadow> get cardHoverShadow => [
-        BoxShadow(
-          color: primaryColor.withValues(alpha: 0.10),
-          blurRadius: 24,
-          offset: const Offset(0, 10),
-        ),
-        BoxShadow(
-          color: secondaryColor.withValues(alpha: 0.06),
-          blurRadius: 12,
-          offset: const Offset(0, 3),
-        ),
-      ];
-
-  static List<BoxShadow> glowShadow(Color color) => [
-        BoxShadow(
-          color: color.withValues(alpha: 0.28),
-          blurRadius: 16,
-          offset: const Offset(0, 4),
-        ),
-      ];
-
-  static TextTheme _textTheme() {
-    final base = GoogleFonts.plusJakartaSansTextTheme();
-    return base.copyWith(
-      displayLarge: base.displayLarge?.copyWith(
+  static TextTheme _buildTextTheme(AppThemePalette pal) {
+    return TextTheme(
+      displayLarge: TextStyle(
         fontSize: 36,
         fontWeight: FontWeight.w800,
-        color: textPrimaryColor,
+        color: pal.textPrimary,
         letterSpacing: -1.0,
         height: 1.15,
       ),
-      displayMedium: base.displayMedium?.copyWith(
+      displayMedium: TextStyle(
         fontSize: 30,
         fontWeight: FontWeight.w800,
-        color: textPrimaryColor,
+        color: pal.textPrimary,
         letterSpacing: -0.75,
         height: 1.2,
       ),
-      displaySmall: base.displaySmall?.copyWith(
+      displaySmall: TextStyle(
         fontSize: 26,
         fontWeight: FontWeight.w700,
-        color: textPrimaryColor,
+        color: pal.textPrimary,
         letterSpacing: -0.5,
         height: 1.25,
       ),
-      headlineMedium: base.headlineMedium?.copyWith(
+      headlineMedium: TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w700,
-        color: textPrimaryColor,
+        color: pal.textPrimary,
         letterSpacing: -0.3,
         height: 1.3,
       ),
-      headlineSmall: base.headlineSmall?.copyWith(
-        fontSize: 19,
+      headlineSmall: TextStyle(
+        fontSize: 18,
         fontWeight: FontWeight.w700,
-        color: textPrimaryColor,
+        color: pal.textPrimary,
         letterSpacing: -0.2,
+        height: 1.35,
       ),
-      titleLarge: base.titleLarge?.copyWith(
+      titleLarge: TextStyle(
         fontSize: 17,
-        fontWeight: FontWeight.w600,
-        color: textPrimaryColor,
-        letterSpacing: -0.1,
+        fontWeight: FontWeight.w700,
+        color: pal.textPrimary,
+        height: 1.35,
       ),
-      titleMedium: base.titleMedium?.copyWith(
+      titleMedium: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w600,
-        color: textPrimaryColor,
+        color: pal.textPrimary,
+        height: 1.4,
       ),
-      titleSmall: base.titleSmall?.copyWith(
-        fontSize: 13,
+      titleSmall: TextStyle(
+        fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: textPrimaryColor,
+        color: pal.textSecondary,
+        height: 1.4,
       ),
-      bodyLarge: base.bodyLarge?.copyWith(
-        fontSize: 15,
+      bodyLarge: TextStyle(
+        fontSize: 16,
         fontWeight: FontWeight.w400,
-        color: textPrimaryColor,
+        color: pal.textPrimary,
         height: 1.5,
       ),
-      bodyMedium: base.bodyMedium?.copyWith(
+      bodyMedium: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w400,
-        color: textSecondaryColor,
-        height: 1.45,
+        color: pal.textSecondary,
+        height: 1.5,
       ),
-      bodySmall: base.bodySmall?.copyWith(
+      bodySmall: TextStyle(
         fontSize: 12,
-        fontWeight: FontWeight.w500,
-        color: textSecondaryColor,
+        fontWeight: FontWeight.w400,
+        color: pal.textMuted,
+        height: 1.5,
       ),
-      labelLarge: base.labelLarge?.copyWith(
+      labelLarge: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w700,
-        letterSpacing: 0.15,
+        color: pal.textPrimary,
+        letterSpacing: 0.2,
       ),
-      labelMedium: base.labelMedium?.copyWith(
+      labelMedium: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
+        color: pal.textSecondary,
         letterSpacing: 0.1,
       ),
-      labelSmall: base.labelSmall?.copyWith(
+      labelSmall: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
-        letterSpacing: 0.2,
+        color: pal.textMuted,
+        letterSpacing: 0.3,
       ),
     );
   }
 
-  static ThemeData get lightTheme {
-    final textTheme = _textTheme();
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: primaryColor,
-      primary: primaryColor,
-      secondary: secondaryColor,
-      surface: surfaceColor,
-      error: errorColor,
-      brightness: Brightness.light,
-    );
+  static ThemeData themeFor(AppThemeMode mode) {
+    final pal = paletteFor(mode);
+    final textTheme = _buildTextTheme(pal);
+
+    final colorScheme = pal.isDark
+        ? ColorScheme.dark(
+            primary: pal.primary,
+            onPrimary: Colors.black,
+            secondary: pal.secondary,
+            onSecondary: Colors.black,
+            surface: pal.surface,
+            onSurface: pal.textPrimary,
+            error: errorColor,
+            onError: Colors.white,
+          )
+        : ColorScheme.light(
+            primary: pal.primary,
+            onPrimary: Colors.white,
+            secondary: pal.secondary,
+            onSecondary: Colors.white,
+            surface: pal.surface,
+            onSurface: pal.textPrimary,
+            error: errorColor,
+            onError: Colors.white,
+          );
 
     return ThemeData(
       useMaterial3: true,
+      brightness: pal.isDark ? Brightness.dark : Brightness.light,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: backgroundColor,
+      scaffoldBackgroundColor: pal.background,
+      cardColor: pal.surface,
+      dividerColor: pal.border,
       textTheme: textTheme,
-      fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
       appBarTheme: AppBarTheme(
-        backgroundColor: surfaceColor,
-        foregroundColor: textPrimaryColor,
+        backgroundColor: pal.surface,
+        foregroundColor: pal.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0.5,
         centerTitle: false,
         titleTextStyle: textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w700,
-          color: textPrimaryColor,
+          color: pal.textPrimary,
         ),
-        iconTheme: const IconThemeData(color: primaryColor),
+        iconTheme: IconThemeData(color: pal.primary),
         surfaceTintColor: Colors.transparent,
-        shape: const Border(
-          bottom: BorderSide(color: borderColor, width: 1),
+        shape: Border(
+          bottom: BorderSide(color: pal.border, width: 1),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: surfaceColor,
+        backgroundColor: pal.surface,
         elevation: 0,
         height: 72,
-        indicatorColor: primaryColor.withValues(alpha: 0.12),
+        indicatorColor: pal.primary.withValues(alpha: 0.12),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
             fontSize: 12,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? primaryColor : textSecondaryColor,
-            fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+            color: selected ? pal.primary : pal.textSecondary,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: selected ? primaryColor : textSecondaryColor,
+            color: selected ? pal.primary : pal.textSecondary,
             size: 24,
           );
         }),
@@ -253,19 +463,19 @@ class AppTheme {
         overlayColor: WidgetStateProperty.all(Colors.transparent),
       ),
       cardTheme: CardThemeData(
-        color: surfaceColor,
+        color: pal.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadiusMd),
-          side: const BorderSide(color: borderColor),
+          side: BorderSide(color: pal.border),
         ),
         margin: EdgeInsets.zero,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: primaryColor.withValues(alpha: 0.45),
+          backgroundColor: pal.primary,
+          foregroundColor: pal.isDark ? Colors.black : Colors.white,
+          disabledBackgroundColor: pal.primary.withValues(alpha: 0.45),
           disabledForegroundColor: Colors.white70,
           elevation: 0,
           minimumSize: const Size.fromHeight(buttonHeight),
@@ -273,30 +483,32 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadiusSm),
           ),
-          textStyle: textTheme.labelLarge?.copyWith(color: Colors.white),
+          textStyle: textTheme.labelLarge?.copyWith(
+            color: pal.isDark ? Colors.black : Colors.white,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: primaryColor,
+          foregroundColor: pal.primary,
           minimumSize: const Size.fromHeight(buttonHeight),
           padding: const EdgeInsets.symmetric(horizontal: spacingLg),
-          side: const BorderSide(color: primaryColor, width: 1.4),
+          side: BorderSide(color: pal.primary, width: 1.4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadiusSm),
           ),
-          textStyle: textTheme.labelLarge?.copyWith(color: primaryColor),
+          textStyle: textTheme.labelLarge?.copyWith(color: pal.primary),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: primaryColor,
+          foregroundColor: pal.primary,
           textStyle: textTheme.labelLarge,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: surfaceColor,
+        fillColor: pal.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: spacingMd,
           vertical: spacingMd,
@@ -304,15 +516,15 @@ class AppTheme {
         hintStyle: textTheme.bodyMedium,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadiusSm),
-          borderSide: const BorderSide(color: borderColor),
+          borderSide: BorderSide(color: pal.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadiusSm),
-          borderSide: const BorderSide(color: borderColor),
+          borderSide: BorderSide(color: pal.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadiusSm),
-          borderSide: const BorderSide(color: primaryColor, width: 1.8),
+          borderSide: BorderSide(color: pal.primary, width: 1.8),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadiusSm),
@@ -325,43 +537,35 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: textPrimaryColor,
-        contentTextStyle: textTheme.bodyMedium?.copyWith(color: Colors.white),
+        backgroundColor: pal.textPrimary,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: pal.isDark ? Colors.black : Colors.white,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadiusSm),
         ),
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: primaryColor,
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: pal.primary,
       ),
-      dividerTheme: const DividerThemeData(
-        color: borderColor,
+      dividerTheme: DividerThemeData(
+        color: pal.border,
         thickness: 1,
         space: 1,
       ),
-      tooltipTheme: TooltipThemeData(
-        decoration: BoxDecoration(
-          color: textPrimaryColor,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        textStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      ),
       chipTheme: ChipThemeData(
-        backgroundColor: surfaceMuted,
-        selectedColor: secondarySoft,
-        labelStyle: textTheme.bodySmall?.copyWith(color: textPrimaryColor),
+        backgroundColor: pal.surfaceMuted,
+        selectedColor: pal.secondarySoft,
+        labelStyle: textTheme.bodySmall?.copyWith(color: pal.textPrimary),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: borderColor),
+          side: BorderSide(color: pal.border),
         ),
-        side: const BorderSide(color: borderColor),
+        side: BorderSide(color: pal.border),
       ),
     );
   }
+
+  static ThemeData get lightTheme => themeFor(AppThemeMode.clinicalLight);
 }

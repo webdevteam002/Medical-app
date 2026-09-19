@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'app.dart';
 import 'core/security/security_service.dart';
+import 'core/theme/theme_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,5 +10,6 @@ Future<void> main() async {
   // Android FLAG_SECURE / Windows SetWindowDisplayAffinity — keep on for the
   // whole session so exams and study content cannot be captured.
   await SecurityService().enableSecureScreen();
+  await ThemeController.init();
   runApp(const MedStudyApp());
 }

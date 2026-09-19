@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/storage/auth_session_service.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/theme_controller.dart';
 import '../../../../core/widgets/ms_card.dart';
 import '../../../../core/widgets/ms_section_header.dart';
 
@@ -300,6 +301,7 @@ class ProfileDestinationView extends StatelessWidget {
                         ],
                       ),
                     ),
+                    _buildThemeSelectionSection(context),
                     const SizedBox(height: AppTheme.spacingXl),
                     SizedBox(
                       width: double.infinity,
@@ -340,6 +342,231 @@ class ProfileDestinationView extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildThemeSelectionSection(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width >= 720;
+
+    return ValueListenableBuilder<AppThemeMode>(
+      valueListenable: ThemeController.currentTheme,
+      builder: (context, activeMode, _) {
+        final themes = ThemeController.availableThemes;
+
+        Widget content;
+        if (isDesktop) {
+          content = GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: AppTheme.spacingMd,
+              mainAxisSpacing: AppTheme.spacingMd,
+              mainAxisExtent: 110,
+            ),
+            itemCount: themes.length,
+            itemBuilder: (context, index) {
+              final theme = themes[index];
+              return _buildThemeCard(context, theme, activeMode == theme.mode);
+            },
+          );
+        } else {
+          content = Column(
+            children: themes.map((theme) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppTheme.spacingSm),
+                child: _buildThemeCard(context, theme, activeMode == theme.mode),
+              );
+            }).toList(),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: AppTheme.spacingLg),
+            const MsSectionHeader(
+              title: 'Study Themes & Appearance',
+              subtitle: 'Select your preferred reading & exam aesthetic',
+            ),
+            const SizedBox(height: AppTheme.spacingMd),
+            content,
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeCard(
+    BuildContext context,
+    AppThemeInfo theme,
+    bool isSelected,
+  ) {
+    return MsCard(
+      onTap: () => ThemeController.setTheme(theme.mode),
+      padding: const EdgeInsets.all(AppTheme.spacingMd),
+      border: Border.all(
+        color: isSelected ? AppTheme.secondaryColor : AppTheme.borderColor,
+        width: isSelected ? 2.0 : 1.0,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: theme.previewColors[0],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected
+                    ? AppTheme.secondaryColor.withValues(alpha: 0.60)
+                    : AppTheme.borderColor,
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.10),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned(
+                  top: 7,
+                  left: 7,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: theme.previewColors[1],
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 7,
+                  right: 7,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: theme.previewColors[2],
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 7,
+                  left: 7,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: theme.previewColors[3],
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 7,
+                  right: 7,
+                  child: Icon(
+                    theme.icon,
+                    size: 13,
+                    color: theme.previewColors[2],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppTheme.spacingMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        theme.name,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: isSelected
+                                  ? AppTheme.secondaryColor
+                                  : AppTheme.textPrimaryColor,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppTheme.secondaryColor.withValues(alpha: 0.15)
+                            : AppTheme.surfaceMuted,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        theme.badge,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: isSelected
+                              ? AppTheme.secondaryColor
+                              : AppTheme.textSecondaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  theme.description,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 11,
+                        color: AppTheme.textSecondaryColor,
+                        height: 1.3,
+                      ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isSelected ? AppTheme.secondaryColor : Colors.transparent,
+              border: Border.all(
+                color: isSelected ? AppTheme.secondaryColor : AppTheme.borderColor,
+                width: 1.8,
+              ),
+            ),
+            child: isSelected
+                ? const Center(
+                    child: Icon(
+                      Icons.check_rounded,
+                      size: 15,
+                      color: Colors.white,
+                    ),
+                  )
+                : null,
+          ),
+        ],
       ),
     );
   }
