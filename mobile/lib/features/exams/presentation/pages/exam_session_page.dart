@@ -805,13 +805,21 @@ class _ExamSessionPageState extends State<ExamSessionPage>
 
               Widget questionContent = Column(
                 children: [
-                  LinearProgressIndicator(
-                    value: (totalQuestions > 0)
-                        ? (_currentIndex + 1) / totalQuestions
-                        : 0,
-                    backgroundColor: AppTheme.borderColor,
-                    color: AppTheme.primaryColor,
-                    minHeight: 3,
+                  Container(
+                    height: 4,
+                    width: double.infinity,
+                    color: AppTheme.borderColor.withValues(alpha: 0.5),
+                    alignment: Alignment.centerLeft,
+                    child: FractionallySizedBox(
+                      widthFactor: (totalQuestions > 0)
+                          ? (_currentIndex + 1) / totalQuestions
+                          : 0,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          gradient: AppTheme.primaryGradient,
+                        ),
+                      ),
+                    ),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
@@ -822,54 +830,156 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Question ${_currentIndex + 1} of $totalQuestions',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryColor,
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.help_outline_rounded,
+                                      size: 14,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Question ${_currentIndex + 1} of $totalQuestions',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.primaryColor,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               Row(
                                 children: [
-                                  IconButton(
-                                    onPressed: () =>
-                                        _toggleFlagQuestion(currentQuestion.id),
-                                    icon: Icon(
-                                      isFlagged
-                                          ? Icons.flag_rounded
-                                          : Icons.flag_outlined,
-                                      color: isFlagged
-                                          ? AppTheme.warningColor
-                                          : AppTheme.textSecondaryColor,
-                                      size: 20,
+                                  InkWell(
+                                    onTap: () => _toggleFlagQuestion(currentQuestion.id),
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isFlagged
+                                            ? AppTheme.warningSoft
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: isFlagged
+                                              ? AppTheme.warningColor
+                                              : AppTheme.borderColor,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            isFlagged
+                                                ? Icons.flag_rounded
+                                                : Icons.flag_outlined,
+                                            color: isFlagged
+                                                ? AppTheme.warningColor
+                                                : AppTheme.textSecondaryColor,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            isFlagged ? 'Flagged' : 'Flag',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: isFlagged
+                                                  ? AppTheme.warningColor
+                                                  : AppTheme.textSecondaryColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    tooltip: isFlagged
-                                        ? 'Unflag Question'
-                                        : 'Flag for Review',
                                   ),
-                                  Text(
-                                    _selectedAnswers
-                                            .containsKey(currentQuestion.id)
-                                        ? 'Answered'
-                                        : 'Unanswered',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: _selectedAnswers
-                                              .containsKey(currentQuestion.id)
-                                          ? Colors.green
-                                          : AppTheme.textSecondaryColor,
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _selectedAnswers.containsKey(currentQuestion.id)
+                                          ? AppTheme.successSoft
+                                          : AppTheme.surfaceMuted,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: _selectedAnswers.containsKey(currentQuestion.id)
+                                            ? AppTheme.successColor.withValues(alpha: 0.3)
+                                            : AppTheme.borderColor,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _selectedAnswers.containsKey(currentQuestion.id)
+                                              ? Icons.check_circle_rounded
+                                              : Icons.circle_outlined,
+                                          size: 13,
+                                          color: _selectedAnswers.containsKey(currentQuestion.id)
+                                              ? AppTheme.successColor
+                                              : AppTheme.textSecondaryColor,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _selectedAnswers.containsKey(currentQuestion.id)
+                                              ? 'Answered'
+                                              : 'Unanswered',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: _selectedAnswers.containsKey(currentQuestion.id)
+                                                ? AppTheme.successColor
+                                                : AppTheme.textSecondaryColor,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                             ],
                           ),
-                          const SizedBox(height: AppTheme.spacingSm),
-                          QuestionStemView(
-                            stem: currentQuestion.stem,
-                            imageUrl: currentQuestion.imageUrl,
+                          const SizedBox(height: AppTheme.spacingMd),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(AppTheme.spacingLg),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceColor,
+                              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                              border: Border.all(color: AppTheme.borderColor),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+                            child: QuestionStemView(
+                              stem: currentQuestion.stem,
+                              imageUrl: currentQuestion.imageUrl,
+                            ),
                           ),
                           const SizedBox(height: AppTheme.spacingXl),
                           ...currentQuestion.options.map(
@@ -889,19 +999,31 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                       horizontal: AppTheme.spacingLg,
                       vertical: AppTheme.spacingMd,
                     ),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppTheme.surfaceColor,
-                      border:
-                          Border(top: BorderSide(color: AppTheme.borderColor)),
+                      border: const Border(top: BorderSide(color: AppTheme.borderColor)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          offset: const Offset(0, -4),
+                          blurRadius: 10,
+                        ),
+                      ],
                     ),
                     child: Row(
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed:
-                                _currentIndex > 0 ? _previousQuestion : null,
-                            icon: const Icon(Icons.arrow_back_rounded),
+                            onPressed: _currentIndex > 0 ? _previousQuestion : null,
+                            icon: const Icon(Icons.arrow_back_rounded, size: 18),
                             label: const Text('Previous'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                              ),
+                              side: const BorderSide(color: AppTheme.borderColor),
+                            ),
                           ),
                         ),
                         const SizedBox(width: AppTheme.spacingMd),
@@ -909,14 +1031,22 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                           child: _currentIndex < totalQuestions - 1
                               ? ElevatedButton.icon(
                                   onPressed: _nextQuestion,
-                                  icon: const Icon(Icons.arrow_forward_rounded),
+                                  icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                                   label: const Text('Next'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.primaryColor,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                                    ),
+                                    elevation: 0,
+                                  ),
                                 )
                               : ElevatedButton.icon(
                                   onPressed: _isSubmitting
                                       ? null
-                                      : () => _showSubmitConfirmationDialog(
-                                          context),
+                                      : () => _showSubmitConfirmationDialog(context),
                                   icon: _isSubmitting
                                       ? const SizedBox(
                                           width: 16,
@@ -926,12 +1056,18 @@ class _ExamSessionPageState extends State<ExamSessionPage>
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Icon(Icons.check_circle_rounded),
+                                      : const Icon(Icons.check_circle_rounded, size: 18),
                                   label: Text(_isSubmitting
                                       ? 'Submitting...'
                                       : 'Submit Exam'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTheme.successColor,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                                    ),
+                                    elevation: 0,
                                   ),
                                 ),
                         ),
@@ -978,65 +1114,142 @@ class _ExamSessionPageState extends State<ExamSessionPage>
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _onOptionSelected(questionId, optionId),
-          borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-          hoverColor: AppTheme.primaryColor.withValues(alpha: 0.05),
-          focusColor: AppTheme.primaryColor.withValues(alpha: 0.10),
-          mouseCursor: SystemMouseCursors.click,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
-            decoration: BoxDecoration(
+      child: _InteractiveOptionTile(
+        questionId: questionId,
+        optionId: optionId,
+        optionLabel: optionLabel,
+        optionText: optionText,
+        isSelected: isSelected,
+        onTap: () => _onOptionSelected(questionId, optionId),
+      ),
+    );
+  }
+}
+
+class _InteractiveOptionTile extends StatefulWidget {
+  final String questionId;
+  final String optionId;
+  final String optionLabel;
+  final String optionText;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _InteractiveOptionTile({
+    required this.questionId,
+    required this.optionId,
+    required this.optionLabel,
+    required this.optionText,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_InteractiveOptionTile> createState() => _InteractiveOptionTileState();
+}
+
+class _InteractiveOptionTileState extends State<_InteractiveOptionTile> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = widget.isSelected;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          transform: Matrix4.translationValues(0, (_isHovered && !isSelected) ? -1.5 : 0, 0),
+          padding: const EdgeInsets.all(AppTheme.spacingMd),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? const Color(0xFFEFF6FF)
+                : _isHovered
+                    ? const Color(0xFFF8FAFC)
+                    : AppTheme.surfaceColor,
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+            border: Border.all(
               color: isSelected
-                  ? AppTheme.primaryColor.withValues(alpha: 0.06)
-                  : AppTheme.surfaceColor,
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-              border: Border.all(
-                color:
-                    isSelected ? AppTheme.primaryColor : AppTheme.borderColor,
-                width: isSelected ? 2 : 1,
-              ),
-              boxShadow: isSelected ? AppTheme.softShadow : null,
+                  ? AppTheme.primaryColor
+                  : _isHovered
+                      ? const Color(0xFF0D9488)
+                      : AppTheme.borderColor,
+              width: isSelected ? 2 : 1,
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 15,
-                  backgroundColor: isSelected
-                      ? AppTheme.primaryColor
-                      : AppTheme.surfaceMuted,
-                  child: Text(
-                    optionLabel,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color:
-                          isSelected ? Colors.white : AppTheme.textPrimaryColor,
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                      offset: const Offset(0, 4),
+                      blurRadius: 12,
                     ),
+                  ]
+                : _isHovered
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          offset: const Offset(0, 3),
+                          blurRadius: 8,
+                        ),
+                      ]
+                    : null,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  gradient: isSelected ? AppTheme.primaryGradient : null,
+                  color: isSelected ? null : AppTheme.surfaceMuted,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected
+                        ? Colors.transparent
+                        : const Color(0xFFCBD5E1),
                   ),
                 ),
-                const SizedBox(width: AppTheme.spacingMd),
-                Expanded(
+                alignment: Alignment.center,
+                child: Text(
+                  widget.optionLabel,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: isSelected ? Colors.white : AppTheme.textPrimaryColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppTheme.spacingMd),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
                   child: Text(
-                    optionText,
+                    widget.optionText,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w400,
-                      color: AppTheme.textPrimaryColor,
-                      height: 1.35,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      color: isSelected
+                          ? AppTheme.primaryColor
+                          : AppTheme.textPrimaryColor,
+                      height: 1.4,
                     ),
                   ),
                 ),
-                if (isSelected)
-                  const Icon(Icons.check_circle_rounded,
-                      color: AppTheme.primaryColor, size: 20),
-              ],
-            ),
+              ),
+              if (isSelected)
+                const Padding(
+                  padding: EdgeInsets.only(top: 4, left: 8),
+                  child: Icon(
+                    Icons.check_circle_rounded,
+                    color: AppTheme.primaryColor,
+                    size: 22,
+                  ),
+                ),
+            ],
           ),
         ),
       ),

@@ -417,29 +417,74 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Color bg = const Color(0xFFF8FAFC);
+    Color borderColor = const Color(0xFFE2E8F0);
+    Color titleColor = AppTheme.textPrimaryColor;
+    IconData? icon;
+
+    if (title.contains('Takeaway')) {
+      bg = const Color(0xFFEFF6FF);
+      borderColor = const Color(0xFFBFDBFE);
+      titleColor = const Color(0xFF1E40AF);
+      icon = Icons.emoji_events_outlined;
+    } else if (title.contains('Concept')) {
+      bg = const Color(0xFFF0FDFA);
+      borderColor = const Color(0xFF99F6E4);
+      titleColor = const Color(0xFF0F766E);
+      icon = Icons.psychology_outlined;
+    } else if (title.contains('Wrong')) {
+      bg = const Color(0xFFFFFBEB);
+      borderColor = const Color(0xFFFDE68A);
+      titleColor = const Color(0xFFB45309);
+      icon = Icons.info_outline_rounded;
+    } else if (title.contains('Correct')) {
+      bg = const Color(0xFFF0FDF4);
+      borderColor = const Color(0xFFBBF7D0);
+      titleColor = const Color(0xFF15803D);
+      icon = Icons.check_circle_outline_rounded;
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimaryColor,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+          border: Border.all(color: borderColor),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: 15, color: titleColor),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: titleColor,
+                    letterSpacing: 0.1,
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            body,
-            style: const TextStyle(
-              fontSize: 13,
-              height: 1.4,
-              color: AppTheme.textPrimaryColor,
+            const SizedBox(height: 6),
+            Text(
+              body,
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.45,
+                color: AppTheme.textPrimaryColor,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

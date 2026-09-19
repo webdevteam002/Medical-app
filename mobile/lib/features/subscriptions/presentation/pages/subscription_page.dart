@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/ms_card.dart';
+import '../../../../core/widgets/ms_empty_state.dart';
 import '../../data/datasources/subscriptions_remote_datasource.dart';
 import '../../data/models/payment_instructions_model.dart';
 import '../../data/models/subscription_plan_model.dart';
@@ -293,138 +295,66 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     List pendingSubs,
   ) {
     final hasActive = activeSubs.isNotEmpty;
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-        side: BorderSide(
-          color: hasActive ? Colors.green.shade300 : const Color(0xFFE2E8F0),
-        ),
-      ),
-      color: hasActive ? Colors.green.withValues(alpha: 0.08) : Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingLg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
+    return MsCard(
+      elevated: false,
+      padding: const EdgeInsets.all(AppTheme.spacingLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: hasActive
+                      ? AppTheme.successSoft
+                      : pendingSubs.isNotEmpty
+                          ? AppTheme.warningSoft
+                          : AppTheme.surfaceMuted,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
                   hasActive
                       ? Icons.verified_rounded
-                      : Icons.lock_outline_rounded,
-                  color: hasActive ? Colors.green : AppTheme.textSecondaryColor,
-                ),
-                const SizedBox(width: AppTheme.spacingSm),
-                Text(
-                  hasActive
-                      ? 'Active Subscription'
                       : pendingSubs.isNotEmpty
-                          ? 'Payment Pending Activation'
-                          : 'Free Student Account',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: hasActive
-                        ? Colors.green.shade900
-                        : AppTheme.textPrimaryColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppTheme.spacingSm),
-            if (accessibleYears.isNotEmpty) ...[
-              const Text(
-                'Accessible Academic Modules:',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textSecondaryColor,
+                          ? Icons.hourglass_top_rounded
+                          : Icons.lock_outline_rounded,
+                  color: hasActive
+                      ? AppTheme.successColor
+                      : pendingSubs.isNotEmpty
+                          ? AppTheme.warningColor
+                          : AppTheme.textSecondaryColor,
+                  size: 22,
                 ),
               ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: accessibleYears.map((slug) {
-                  return Chip(
-                    label: Text(
-                      slug.toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
-                    backgroundColor:
-                        AppTheme.primaryColor.withValues(alpha: 0.1),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  );
-                }).toList(),
-              ),
-            ] else ...[
-              Text(
-                pendingSubs.isNotEmpty
-                    ? 'Your payment request is waiting. After you WhatsApp the screenshot, admin will activate access.'
-                    : 'Register is free. Subscribe to unlock study materials, past papers, and exams.',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppTheme.textSecondaryColor,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlanTile(SubscriptionPlanModel plan) {
-    final isSelected = plan.planType == _selectedPlanType;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
-      child: InkWell(
-        onTap: () => setState(() => _selectedPlanType = plan.planType),
-        hoverColor: AppTheme.primaryColor.withValues(alpha: 0.05),
-        focusColor: AppTheme.primaryColor.withValues(alpha: 0.15),
-        mouseCursor: SystemMouseCursors.click,
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-        child: Container(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? AppTheme.primaryColor.withValues(alpha: 0.06)
-                : Colors.white,
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-            border: Border.all(
-              color:
-                  isSelected ? AppTheme.primaryColor : const Color(0xFFE2E8F0),
-              width: isSelected ? 2 : 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Radio<String>(
-                value: plan.planType,
-                activeColor: AppTheme.primaryColor,
-              ),
-              const SizedBox(width: AppTheme.spacingSm),
+              const SizedBox(width: AppTheme.spacingMd),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      plan.name,
-                      style: const TextStyle(
+                      hasActive
+                          ? 'Active Clinical Access'
+                          : pendingSubs.isNotEmpty
+                              ? 'Payment Pending Verification'
+                              : 'Free Student Account',
+                      style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimaryColor,
+                        fontWeight: FontWeight.w800,
+                        color: hasActive
+                            ? AppTheme.successColor
+                            : AppTheme.textPrimaryColor,
+                        letterSpacing: -0.2,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${plan.durationDays} Days Full Access',
+                      hasActive
+                          ? 'All unlocked materials & exams are active'
+                          : pendingSubs.isNotEmpty
+                              ? 'Admin will activate after WhatsApp receipt verification'
+                              : 'Upgrade to unlock modules, past papers, and mock exams',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondaryColor,
@@ -433,17 +363,59 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   ],
                 ),
               ),
-              Text(
-                'Rs. ${plan.pricePkr}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
             ],
           ),
-        ),
+          if (accessibleYears.isNotEmpty) ...[
+            const SizedBox(height: AppTheme.spacingMd),
+            const Divider(height: 1, color: AppTheme.borderColor),
+            const SizedBox(height: AppTheme.spacingMd),
+            const Text(
+              'Unlocked Academic Modules:',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimaryColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: accessibleYears.map((slug) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Text(
+                    slug.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlanTile(SubscriptionPlanModel plan) {
+    final isSelected = plan.planType == _selectedPlanType;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+      child: _InteractivePlanTile(
+        plan: plan,
+        isSelected: isSelected,
+        onTap: () => setState(() => _selectedPlanType = plan.planType),
       ),
     );
   }
@@ -452,110 +424,270 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     final data = instructions;
     if (data == null) return const SizedBox.shrink();
 
-    return Card(
-      elevation: 0,
-      color: const Color(0xFFF8FAFC),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingLg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'How to pay & get access',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              data.instructions,
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppTheme.textSecondaryColor,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingMd),
-            if (data.jazzcashNumber.isNotEmpty)
-              _paymentRow('JazzCash', data.jazzcashNumber),
-            if (data.easypaisaNumber.isNotEmpty)
-              _paymentRow('Easypaisa', data.easypaisaNumber),
-            if (data.bankDetails.isNotEmpty)
-              _paymentRow('Bank', data.bankDetails),
-            if (data.whatsappNumber.isNotEmpty)
-              _paymentRow('WhatsApp screenshot to', data.whatsappNumber),
-            if (data.jazzcashNumber.isEmpty &&
-                data.easypaisaNumber.isEmpty &&
-                data.bankDetails.isEmpty)
-              const Text(
-                'Payment numbers will appear here once admin configures them in server settings.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.orange,
-                ),
-              ),
-            if (_pendingIntent != null) ...[
-              const SizedBox(height: AppTheme.spacingMd),
+    return MsCard(
+      elevated: false,
+      padding: const EdgeInsets.all(AppTheme.spacingLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: AppTheme.tealGradient,
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                child: const Icon(Icons.payment_rounded, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: AppTheme.spacingMd),
+              const Expanded(
                 child: Text(
-                  'Request saved for ${_pendingIntent!.planType}. Status: ${_pendingIntent!.status}. After payment, wait for admin activation, then tap Refresh.',
-                  style: const TextStyle(fontSize: 12, height: 1.35),
+                  'Payment & Activation Instructions',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimaryColor,
+                    letterSpacing: -0.2,
+                  ),
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            data.instructions,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppTheme.textSecondaryColor,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingLg),
+          if (data.jazzcashNumber.isNotEmpty)
+            _paymentRow('JazzCash Account', data.jazzcashNumber, Icons.phone_android_rounded),
+          if (data.easypaisaNumber.isNotEmpty)
+            _paymentRow('Easypaisa Account', data.easypaisaNumber, Icons.account_balance_wallet_rounded),
+          if (data.bankDetails.isNotEmpty)
+            _paymentRow('Bank Account', data.bankDetails, Icons.account_balance_rounded),
+          if (data.whatsappNumber.isNotEmpty)
+            _paymentRow('WhatsApp Screenshot To', data.whatsappNumber, Icons.chat_rounded),
+          if (data.jazzcashNumber.isEmpty &&
+              data.easypaisaNumber.isEmpty &&
+              data.bankDetails.isEmpty)
+            const Text(
+              'Payment numbers will appear here once admin configures them in server settings.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.orange,
+              ),
+            ),
+          if (_pendingIntent != null) ...[
+            const SizedBox(height: AppTheme.spacingMd),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                'Request saved for ${_pendingIntent!.planType}. Status: ${_pendingIntent!.status}. After payment, send your screenshot on WhatsApp, then tap Refresh.',
+                style: const TextStyle(fontSize: 12, height: 1.35, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _paymentRow(String label, String value, [IconData? icon]) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 20, color: AppTheme.primaryColor),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textSecondaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textPrimaryColor,
+                      letterSpacing: -0.1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: 'Copy $label',
+              onPressed: () => _copyText(label, value),
+              icon: const Icon(Icons.copy_rounded, size: 18, color: AppTheme.primaryColor),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _paymentRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondaryColor,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimaryColor,
-                  ),
-                ),
-              ],
+class _InteractivePlanTile extends StatefulWidget {
+  final SubscriptionPlanModel plan;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _InteractivePlanTile({
+    required this.plan,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_InteractivePlanTile> createState() => _InteractivePlanTileState();
+}
+
+class _InteractivePlanTileState extends State<_InteractivePlanTile> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = widget.isSelected;
+    final plan = widget.plan;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          transform: Matrix4.translationValues(0, (_isHovered && !isSelected) ? -2 : 0, 0),
+          padding: const EdgeInsets.all(AppTheme.spacingLg),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? const Color(0xFFEFF6FF)
+                : _isHovered
+                    ? const Color(0xFFF8FAFC)
+                    : Colors.white,
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+            border: Border.all(
+              color: isSelected
+                  ? AppTheme.primaryColor
+                  : _isHovered
+                      ? const Color(0xFF0D9488)
+                      : const Color(0xFFE2E8F0),
+              width: isSelected ? 2 : 1,
             ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                      offset: const Offset(0, 4),
+                      blurRadius: 12,
+                    ),
+                  ]
+                : _isHovered
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          offset: const Offset(0, 4),
+                          blurRadius: 10,
+                        ),
+                      ]
+                    : null,
           ),
-          IconButton(
-            tooltip: 'Copy',
-            onPressed: () => _copyText(label, value),
-            icon: const Icon(Icons.copy_rounded, size: 18),
+          child: Row(
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected ? AppTheme.primaryColor : const Color(0xFFCBD5E1),
+                    width: isSelected ? 6 : 2,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppTheme.spacingMd),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      plan.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimaryColor,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        const Icon(Icons.schedule_rounded, size: 13, color: AppTheme.textSecondaryColor),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${plan.durationDays} Days Full Access',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppTheme.primaryColor
+                      : AppTheme.primaryColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Rs. ${plan.pricePkr}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: isSelected ? Colors.white : AppTheme.primaryColor,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

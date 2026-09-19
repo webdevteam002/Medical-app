@@ -308,26 +308,67 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
         Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppTheme.spacingLg,
-            vertical: AppTheme.spacingSm,
+            vertical: 10,
           ),
-          color: AppTheme.surfaceMuted,
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceColor,
+            border: const Border(bottom: BorderSide(color: AppTheme.borderColor)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                offset: const Offset(0, 2),
+                blurRadius: 4,
+              ),
+            ],
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Question ${_currentIndex + 1} of $totalQuestions',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.primaryColor,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.quiz_rounded, size: 13, color: AppTheme.primaryColor),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Question ${_currentIndex + 1} of $totalQuestions',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Text(
-                'Score: ${_review!.score}/${_review!.total} (${_review!.percentage.toStringAsFixed(1)}%)',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimaryColor,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _review!.percentage >= 50
+                      ? AppTheme.successSoft
+                      : AppTheme.warningSoft,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _review!.percentage >= 50
+                        ? AppTheme.successColor.withValues(alpha: 0.3)
+                        : AppTheme.warningColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Text(
+                  'Score: ${_review!.score}/${_review!.total} (${_review!.percentage.toStringAsFixed(1)}%)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: _review!.percentage >= 50
+                        ? AppTheme.successColor
+                        : AppTheme.warningColor,
+                  ),
                 ),
               ),
             ],
@@ -526,16 +567,86 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
     Color borderColor = const Color(0xFFE2E8F0);
     Widget? trailingIcon;
 
-    if (isCorrectOption) {
-      tileBg = AppTheme.successSoft;
+    Widget? statusBadge;
+
+    if (isCorrectOption && isSelected) {
+      tileBg = const Color(0xFFF0FDF4);
       borderColor = AppTheme.successColor;
-      trailingIcon = const Icon(Icons.check_circle_rounded,
-          color: AppTheme.successColor, size: 20);
-    } else if (isSelected && !isCorrectOption) {
-      tileBg = AppTheme.errorSoft;
+      statusBadge = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppTheme.successSoft,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.successColor.withValues(alpha: 0.3)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle_rounded, size: 12, color: AppTheme.successColor),
+            SizedBox(width: 4),
+            Text(
+              'Your Answer (Correct)',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.successColor,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (isCorrectOption) {
+      tileBg = const Color(0xFFF0FDF4);
+      borderColor = AppTheme.successColor;
+      statusBadge = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppTheme.successSoft,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.successColor.withValues(alpha: 0.3)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle_rounded, size: 12, color: AppTheme.successColor),
+            SizedBox(width: 4),
+            Text(
+              'Correct Answer',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.successColor,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (isSelected) {
+      tileBg = const Color(0xFFFEF2F2);
       borderColor = AppTheme.errorColor;
-      trailingIcon = const Icon(Icons.cancel_rounded,
-          color: AppTheme.errorColor, size: 20);
+      statusBadge = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppTheme.errorSoft,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.errorColor.withValues(alpha: 0.3)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.cancel_rounded, size: 12, color: AppTheme.errorColor),
+            SizedBox(width: 4),
+            Text(
+              'Your Choice (Incorrect)',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.errorColor,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return Padding(
@@ -546,43 +657,75 @@ class _ExamReviewPageState extends State<ExamReviewPage> {
           color: tileBg,
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
           border: Border.all(
-              color: borderColor, width: isCorrectOption || isSelected ? 2 : 1),
+            color: borderColor,
+            width: isCorrectOption || isSelected ? 1.8 : 1,
+          ),
+          boxShadow: (isCorrectOption || isSelected)
+              ? [
+                  BoxShadow(
+                    color: (isCorrectOption ? AppTheme.successColor : AppTheme.errorColor)
+                        .withValues(alpha: 0.08),
+                    offset: const Offset(0, 2),
+                    blurRadius: 8,
+                  ),
+                ]
+              : null,
         ),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 14,
-              backgroundColor: isCorrectOption
-                  ? AppTheme.successColor
-                  : isSelected
-                      ? AppTheme.errorColor
-                      : AppTheme.surfaceMuted,
-              child: Text(
-                optionLabel,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: isCorrectOption || isSelected
-                      ? Colors.white
-                      : AppTheme.textPrimaryColor,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: isCorrectOption
+                        ? AppTheme.successColor
+                        : isSelected
+                            ? AppTheme.errorColor
+                            : AppTheme.surfaceMuted,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    optionLabel,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: isCorrectOption || isSelected
+                          ? Colors.white
+                          : AppTheme.textPrimaryColor,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: AppTheme.spacingMd),
-            Expanded(
-              child: Text(
-                optionText,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: isCorrectOption || isSelected
-                      ? FontWeight.w600
-                      : FontWeight.normal,
-                  color: AppTheme.textPrimaryColor,
+                const SizedBox(width: AppTheme.spacingMd),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      optionText,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: isCorrectOption || isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: AppTheme.textPrimaryColor,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-            if (trailingIcon != null) trailingIcon,
+            if (statusBadge != null) ...[
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.only(left: 42),
+                child: statusBadge,
+              ),
+            ],
           ],
         ),
       ),

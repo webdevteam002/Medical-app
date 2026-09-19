@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/ms_card.dart';
+import '../../../../core/widgets/ms_empty_state.dart';
 import '../../data/datasources/exams_remote_datasource.dart';
 import '../../data/models/exam_attempt_history_model.dart';
 
@@ -108,62 +110,19 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
     }
 
     if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 48, color: Colors.redAccent),
-            const SizedBox(height: AppTheme.spacingMd),
-            Text(
-              _errorMessage!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 15),
-            ),
-            const SizedBox(height: AppTheme.spacingLg),
-            ElevatedButton.icon(
-              onPressed: _fetchAttempts,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
-            ),
-          ],
-        ),
+      return MsErrorState(
+        message: _errorMessage!,
+        onRetry: _fetchAttempts,
       );
     }
 
     if (_attempts.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.history_toggle_off_rounded,
-                size: 64, color: AppTheme.textSecondaryColor),
-            const SizedBox(height: AppTheme.spacingMd),
-            const Text(
-              'No past exam attempts found',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingXs),
-            const Text(
-              'Completed exam attempts and review logs will appear here.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppTheme.textSecondaryColor,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingLg),
-            OutlinedButton.icon(
-              onPressed: _fetchAttempts,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Refresh'),
-            ),
-          ],
-        ),
+      return MsEmptyState(
+        icon: Icons.history_toggle_off_rounded,
+        title: 'No past exam attempts found',
+        description: 'Completed mock exams, scores, and answer explanations will be archived here.',
+        actionLabel: 'Refresh',
+        onAction: _fetchAttempts,
       );
     }
 
@@ -175,85 +134,136 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
             const SizedBox(height: AppTheme.spacingMd),
         itemBuilder: (context, index) {
           final item = _attempts[index];
+          final isPassed = item.percentage >= 50;
 
-          return Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-              side: const BorderSide(color: Color(0xFFE2E8F0)),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingLg,
-                vertical: AppTheme.spacingSm,
-              ),
-              leading: const CircleAvatar(
-                backgroundColor: Color(0xFFE0F2FE),
-                child: Icon(
-                  Icons.assignment_turned_in_rounded,
-                  color: AppTheme.primaryColor,
+          return MsCard(
+            onTap: () {
+              context.push('/exams/attempts/${item.id}/review');
+            },
+            padding: const EdgeInsets.all(AppTheme.spacingMd),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isPassed
+                        ? AppTheme.successSoft
+                        : AppTheme.warningSoft,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isPassed
+                          ? AppTheme.successColor.withValues(alpha: 0.2)
+                          : AppTheme.warningColor.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Icon(
+                    isPassed
+                        ? Icons.assignment_turned_in_rounded
+                        : Icons.analytics_rounded,
+                    color: isPassed
+                        ? AppTheme.successColor
+                        : AppTheme.warningColor,
+                    size: 24,
+                  ),
                 ),
-              ),
-              title: Text(
-                item.examTitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimaryColor,
+                const SizedBox(width: AppTheme.spacingMd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.examTitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimaryColor,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          if (item.subjectName.isNotEmpty) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                item.subjectName,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(
+                            _formatDate(item.completedAt),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Row(
+                const SizedBox(width: AppTheme.spacingSm),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isPassed
+                            ? AppTheme.successSoft
+                            : AppTheme.warningSoft,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isPassed
+                              ? AppTheme.successColor.withValues(alpha: 0.3)
+                              : AppTheme.warningColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        '${item.percentage.toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: isPassed
+                              ? AppTheme.successColor
+                              : AppTheme.warningColor,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Text(
-                      item.subjectName,
+                      '${item.score}/${item.total} pts',
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('•',
-                        style: TextStyle(color: AppTheme.textSecondaryColor)),
-                    const SizedBox(width: 8),
-                    Text(
-                      _formatDate(item.completedAt),
-                      style: const TextStyle(
-                        fontSize: 12,
                         color: AppTheme.textSecondaryColor,
                       ),
                     ),
                   ],
                 ),
-              ),
-              trailing: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${item.percentage.toStringAsFixed(1)}%',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                  Text(
-                    '${item.score}/${item.total}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                  ),
-                ],
-              ),
-              onTap: () {
-                context.push('/exams/attempts/${item.id}/review');
-              },
+              ],
             ),
           );
         },

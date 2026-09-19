@@ -116,13 +116,48 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.verified_rounded,
+                                  size: 13,
+                                  color: Color(0xFF5EEAD4),
+                                ),
+                                SizedBox(width: 5),
+                                Text(
+                                  'TIMED CLINICAL ASSESSMENT',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
                           Text(
                             widget.exam.title,
                             style: const TextStyle(
                               fontSize: 24,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                               color: Colors.white,
                               height: 1.25,
+                              letterSpacing: -0.3,
                             ),
                           ),
                           const SizedBox(height: AppTheme.spacingMd),
@@ -133,7 +168,7 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
                               if (widget.exam.subjectName != null &&
                                   widget.exam.subjectName!.isNotEmpty)
                                 MsMetaChip(
-                                  icon: Icons.book_rounded,
+                                  icon: Icons.menu_book_rounded,
                                   label: widget.exam.subjectName!,
                                   color: Colors.white,
                                   background:
@@ -184,37 +219,62 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
                             ],
                           ),
                           const SizedBox(height: AppTheme.spacingXl),
-                          Text(
-                            'Instructions',
-                            style: Theme.of(context).textTheme.titleLarge,
+                          Row(
+                            children: [
+                              Container(
+                                width: 4,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  gradient: AppTheme.tealGradient,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Exam Instructions & Rules',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.textPrimaryColor,
+                                      letterSpacing: -0.2,
+                                    ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: AppTheme.spacingMd),
                           MsCard(
                             elevated: false,
+                            padding: const EdgeInsets.all(AppTheme.spacingLg),
                             child: Column(
                               children: [
                                 _buildInstructionTile(
                                   icon: Icons.access_alarm_rounded,
+                                  title: 'Continuous Countdown',
                                   text:
-                                      'The countdown starts when you tap Start Exam and runs continuously.',
+                                      'The timer starts immediately upon tapping Start Exam and runs without pausing.',
                                 ),
-                                const Divider(height: 24),
+                                const Divider(height: 24, color: AppTheme.borderColor),
                                 _buildInstructionTile(
-                                  icon: Icons.lock_clock_rounded,
+                                  icon: Icons.devices_rounded,
+                                  title: 'Single Active Attempt',
                                   text:
-                                      'One active attempt at a time per exam.',
+                                      'Only one active attempt at a time is permitted per exam across your devices.',
                                 ),
-                                const Divider(height: 24),
+                                const Divider(height: 24, color: AppTheme.borderColor),
                                 _buildInstructionTile(
                                   icon: Icons.fact_check_rounded,
+                                  title: 'Scoring Rules',
                                   text:
-                                      'Unanswered questions score zero — review before submit.',
+                                      'Unanswered questions score zero points. Review your answers before final submission.',
                                 ),
-                                const Divider(height: 24),
+                                const Divider(height: 24, color: AppTheme.borderColor),
                                 _buildInstructionTile(
                                   icon: Icons.verified_user_rounded,
+                                  title: 'Verified Anti-Cheating Session',
                                   text:
-                                      'Session is verified with device binding.',
+                                      'Your session is bound to this device with encrypted watermark protection.',
                                   isLast: true,
                                 ),
                               ],
@@ -229,9 +289,16 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
             ),
             Container(
               padding: const EdgeInsets.all(AppTheme.spacingLg),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppTheme.surfaceColor,
-                border: Border(top: BorderSide(color: AppTheme.borderColor)),
+                border: const Border(top: BorderSide(color: AppTheme.borderColor)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    offset: const Offset(0, -4),
+                    blurRadius: 12,
+                  ),
+                ],
               ),
               child: MsPrimaryButton(
                 label: _isStarting ? 'Starting Session...' : 'Start Exam',
@@ -292,24 +359,53 @@ class _ExamDetailPageState extends State<ExamDetailPage> {
 
   Widget _buildInstructionTile({
     required IconData icon,
+    String? title,
     required String text,
     bool isLast = false,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 0),
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: AppTheme.primaryColor),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.15),
+              ),
+            ),
+            child: Icon(icon, size: 20, color: AppTheme.primaryColor),
+          ),
           const SizedBox(width: AppTheme.spacingMd),
           Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppTheme.textSecondaryColor,
-                height: 1.45,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (title != null) ...[
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimaryColor,
+                      letterSpacing: -0.1,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                ],
+                Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textSecondaryColor,
+                    height: 1.45,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -85,82 +85,153 @@ class ExamSubmitResultPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         MsCard(
-                          padding: const EdgeInsets.all(AppTheme.spacingLg),
+                          padding: const EdgeInsets.all(AppTheme.spacingXl),
                           child: Column(
                             children: [
                               Container(
-                                width: 80,
-                                height: 80,
+                                width: 84,
+                                height: 84,
                                 decoration: BoxDecoration(
-                                  color: pct >= 50
-                                      ? AppTheme.successSoft
-                                      : AppTheme.warningSoft,
-                                  borderRadius: BorderRadius.circular(28),
+                                  gradient: pct >= 50
+                                      ? const LinearGradient(
+                                          colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        )
+                                      : const LinearGradient(
+                                          colors: [Color(0xFFD97706), Color(0xFFF59E0B)],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (pct >= 50 ? const Color(0xFF0D9488) : const Color(0xFFD97706))
+                                          .withValues(alpha: 0.35),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
                                 ),
                                 child: Icon(
                                   pct >= 50
                                       ? Icons.emoji_events_rounded
-                                      : Icons.insights_rounded,
-                                  size: 40,
-                                  color: pct >= 50
-                                      ? AppTheme.successColor
-                                      : AppTheme.warningColor,
+                                      : Icons.analytics_rounded,
+                                  size: 42,
+                                  color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(height: AppTheme.spacingMd),
+                              const SizedBox(height: AppTheme.spacingLg),
                               Text(
                                 examTitle,
                                 textAlign: TextAlign.center,
-                                style:
-                                    Theme.of(context).textTheme.headlineSmall,
-                              ),
-                              const SizedBox(height: AppTheme.spacingXs),
-                              Text(
-                                result.gradedBy == 'ai'
-                                    ? 'Graded with AI explanations'
-                                    : 'Submitted successfully',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: AppTheme.primaryColor,
-                                      fontWeight: FontWeight.w600,
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.textPrimaryColor,
+                                      letterSpacing: -0.3,
                                     ),
                               ),
-                              const SizedBox(height: AppTheme.spacingLg),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _MetricTile(
-                                      title: 'Score',
-                                      value: '${result.score}/${result.total}',
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      result.gradedBy == 'ai'
+                                          ? Icons.auto_awesome_rounded
+                                          : Icons.verified_rounded,
+                                      size: 14,
                                       color: AppTheme.primaryColor,
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: _MetricTile(
-                                      title: 'Percent',
-                                      value: '${pct.toStringAsFixed(1)}%',
-                                      color: AppTheme.secondaryColor,
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      result.gradedBy == 'ai'
+                                          ? 'Graded with MedStudy AI'
+                                          : 'Exam Attempt Recorded',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.primaryColor,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: _MetricTile(
-                                      title: 'Wrong',
-                                      value: '$wrongCount',
-                                      color: AppTheme.errorColor,
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: AppTheme.spacingXl),
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: _MetricTile(
+                                        title: 'Score',
+                                        value: '${result.score}/${result.total}',
+                                        color: AppTheme.primaryColor,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    Container(
+                                      height: 36,
+                                      width: 1,
+                                      color: const Color(0xFFE2E8F0),
+                                    ),
+                                    Expanded(
+                                      child: _MetricTile(
+                                        title: 'Percentage',
+                                        value: '${pct.toStringAsFixed(1)}%',
+                                        color: pct >= 50 ? AppTheme.successColor : AppTheme.warningColor,
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 36,
+                                      width: 1,
+                                      color: const Color(0xFFE2E8F0),
+                                    ),
+                                    Expanded(
+                                      child: _MetricTile(
+                                        title: 'Incorrect',
+                                        value: '$wrongCount',
+                                        color: AppTheme.errorColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
                         ),
                         const SizedBox(height: AppTheme.spacingXl),
-                        Text(
-                          'Answer review',
-                          style: Theme.of(context).textTheme.titleLarge,
+                        Row(
+                          children: [
+                            Container(
+                              width: 4,
+                              height: 18,
+                              decoration: BoxDecoration(
+                                gradient: AppTheme.tealGradient,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Answer Review Breakdown',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textPrimaryColor,
+                                  ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: AppTheme.spacingSm),
                         if (result.details.isEmpty)
@@ -273,38 +344,78 @@ class _QuestionReviewCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
-      child: MsCard(
-        elevated: false,
-        padding: const EdgeInsets.all(AppTheme.spacingMd),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+          border: Border.all(
+            color: detail.isCorrect
+                ? AppTheme.successColor.withValues(alpha: 0.3)
+                : AppTheme.errorColor.withValues(alpha: 0.3),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              offset: const Offset(0, 2),
+              blurRadius: 6,
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(AppTheme.spacingLg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Text(
-                  'Q$number',
-                  style: Theme.of(context).textTheme.titleSmall,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Question $number',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
                 ),
                 const Spacer(),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusBg,
                     borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                   ),
-                  child: Text(
-                    detail.isCorrect ? 'Correct' : 'Incorrect',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: statusColor,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        detail.isCorrect
+                            ? Icons.check_circle_rounded
+                            : Icons.cancel_rounded,
+                        size: 14,
+                        color: statusColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        detail.isCorrect ? 'Correct' : 'Incorrect',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: statusColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: AppTheme.spacingSm),
+            const SizedBox(height: AppTheme.spacingMd),
             Text(
               detail.stem.isNotEmpty
                   ? detail.stem
@@ -313,55 +424,101 @@ class _QuestionReviewCard extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textPrimaryColor,
-                height: 1.35,
+                height: 1.4,
               ),
             ),
-            const SizedBox(height: AppTheme.spacingSm),
-            Text(
-              'Your answer: ${_optionText(detail.selectedOptionId)}',
-              style: TextStyle(
-                fontSize: 13,
-                color: statusColor,
-                fontWeight: FontWeight.w600,
+            const SizedBox(height: AppTheme.spacingMd),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        detail.isCorrect ? Icons.check_circle_outline_rounded : Icons.highlight_off_rounded,
+                        size: 16,
+                        color: statusColor,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Your answer: ${_optionText(detail.selectedOptionId)}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: statusColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (!detail.isCorrect) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.check_circle_outline_rounded,
+                          size: 16,
+                          color: AppTheme.successColor,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Correct answer: ${_optionText(detail.correctOptionId)}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppTheme.successColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
               ),
             ),
-            if (!detail.isCorrect) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Correct answer: ${_optionText(detail.correctOptionId)}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppTheme.successColor,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
             if (detail.explanation.isNotEmpty) ...[
-              const SizedBox(height: AppTheme.spacingSm),
+              const SizedBox(height: AppTheme.spacingMd),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(AppTheme.spacingSm),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceMuted,
+                  color: const Color(0xFFF0FDFA),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                  border: Border.all(color: const Color(0xFFCCFBF1)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Explanation',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textSecondaryColor,
-                      ),
+                    const Row(
+                      children: [
+                        Icon(Icons.lightbulb_outline_rounded, size: 15, color: Color(0xFF0D9488)),
+                        SizedBox(width: 5),
+                        Text(
+                          'Clinical Rationale',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0D9488),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       detail.explanation,
                       style: const TextStyle(
                         fontSize: 13,
-                        height: 1.4,
+                        height: 1.45,
                         color: AppTheme.textPrimaryColor,
                       ),
                     ),
