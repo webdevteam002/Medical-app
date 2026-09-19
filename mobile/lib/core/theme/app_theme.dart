@@ -87,9 +87,9 @@ class AppThemePalette {
         ),
       ];
 
-  List<BoxShadow> get glowShadow => [
+  List<BoxShadow> glowShadow([Color? customColor]) => [
         BoxShadow(
-          color: secondary.withValues(alpha: isDark ? 0.35 : 0.25),
+          color: (customColor ?? secondary).withValues(alpha: isDark ? 0.35 : 0.25),
           blurRadius: 16,
           offset: const Offset(0, 4),
         ),
@@ -99,6 +99,99 @@ class AppThemePalette {
 class AppTheme {
   AppTheme._();
 
+  // Brand / clinical palette - compile-time constants for const widgets
+  static const Color primaryColor = Color(0xFF0B3A66);
+  static const Color primarySoft = Color(0xFF145A96);
+  static const Color primaryDark = Color(0xFF072545);
+  static const Color secondaryColor = Color(0xFF0D9488);
+  static const Color secondarySoft = Color(0xFFCCFBF1);
+  static const Color backgroundColor = Color(0xFFF4F7FB);
+  static const Color surfaceColor = Colors.white;
+  static const Color surfaceMuted = Color(0xFFEEF3F9);
+  static const Color surfaceSubtle = Color(0xFFF8FAFC);
+  static const Color textPrimaryColor = Color(0xFF0F172A);
+  static const Color textSecondaryColor = Color(0xFF64748B);
+  static const Color textMutedColor = Color(0xFF94A3B8);
+  static const Color borderColor = Color(0xFFE2E8F0);
+  static const Color borderSubtle = Color(0xFFEDF2F7);
+  static const Color borderHover = Color(0xFFCBD5E1);
+
+  // Semantic status colors
+  static const Color successColor = Color(0xFF059669);
+  static const Color successSoft = Color(0xFFECFDF5);
+  static const Color errorColor = Color(0xFFDC2626);
+  static const Color errorSoft = Color(0xFFFEF2F2);
+  static const Color warningColor = Color(0xFFD97706);
+  static const Color warningSoft = Color(0xFFFFFBEB);
+  static const Color infoColor = Color(0xFF0284C7);
+  static const Color infoSoft = Color(0xFFE0F2FE);
+
+  // Spacing
+  static const double spacingXs = 4.0;
+  static const double spacingSm = 8.0;
+  static const double spacingMd = 16.0;
+  static const double spacingLg = 24.0;
+  static const double spacingXl = 32.0;
+  static const double spacing2Xl = 48.0;
+
+  // Radii
+  static const double borderRadiusSm = 12.0;
+  static const double borderRadiusMd = 16.0;
+  static const double borderRadiusLg = 20.0;
+  static const double borderRadiusXl = 28.0;
+
+  static const double buttonHeight = 52.0;
+
+  // Static gradients & shadows
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryDark, primaryColor, secondaryColor],
+  );
+
+  static const LinearGradient heroGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryColor, primarySoft, secondaryColor],
+  );
+
+  static const LinearGradient tealGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [secondaryColor, secondarySoft],
+  );
+
+  static const LinearGradient subtleCardGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [surfaceColor, Color(0x66EEF3F9)],
+  );
+
+  static const List<BoxShadow> softShadow = [
+    BoxShadow(
+      color: Color(0x0D0F172A),
+      blurRadius: 10,
+      offset: Offset(0, 2),
+    ),
+  ];
+
+  static const List<BoxShadow> cardHoverShadow = [
+    BoxShadow(
+      color: Color(0x1A0B3A66),
+      blurRadius: 18,
+      offset: Offset(0, 6),
+    ),
+  ];
+
+  static List<BoxShadow> glowShadow([Color? customColor]) => [
+        BoxShadow(
+          color: (customColor ?? secondaryColor).withValues(alpha: 0.35),
+          blurRadius: 16,
+          offset: const Offset(0, 4),
+        ),
+      ];
+
+  // 6 Predefined study palettes
   static const AppThemePalette _clinicalLightPalette = AppThemePalette(
     primary: Color(0xFF0B3A66),
     primarySoft: Color(0xFF145A96),
@@ -214,14 +307,14 @@ class AppTheme {
   );
 
   static AppThemeMode _activeMode = AppThemeMode.clinicalLight;
-  static AppThemePalette _palette = _clinicalLightPalette;
 
   static void setThemeMode(AppThemeMode mode) {
     _activeMode = mode;
-    _palette = paletteFor(mode);
   }
 
   static AppThemeMode get activeMode => _activeMode;
+
+  static AppThemePalette get currentPalette => paletteFor(_activeMode);
 
   static AppThemePalette paletteFor(AppThemeMode mode) {
     switch (mode) {
@@ -239,61 +332,6 @@ class AppTheme {
         return _forestEmeraldPalette;
     }
   }
-
-  // Dynamic getters reflecting the active theme
-  static Color get primaryColor => _palette.primary;
-  static Color get primarySoft => _palette.primarySoft;
-  static Color get primaryDark => _palette.primaryDark;
-  static Color get secondaryColor => _palette.secondary;
-  static Color get secondarySoft => _palette.secondarySoft;
-  static Color get backgroundColor => _palette.background;
-  static Color get surfaceColor => _palette.surface;
-  static Color get surfaceMuted => _palette.surfaceMuted;
-  static Color get surfaceSubtle => _palette.surfaceSubtle;
-  static Color get textPrimaryColor => _palette.textPrimary;
-  static Color get textSecondaryColor => _palette.textSecondary;
-  static Color get textMutedColor => _palette.textMuted;
-  static Color get borderColor => _palette.border;
-  static Color get borderSubtle => _palette.borderSubtle;
-  static Color get borderHover => _palette.borderHover;
-  static bool get isDark => _palette.isDark;
-
-  // Semantic status colors
-  static const Color successColor = Color(0xFF059669);
-  static const Color successSoft = Color(0xFFECFDF5);
-  static const Color errorColor = Color(0xFFDC2626);
-  static const Color errorSoft = Color(0xFFFEF2F2);
-  static const Color warningColor = Color(0xFFD97706);
-  static const Color warningSoft = Color(0xFFFFFBEB);
-  static const Color infoColor = Color(0xFF0284C7);
-  static const Color infoSoft = Color(0xFFE0F2FE);
-
-  // Spacing
-  static const double spacingXs = 4.0;
-  static const double spacingSm = 8.0;
-  static const double spacingMd = 16.0;
-  static const double spacingLg = 24.0;
-  static const double spacingXl = 32.0;
-  static const double spacing2Xl = 48.0;
-
-  // Radii
-  static const double borderRadiusSm = 12.0;
-  static const double borderRadiusMd = 16.0;
-  static const double borderRadiusLg = 20.0;
-  static const double borderRadiusXl = 28.0;
-
-  static const double buttonHeight = 52.0;
-
-  // Gradients
-  static LinearGradient get primaryGradient => _palette.primaryGradient;
-  static LinearGradient get heroGradient => _palette.heroGradient;
-  static LinearGradient get tealGradient => _palette.tealGradient;
-  static LinearGradient get subtleCardGradient => _palette.subtleCardGradient;
-
-  // Shadows
-  static List<BoxShadow> get softShadow => _palette.softShadow;
-  static List<BoxShadow> get cardHoverShadow => _palette.cardHoverShadow;
-  static List<BoxShadow> get glowShadow => _palette.glowShadow;
 
   static TextTheme _buildTextTheme(AppThemePalette pal) {
     return TextTheme(
