@@ -120,7 +120,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
       return MsEmptyState(
         icon: Icons.history_toggle_off_rounded,
         title: 'No past exam attempts found',
-        description: 'Completed mock exams, scores, and answer explanations will be archived here.',
+        message: 'Completed mock exams, scores, and answer explanations will be archived here.',
         actionLabel: 'Refresh',
         onAction: _fetchAttempts,
       );
