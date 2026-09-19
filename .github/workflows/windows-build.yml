@@ -45,8 +45,7 @@ jobs:
         run: iscc packaging/windows/setup.iss
 
       - name: Create Portable Zip
-        working-directory: ./mobile/build/windows/x64/runner/Release
-        run: Compress-Archive -Path * -DestinationPath ..\..\..\..\..\dist\MedStudy_Windows.zip -Force
+        run: Compress-Archive -Path "mobile/build/windows/x64/runner/Release/*" -DestinationPath "dist/MedStudy_Windows.zip" -Force
 
       - name: Upload Installer Artifact
         uses: actions/upload-artifact@v4
