@@ -24,7 +24,9 @@ class ProfileDestinationView extends StatelessWidget {
           duration: Duration(seconds: 2),
         ),
       );
-      context.go('/login');
+      try {
+        context.go('/login');
+      } catch (_) {}
     }
   }
 
@@ -59,25 +61,44 @@ class ProfileDestinationView extends StatelessWidget {
                             height: 84,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                                 colors: [
+                                  AppTheme.primaryDark,
                                   AppTheme.primaryColor,
-                                  AppTheme.primarySoft,
+                                  AppTheme.secondaryColor,
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(28),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primaryColor
+                                      .withValues(alpha: 0.25),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
                             ),
-                            child: const Icon(
-                              Icons.person_rounded,
-                              size: 42,
-                              color: Colors.white,
+                            child: const Center(
+                              child: Icon(
+                                Icons.person_rounded,
+                                size: 44,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                           const SizedBox(height: AppTheme.spacingMd),
                           Text(
                             'Medical Student',
-                            style: Theme.of(context).textTheme.headlineSmall,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.3,
+                                ),
                           ),
-                          const SizedBox(height: AppTheme.spacingXs),
+                          const SizedBox(height: 4),
                           Text(
                             'student@medstudy.org',
                             style: Theme.of(context).textTheme.bodyMedium,
@@ -90,13 +111,25 @@ class ProfileDestinationView extends StatelessWidget {
                               color: AppTheme.surfaceMuted,
                               borderRadius: BorderRadius.circular(
                                   AppTheme.borderRadiusSm),
+                              border: Border.all(color: AppTheme.borderColor),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  'Platform',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.verified_rounded,
+                                      size: 16,
+                                      color: AppTheme.secondaryColor,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Platform',
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                  ],
                                 ),
                                 Flexible(
                                   child: Text(
@@ -118,20 +151,38 @@ class ProfileDestinationView extends StatelessWidget {
                     const SizedBox(height: AppTheme.spacingMd),
                     MsCard(
                       key: const Key('profile_ai_assistant_card'),
-                      onTap: () => context.push('/ai-assistant'),
+                      onTap: () {
+                        try {
+                          context.push('/ai-assistant');
+                        } catch (_) {}
+                      },
+                      padding: const EdgeInsets.all(AppTheme.spacingMd),
                       child: Row(
                         children: [
                           Container(
-                            width: 44,
-                            height: 44,
+                            width: 48,
+                            height: 48,
                             decoration: BoxDecoration(
-                              color:
-                                  AppTheme.primaryColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.primaryColor
+                                      .withValues(alpha: 0.14),
+                                  AppTheme.secondaryColor
+                                      .withValues(alpha: 0.10),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppTheme.primaryColor
+                                    .withValues(alpha: 0.2),
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.auto_awesome_rounded,
-                              color: AppTheme.primaryColor,
+                            child: const Center(
+                              child: Icon(
+                                Icons.auto_awesome_rounded,
+                                color: AppTheme.primaryColor,
+                                size: 22,
+                              ),
                             ),
                           ),
                           const SizedBox(width: AppTheme.spacingMd),
@@ -141,9 +192,14 @@ class ProfileDestinationView extends StatelessWidget {
                               children: [
                                 Text(
                                   'AI Assistant',
-                                  style:
-                                      Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                 ),
+                                const SizedBox(height: 2),
                                 Text(
                                   'Ask about subjects, materials & concepts',
                                   style: Theme.of(context).textTheme.bodySmall,
@@ -151,29 +207,57 @@ class ProfileDestinationView extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 16,
-                            color: AppTheme.textSecondaryColor,
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceMuted,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 13,
+                                color: AppTheme.textSecondaryColor,
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: AppTheme.spacingMd),
                     MsCard(
-                      onTap: () => context.push('/subscriptions'),
+                      onTap: () {
+                        try {
+                          context.push('/subscriptions');
+                        } catch (_) {}
+                      },
+                      padding: const EdgeInsets.all(AppTheme.spacingMd),
                       child: Row(
                         children: [
                           Container(
-                            width: 44,
-                            height: 44,
+                            width: 48,
+                            height: 48,
                             decoration: BoxDecoration(
-                              color: AppTheme.secondarySoft,
-                              borderRadius: BorderRadius.circular(12),
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.secondarySoft,
+                                  AppTheme.secondaryColor
+                                      .withValues(alpha: 0.14),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppTheme.secondaryColor
+                                    .withValues(alpha: 0.25),
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.workspace_premium_outlined,
-                              color: AppTheme.secondaryColor,
+                            child: const Center(
+                              child: Icon(
+                                Icons.workspace_premium_rounded,
+                                color: AppTheme.secondaryColor,
+                                size: 24,
+                              ),
                             ),
                           ),
                           const SizedBox(width: AppTheme.spacingMd),
@@ -183,9 +267,14 @@ class ProfileDestinationView extends StatelessWidget {
                               children: [
                                 Text(
                                   'Subscription',
-                                  style:
-                                      Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                 ),
+                                const SizedBox(height: 2),
                                 Text(
                                   'Manage your study access plan',
                                   style: Theme.of(context).textTheme.bodySmall,
@@ -193,10 +282,20 @@ class ProfileDestinationView extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 16,
-                            color: AppTheme.textSecondaryColor,
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceMuted,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 13,
+                                color: AppTheme.textSecondaryColor,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -207,21 +306,24 @@ class ProfileDestinationView extends StatelessWidget {
                       height: AppTheme.buttonHeight,
                       child: OutlinedButton.icon(
                         onPressed: () => _handleLogout(context),
-                        icon: const Icon(Icons.logout_rounded,
-                            color: AppTheme.errorColor),
+                        icon: const Icon(
+                          Icons.logout_rounded,
+                          color: AppTheme.errorColor,
+                          size: 20,
+                        ),
                         label: const Text(
                           'Sign Out',
                           style: TextStyle(
                             color: AppTheme.errorColor,
                             fontWeight: FontWeight.w700,
+                            fontSize: 15,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(
                             color: AppTheme.errorColor.withValues(alpha: 0.45),
+                            width: 1.2,
                           ),
-                          overlayColor:
-                              AppTheme.errorColor.withValues(alpha: 0.08),
                           padding: const EdgeInsets.symmetric(
                             vertical: AppTheme.spacingMd,
                           ),

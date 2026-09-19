@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/ms_card.dart';
+import '../../../../core/widgets/ms_empty_state.dart';
+import '../../../../core/widgets/ms_section_header.dart';
 import '../../data/datasources/study_remote_datasource.dart';
 import '../../data/models/topic_model.dart';
 
@@ -67,10 +70,12 @@ class _TopicsPageState extends State<TopicsPage> {
   }
 
   void _onTopicTap(TopicModel topic) {
-    context.push(
-      '/subjects/${topic.subjectId}/topics/${topic.id}/materials',
-      extra: topic.name,
-    );
+    try {
+      context.push(
+        '/subjects/${topic.subjectId}/topics/${topic.id}/materials',
+        extra: topic.name,
+      );
+    } catch (_) {}
   }
 
   @override
@@ -80,26 +85,33 @@ class _TopicsPageState extends State<TopicsPage> {
         : 'Subject Topics';
 
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: Text(titleText),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
+        actions: [
+          IconButton(
+            tooltip: 'Refresh topics',
+            onPressed: _isLoading ? null : _fetchTopics,
+            icon: const Icon(Icons.refresh_rounded),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
+          padding: const EdgeInsets.fromLTRB(
+            AppTheme.spacingLg,
+            AppTheme.spacingMd,
+            AppTheme.spacingLg,
+            AppTheme.spacingLg,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Study Topics',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: AppTheme.spacingXs),
-              Text(
-                'Subject ID: ${widget.subjectId}',
-                style: Theme.of(context).textTheme.bodyMedium,
+              MsSectionHeader(
+                title: 'Study Topics',
+                subtitle: widget.subjectName != null
+                    ? '${widget.subjectName} · select a topic to view PDF notes'
+                    : 'Subject modules & learning material',
               ),
               const SizedBox(height: AppTheme.spacingLg),
               Expanded(
@@ -114,122 +126,131 @@ class _TopicsPageState extends State<TopicsPage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: Colors.redAccent),
-              const SizedBox(height: AppTheme.spacingMd),
-              Text(
-                _errorMessage!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppTheme.textPrimaryColor,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingLg),
-              ElevatedButton.icon(
-                onPressed: _fetchTopics,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Retry'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return MsErrorState(message: _errorMessage!, onRetry: _fetchTopics);
     }
 
     if (_topics.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.folder_open_rounded,
-                size: 64, color: AppTheme.textSecondaryColor),
-            const SizedBox(height: AppTheme.spacingMd),
-            const Text(
-              'No topics available for this subject',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingXs),
-            const Text(
-              'Check back later for updated study topics.',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppTheme.textSecondaryColor,
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingLg),
-            OutlinedButton(
-              onPressed: _fetchTopics,
-              child: const Text('Refresh'),
-            ),
-          ],
-        ),
+      return MsEmptyState(
+        icon: Icons.folder_open_rounded,
+        title: 'No topics available for this subject',
+        message: 'Check back later for updated study topics.',
+        actionLabel: 'Refresh',
+        onAction: _fetchTopics,
       );
     }
 
-    return ListView.separated(
-      itemCount: _topics.length,
-      separatorBuilder: (context, index) =>
-          const SizedBox(height: AppTheme.spacingMd),
-      itemBuilder: (context, index) {
-        final topic = _topics[index];
-        return Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-            side: const BorderSide(color: Color(0xFFE2E8F0)),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spacingLg,
-              vertical: AppTheme.spacingSm,
-            ),
-            leading: CircleAvatar(
-              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-              child: Text(
-                'T${topic.sortOrder}',
-                style: const TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-            title: Text(
-              topic.name,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimaryColor,
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right_rounded,
-                color: AppTheme.textSecondaryColor),
+    return RefreshIndicator(
+      onRefresh: _fetchTopics,
+      color: AppTheme.primaryColor,
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: _topics.length,
+        separatorBuilder: (_, __) => const SizedBox(height: AppTheme.spacingMd),
+        itemBuilder: (context, index) {
+          final topic = _topics[index];
+          final topicAccents = [
+            AppTheme.primaryColor,
+            AppTheme.secondaryColor,
+            const Color(0xFF0284C7),
+            const Color(0xFF4F46E5),
+          ];
+          final accent = topicAccents[index % topicAccents.length];
+
+          return MsCard(
             onTap: () => _onTopicTap(topic),
-          ),
-        );
-      },
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingLg,
+              vertical: AppTheme.spacingMd,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        accent.withValues(alpha: 0.14),
+                        accent.withValues(alpha: 0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: accent.withValues(alpha: 0.22),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'T${topic.sortOrder}',
+                      style: TextStyle(
+                        color: accent,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spacingMd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        topic.name,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.picture_as_pdf_outlined,
+                            size: 13,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Clinical PDF notes & past papers',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: AppTheme.textSecondaryColor,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceMuted,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 13,
+                      color: AppTheme.textSecondaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

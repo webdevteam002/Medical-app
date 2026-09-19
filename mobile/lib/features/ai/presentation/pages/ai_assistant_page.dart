@@ -161,7 +161,17 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('MedStudy AI Assistant'),
+        title: const Row(
+          children: [
+            Icon(
+              Icons.auto_awesome_rounded,
+              color: AppTheme.secondaryColor,
+              size: 20,
+            ),
+            SizedBox(width: 8),
+            Text('MedStudy AI Assistant'),
+          ],
+        ),
         actions: [
           IconButton(
             key: const Key('ai_assistant_new'),
@@ -186,20 +196,33 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                       margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
                       padding: const EdgeInsets.all(AppTheme.spacingMd),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.06),
+                        color: AppTheme.secondarySoft,
                         borderRadius:
                             BorderRadius.circular(AppTheme.borderRadiusSm),
                         border: Border.all(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                          color: AppTheme.secondaryColor.withValues(alpha: 0.25),
                         ),
                       ),
-                      child: const Text(
-                        'This chat is linked to the question you were reviewing. Ask anything about that MCQ.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.35,
-                          color: AppTheme.textPrimaryColor,
-                        ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            color: AppTheme.secondaryColor,
+                            size: 18,
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'This chat is linked to the question you were reviewing. Ask anything about that MCQ.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                height: 1.35,
+                                color: AppTheme.textPrimaryColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -230,11 +253,20 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                         color: AppTheme.warningSoft,
                         borderRadius:
                             BorderRadius.circular(AppTheme.borderRadiusSm),
+                        border: Border.all(
+                          color: AppTheme.warningColor.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_error!),
+                          Text(
+                            _error!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppTheme.textPrimaryColor,
+                            ),
+                          ),
                           if (_canRetry)
                             TextButton(
                               key: const Key('ai_assistant_retry'),
@@ -283,23 +315,33 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
                       enabled: !_loading,
                       minLines: 1,
                       maxLines: 4,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'Ask MedStudy AI…',
-                        border: OutlineInputBorder(),
-                        isDense: true,
+                        filled: true,
+                        fillColor: AppTheme.surfaceMuted,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                       ),
                       onSubmitted: (_) => _send(),
                     ),
                   ),
                   const SizedBox(width: AppTheme.spacingSm),
-                  IconButton.filled(
-                    key: const Key('ai_assistant_send'),
-                    onPressed: _loading ? null : () => _send(),
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      shape: BoxShape.circle,
                     ),
-                    icon: const Icon(Icons.send_rounded),
+                    child: IconButton(
+                      key: const Key('ai_assistant_send'),
+                      onPressed: _loading ? null : () => _send(),
+                      icon: const Icon(Icons.send_rounded, color: Colors.white),
+                    ),
                   ),
                 ],
               ),
@@ -320,29 +362,48 @@ class _IntroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppTheme.spacingMd),
+      padding: const EdgeInsets.all(AppTheme.spacingLg),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
         border: Border.all(color: AppTheme.borderColor),
+        boxShadow: AppTheme.softShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Educational AI Assistant',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.primaryColor,
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppTheme.secondarySoft,
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppTheme.secondaryColor,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Educational AI Assistant',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryColor,
+                    ),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           const Text(
             'Ask about MedStudy subjects, materials, exams, or medical concepts from content you can access. Not a substitute for a clinician.',
             style: TextStyle(
               fontSize: 13,
               color: AppTheme.textSecondaryColor,
-              height: 1.35,
+              height: 1.45,
             ),
           ),
           const SizedBox(height: AppTheme.spacingMd),
@@ -353,6 +414,11 @@ class _IntroCard extends StatelessWidget {
                 .map(
                   (s) => ActionChip(
                     label: Text(s, style: const TextStyle(fontSize: 12)),
+                    backgroundColor: AppTheme.surfaceMuted,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: AppTheme.borderColor),
+                    ),
                     onPressed:
                         onSuggestion == null ? null : () => onSuggestion!(s),
                   ),
@@ -388,22 +454,53 @@ class _Bubble extends StatelessWidget {
         key: isUser
             ? const Key('ai_assistant_user_bubble')
             : const Key('ai_assistant_bot_bubble'),
-        margin: const EdgeInsets.only(bottom: AppTheme.spacingSm),
+        margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
         padding: const EdgeInsets.all(AppTheme.spacingMd),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.85,
         ),
         decoration: BoxDecoration(
           color: bg,
+          gradient: isUser ? AppTheme.primaryGradient : null,
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
           border: isUser ? null : Border.all(color: AppTheme.borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: (isUser ? AppTheme.primaryColor : Colors.black)
+                  .withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (!isUser) ...[
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 14,
+                    color: AppTheme.secondaryColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'MedStudy AI',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.secondaryColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+            ],
             Text(
               text,
-              style: TextStyle(color: fg, fontSize: 14, height: 1.4),
+              style: TextStyle(color: fg, fontSize: 14, height: 1.45),
             ),
             if (!isUser && citations.isNotEmpty) ...[
               const SizedBox(height: 8),
@@ -416,7 +513,7 @@ class _Bubble extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'Grounding: $grounding',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 11,
                   color: AppTheme.textSecondaryColor,
                 ),

@@ -6,12 +6,14 @@ class MsGradientHeader extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final double minHeight;
+  final Gradient? gradient;
 
   const MsGradientHeader({
     super.key,
     required this.child,
     this.padding,
     this.minHeight = 0,
+    this.gradient,
   });
 
   @override
@@ -26,17 +28,18 @@ class MsGradientHeader extends StatelessWidget {
             AppTheme.spacingLg,
             AppTheme.spacingLg,
           ),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0B3A66),
-            Color(0xFF145A96),
-            Color(0xFF0F766E),
-          ],
-          stops: [0.0, 0.55, 1.0],
-        ),
+      decoration: BoxDecoration(
+        gradient: gradient ??
+            const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF072545),
+                Color(0xFF0B3A66),
+                Color(0xFF0D9488),
+              ],
+              stops: [0.0, 0.55, 1.0],
+            ),
       ),
       child: child,
     );
@@ -59,20 +62,41 @@ class MsBrandMark extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: light
-            ? Colors.white.withValues(alpha: 0.16)
-            : AppTheme.primaryColor.withValues(alpha: 0.1),
+        gradient: light
+            ? LinearGradient(
+                colors: [
+                  Colors.white.withValues(alpha: 0.22),
+                  Colors.white.withValues(alpha: 0.10),
+                ],
+              )
+            : LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.14),
+                  AppTheme.secondaryColor.withValues(alpha: 0.10),
+                ],
+              ),
         borderRadius: BorderRadius.circular(size * 0.28),
         border: Border.all(
           color: light
-              ? Colors.white.withValues(alpha: 0.28)
-              : AppTheme.primaryColor.withValues(alpha: 0.18),
+              ? Colors.white.withValues(alpha: 0.35)
+              : AppTheme.primaryColor.withValues(alpha: 0.20),
+          width: 1.2,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: (light ? Colors.black : AppTheme.primaryColor)
+                .withValues(alpha: 0.08),
+            blurRadius: size * 0.25,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      child: Icon(
-        Icons.local_hospital_rounded,
-        size: size * 0.48,
-        color: light ? Colors.white : AppTheme.primaryColor,
+      child: Center(
+        child: Icon(
+          Icons.local_hospital_rounded,
+          size: size * 0.52,
+          color: light ? Colors.white : AppTheme.primaryColor,
+        ),
       ),
     );
   }
@@ -96,16 +120,18 @@ class MsMetaChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final fg = color ?? AppTheme.primaryColor;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
       decoration: BoxDecoration(
         color: background ?? AppTheme.surfaceMuted,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderColor),
+        border: Border.all(
+          color: (color ?? AppTheme.borderColor).withValues(alpha: 0.25),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: fg),
+          Icon(icon, size: 13, color: fg),
           const SizedBox(width: 5),
           Text(
             label,
@@ -113,6 +139,7 @@ class MsMetaChip extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: fg,
+              letterSpacing: 0.1,
             ),
           ),
         ],

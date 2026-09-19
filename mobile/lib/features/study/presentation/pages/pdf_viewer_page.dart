@@ -39,6 +39,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   int _currentPage = 0;
   bool _isReady = false;
   String _errorMessage = '';
+  bool _isDarkCanvas = false;
 
   @override
   void initState() {
@@ -114,35 +115,155 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     super.dispose();
   }
 
+  void _zoomIn() {
+    final zoom = _controller.currentZoom;
+    if (zoom != null) {
+      _controller.zoomUp();
+    }
+  }
+
+  void _zoomOut() {
+    final zoom = _controller.currentZoom;
+    if (zoom != null) {
+      _controller.zoomDown();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _isDarkCanvas ? const Color(0xFF0F172A) : AppTheme.backgroundColor,
       appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
+        title: Text(
+          widget.title,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        backgroundColor: AppTheme.surfaceColor,
+        foregroundColor: AppTheme.textPrimaryColor,
         elevation: 0,
         actions: [
           if (_isReady && _totalPages > 0)
             Padding(
-              padding: const EdgeInsets.only(right: AppTheme.spacingMd),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Center(
-                child: Text(
-                  '${_currentPage + 1} / $_totalPages',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceMuted,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.borderColor),
+                  ),
+                  child: Text(
+                    '${_currentPage + 1} / $_totalPages',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
                 ),
               ),
             ),
+          IconButton(
+            tooltip: _isDarkCanvas ? 'Light Canvas' : 'Dark Canvas',
+            icon: Icon(
+              _isDarkCanvas ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              color: AppTheme.primaryColor,
+            ),
+            onPressed: () => setState(() => _isDarkCanvas = !_isDarkCanvas),
+          ),
+          const SizedBox(width: 4),
         ],
       ),
       body: Stack(
         children: [
           _buildPdfBody(),
           _buildWatermarkOverlay(_formattedWatermark),
+          if (_isReady && _totalPages > 0) _buildFloatingControls(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingControls() {
+    return Positioned(
+      bottom: 20,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceColor.withValues(alpha: 0.94),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: AppTheme.borderColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left_rounded),
+                tooltip: 'Previous page',
+                onPressed: _currentPage > 0
+                    ? () => _controller.goToPage(pageNumber: _currentPage)
+                    : null,
+                iconSize: 22,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  '${_currentPage + 1} of $_totalPages',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimaryColor,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right_rounded),
+                tooltip: 'Next page',
+                onPressed: _currentPage < _totalPages - 1
+                    ? () => _controller.goToPage(pageNumber: _currentPage + 2)
+                    : null,
+                iconSize: 22,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+              Container(
+                height: 20,
+                width: 1,
+                color: AppTheme.borderColor,
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+              ),
+              IconButton(
+                icon: const Icon(Icons.zoom_out_rounded),
+                tooltip: 'Zoom out',
+                onPressed: _zoomOut,
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+              IconButton(
+                icon: const Icon(Icons.zoom_in_rounded),
+                tooltip: 'Zoom in',
+                onPressed: _zoomIn,
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -153,8 +274,19 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.picture_as_pdf_rounded,
-                size: 48, color: AppTheme.primaryColor),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.picture_as_pdf_rounded,
+                size: 38,
+                color: AppTheme.primaryColor,
+              ),
+            ),
             const SizedBox(height: AppTheme.spacingMd),
             Text(
               widget.title,
@@ -176,7 +308,13 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: AppTheme.spacingMd),
-            Text('Loading PDF…'),
+            Text(
+              'Loading PDF…',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textSecondaryColor,
+              ),
+            ),
           ],
         ),
       );
@@ -189,14 +327,19 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: Colors.redAccent),
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: Colors.redAccent,
+              ),
               const SizedBox(height: AppTheme.spacingMd),
               Text(
                 _errorMessage,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                    fontSize: 15, color: AppTheme.textPrimaryColor),
+                  fontSize: 15,
+                  color: AppTheme.textPrimaryColor,
+                ),
               ),
             ],
           ),
@@ -213,7 +356,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       path,
       controller: _controller,
       params: PdfViewerParams(
-        backgroundColor: AppTheme.backgroundColor,
+        backgroundColor:
+            _isDarkCanvas ? const Color(0xFF0F172A) : AppTheme.backgroundColor,
         loadingBannerBuilder: (context, bytesDownloaded, totalBytes) =>
             const Center(child: CircularProgressIndicator()),
         errorBannerBuilder: (context, error, stackTrace, documentRef) => Center(
@@ -252,13 +396,16 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.red.withValues(alpha: 0.12),
+              ),
             ),
             child: Text(
               text,
               style: TextStyle(
-                color: Colors.red.withValues(alpha: 0.3),
+                color: Colors.red.withValues(alpha: 0.28),
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.1,

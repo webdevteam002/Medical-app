@@ -7,20 +7,29 @@ class AppTheme {
   // Brand / clinical palette
   static const Color primaryColor = Color(0xFF0B3A66);
   static const Color primarySoft = Color(0xFF145A96);
+  static const Color primaryDark = Color(0xFF072545);
   static const Color secondaryColor = Color(0xFF0D9488);
   static const Color secondarySoft = Color(0xFFCCFBF1);
   static const Color backgroundColor = Color(0xFFF4F7FB);
   static const Color surfaceColor = Colors.white;
   static const Color surfaceMuted = Color(0xFFEEF3F9);
+  static const Color surfaceSubtle = Color(0xFFF8FAFC);
   static const Color textPrimaryColor = Color(0xFF0F172A);
   static const Color textSecondaryColor = Color(0xFF64748B);
+  static const Color textMutedColor = Color(0xFF94A3B8);
   static const Color borderColor = Color(0xFFE2E8F0);
+  static const Color borderSubtle = Color(0xFFEDF2F7);
+  static const Color borderHover = Color(0xFFCBD5E1);
+
+  // Semantic status colors
   static const Color successColor = Color(0xFF059669);
   static const Color successSoft = Color(0xFFECFDF5);
   static const Color errorColor = Color(0xFFDC2626);
   static const Color errorSoft = Color(0xFFFEF2F2);
   static const Color warningColor = Color(0xFFD97706);
   static const Color warningSoft = Color(0xFFFFFBEB);
+  static const Color infoColor = Color(0xFF0284C7);
+  static const Color infoSoft = Color(0xFFE0F2FE);
 
   // Spacing
   static const double spacingXs = 4.0;
@@ -28,70 +37,134 @@ class AppTheme {
   static const double spacingMd = 16.0;
   static const double spacingLg = 24.0;
   static const double spacingXl = 32.0;
+  static const double spacing2Xl = 48.0;
 
   // Radii
   static const double borderRadiusSm = 12.0;
   static const double borderRadiusMd = 16.0;
   static const double borderRadiusLg = 20.0;
+  static const double borderRadiusXl = 28.0;
 
   static const double buttonHeight = 52.0;
 
+  // Gradients
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF072545), Color(0xFF0B3A66), Color(0xFF0D9488)],
+  );
+
+  static const LinearGradient heroGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF0B3A66), Color(0xFF145A96), Color(0xFF0D9488)],
+  );
+
+  static const LinearGradient tealGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
+  );
+
+  static const LinearGradient subtleCardGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Colors.white, Color(0xFFFAFBFD)],
+  );
+
+  // Shadows
   static List<BoxShadow> get softShadow => [
         BoxShadow(
-          color: primaryColor.withValues(alpha: 0.06),
-          blurRadius: 24,
-          offset: const Offset(0, 8),
+          color: primaryColor.withValues(alpha: 0.05),
+          blurRadius: 20,
+          offset: const Offset(0, 6),
         ),
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.03),
-          blurRadius: 8,
-          offset: const Offset(0, 2),
+          color: Colors.black.withValues(alpha: 0.02),
+          blurRadius: 6,
+          offset: const Offset(0, 1),
+        ),
+      ];
+
+  static List<BoxShadow> get cardHoverShadow => [
+        BoxShadow(
+          color: primaryColor.withValues(alpha: 0.10),
+          blurRadius: 24,
+          offset: const Offset(0, 10),
+        ),
+        BoxShadow(
+          color: secondaryColor.withValues(alpha: 0.06),
+          blurRadius: 12,
+          offset: const Offset(0, 3),
+        ),
+      ];
+
+  static List<BoxShadow> glowShadow(Color color) => [
+        BoxShadow(
+          color: color.withValues(alpha: 0.28),
+          blurRadius: 16,
+          offset: const Offset(0, 4),
         ),
       ];
 
   static TextTheme _textTheme() {
     final base = GoogleFonts.plusJakartaSansTextTheme();
     return base.copyWith(
+      displayLarge: base.displayLarge?.copyWith(
+        fontSize: 36,
+        fontWeight: FontWeight.w800,
+        color: textPrimaryColor,
+        letterSpacing: -1.0,
+        height: 1.15,
+      ),
+      displayMedium: base.displayMedium?.copyWith(
+        fontSize: 30,
+        fontWeight: FontWeight.w800,
+        color: textPrimaryColor,
+        letterSpacing: -0.75,
+        height: 1.2,
+      ),
       displaySmall: base.displaySmall?.copyWith(
-        fontSize: 32,
+        fontSize: 26,
         fontWeight: FontWeight.w700,
         color: textPrimaryColor,
         letterSpacing: -0.5,
-        height: 1.2,
+        height: 1.25,
       ),
       headlineMedium: base.headlineMedium?.copyWith(
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: FontWeight.w700,
         color: textPrimaryColor,
         letterSpacing: -0.3,
-        height: 1.25,
+        height: 1.3,
       ),
       headlineSmall: base.headlineSmall?.copyWith(
-        fontSize: 20,
+        fontSize: 19,
         fontWeight: FontWeight.w700,
         color: textPrimaryColor,
         letterSpacing: -0.2,
       ),
       titleLarge: base.titleLarge?.copyWith(
-        fontSize: 18,
+        fontSize: 17,
         fontWeight: FontWeight.w600,
         color: textPrimaryColor,
+        letterSpacing: -0.1,
       ),
       titleMedium: base.titleMedium?.copyWith(
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: FontWeight.w600,
         color: textPrimaryColor,
       ),
       titleSmall: base.titleSmall?.copyWith(
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: FontWeight.w600,
         color: textPrimaryColor,
       ),
       bodyLarge: base.bodyLarge?.copyWith(
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: FontWeight.w400,
         color: textPrimaryColor,
-        height: 1.45,
+        height: 1.5,
       ),
       bodyMedium: base.bodyMedium?.copyWith(
         fontSize: 14,
@@ -105,9 +178,19 @@ class AppTheme {
         color: textSecondaryColor,
       ),
       labelLarge: base.labelLarge?.copyWith(
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: FontWeight.w700,
+        letterSpacing: 0.15,
+      ),
+      labelMedium: base.labelMedium?.copyWith(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
         letterSpacing: 0.1,
+      ),
+      labelSmall: base.labelSmall?.copyWith(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.2,
       ),
     );
   }
@@ -255,6 +338,18 @@ class AppTheme {
         color: borderColor,
         thickness: 1,
         space: 1,
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: textPrimaryColor,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        textStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: surfaceMuted,

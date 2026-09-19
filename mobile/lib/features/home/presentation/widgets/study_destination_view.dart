@@ -67,7 +67,9 @@ class _StudyDestinationViewState extends State<StudyDestinationView> {
   }
 
   void _onYearTap(YearModel year) {
-    context.push('/subjects/${year.slug}', extra: year.name);
+    try {
+      context.push('/subjects/${year.slug}', extra: year.name);
+    } catch (_) {}
   }
 
   @override
@@ -91,13 +93,21 @@ class _StudyDestinationViewState extends State<StudyDestinationView> {
                   _HeaderIconButton(
                     tooltip: 'Bookmarks',
                     icon: Icons.bookmark_outline_rounded,
-                    onPressed: () => context.push('/bookmarks'),
+                    onPressed: () {
+                      try {
+                        context.push('/bookmarks');
+                      } catch (_) {}
+                    },
                   ),
                   const SizedBox(width: 8),
                   _HeaderIconButton(
                     tooltip: 'Offline Downloads',
                     icon: Icons.download_for_offline_outlined,
-                    onPressed: () => context.push('/offline-materials'),
+                    onPressed: () {
+                      try {
+                        context.push('/offline-materials');
+                      } catch (_) {}
+                    },
                   ),
                 ],
               ),
@@ -129,65 +139,146 @@ class _StudyDestinationViewState extends State<StudyDestinationView> {
       );
     }
 
-    return ListView.separated(
-      itemCount: _years.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppTheme.spacingMd),
-      itemBuilder: (context, index) {
-        final year = _years[index];
-        return MsCard(
-          onTap: () => _onYearTap(year),
-          padding: const EdgeInsets.all(AppTheme.spacingMd),
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppTheme.primaryColor.withValues(alpha: 0.12),
-                      AppTheme.secondaryColor.withValues(alpha: 0.12),
+    return RefreshIndicator(
+      onRefresh: _fetchYears,
+      color: AppTheme.primaryColor,
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: _years.length,
+        separatorBuilder: (_, __) => const SizedBox(height: AppTheme.spacingMd),
+        itemBuilder: (context, index) {
+          final year = _years[index];
+
+          // Curated medical accents per year
+          final yearAccents = [
+            const Color(0xFF0B3A66),
+            const Color(0xFF0D9488),
+            const Color(0xFF0284C7),
+            const Color(0xFF4F46E5),
+            const Color(0xFF059669),
+          ];
+          final accentColor = yearAccents[index % yearAccents.length];
+
+          return MsCard(
+            onTap: () => _onYearTap(year),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingLg,
+              vertical: AppTheme.spacingMd,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        accentColor.withValues(alpha: 0.16),
+                        accentColor.withValues(alpha: 0.06),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.25),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Y${year.sortOrder}',
+                      style: TextStyle(
+                        color: accentColor,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spacingMd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              year.name,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.2,
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceMuted,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'MBBS',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textSecondaryColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.auto_stories_outlined,
+                            size: 14,
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Open subjects & materials',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppTheme.textSecondaryColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Center(
-                  child: Text(
-                    'Y${year.sortOrder}',
-                    style: const TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 15,
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceMuted,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 14,
+                      color: AppTheme.textSecondaryColor,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: AppTheme.spacingMd),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      year.name,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Open subjects & materials',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: AppTheme.textSecondaryColor,
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -216,6 +307,7 @@ class _HeaderIconButton extends StatelessWidget {
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(12),
+          hoverColor: AppTheme.primaryColor.withValues(alpha: 0.05),
           child: SizedBox(
             width: 42,
             height: 42,

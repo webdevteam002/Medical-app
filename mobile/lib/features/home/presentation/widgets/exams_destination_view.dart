@@ -90,7 +90,11 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
               title: 'QBank & Exams',
               subtitle: 'Timed mocks and self-assessment',
               action: _HistoryButton(
-                onPressed: () => context.push('/exams/history'),
+                onPressed: () {
+                  try {
+                    context.push('/exams/history');
+                  } catch (_) {}
+                },
               ),
             ),
             const SizedBox(height: AppTheme.spacingLg),
@@ -124,15 +128,18 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
       onRefresh: _fetchExams,
       color: AppTheme.primaryColor,
       child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
         itemCount: _exams.length,
         separatorBuilder: (_, __) => const SizedBox(height: AppTheme.spacingMd),
         itemBuilder: (context, index) {
           final exam = _exams[index];
           return MsCard(
             onTap: () {
-              context.push('/exams/${exam.id}/detail', extra: exam);
+              try {
+                context.push('/exams/${exam.id}/detail', extra: exam);
+              } catch (_) {}
             },
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
+            padding: const EdgeInsets.all(AppTheme.spacingLg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -140,15 +147,28 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 48,
-                      height: 48,
+                      width: 50,
+                      height: 50,
                       decoration: BoxDecoration(
-                        color: AppTheme.secondarySoft,
-                        borderRadius: BorderRadius.circular(14),
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.secondarySoft,
+                            AppTheme.secondaryColor.withValues(alpha: 0.15),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color:
+                              AppTheme.secondaryColor.withValues(alpha: 0.25),
+                          width: 1.2,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.assignment_turned_in_rounded,
-                        color: AppTheme.secondaryColor,
+                      child: const Center(
+                        child: Icon(
+                          Icons.assignment_turned_in_rounded,
+                          color: AppTheme.secondaryColor,
+                          size: 24,
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppTheme.spacingMd),
@@ -160,29 +180,54 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
                             exam.title,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.2,
+                                ),
                           ),
                           if (exam.subjectName != null &&
                               exam.subjectName!.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              exam.subjectName!,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                            const SizedBox(height: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor
+                                    .withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                exam.subjectName!,
+                                style: const TextStyle(
+                                  color: AppTheme.primaryColor,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 11,
+                                ),
+                              ),
                             ),
                           ],
                         ],
                       ),
                     ),
-                    const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 16,
-                      color: AppTheme.textSecondaryColor,
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceMuted,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 13,
+                          color: AppTheme.textSecondaryColor,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -194,10 +239,12 @@ class _ExamsDestinationViewState extends State<ExamsDestinationView> {
                     MsMetaChip(
                       icon: Icons.timer_outlined,
                       label: '${exam.durationMinutes} min',
+                      color: AppTheme.primaryColor,
                     ),
                     MsMetaChip(
                       icon: Icons.help_outline_rounded,
                       label: '${exam.questionCount} questions',
+                      color: AppTheme.secondaryColor,
                     ),
                   ],
                 ),

@@ -607,140 +607,153 @@ class _MaterialsPageState extends State<MaterialsPage> {
           final isBookmarked = _bookmarkedMaterialIds.contains(material.id);
           final isBookmarking = _bookmarkingMaterialIds.contains(material.id);
 
-          return Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-              side: const BorderSide(color: Color(0xFFE2E8F0)),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingLg,
-                vertical: AppTheme.spacingSm,
-              ),
-              leading: CircleAvatar(
-                backgroundColor:
-                    _getMaterialColor(material.type).withValues(alpha: 0.1),
-                child: Icon(
-                  _getMaterialIcon(material.type),
-                  color: _getMaterialColor(material.type),
-                ),
-              ),
-              title: Text(
-                material.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textPrimaryColor,
-                ),
-              ),
-              subtitle: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      material.type,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textSecondaryColor,
-                      ),
+          return MsCard(
+            onTap: () => _onMaterialTap(material),
+            padding: const EdgeInsets.all(AppTheme.spacingMd),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: _getMaterialColor(material.type).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: _getMaterialColor(material.type).withValues(alpha: 0.25),
+                      width: 1.2,
                     ),
                   ),
-                  if (sizeFormatted.isNotEmpty) ...[
-                    const SizedBox(width: 6),
-                    Text(
-                      sizeFormatted,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondaryColor,
+                  child: Icon(
+                    _getMaterialIcon(material.type),
+                    color: _getMaterialColor(material.type),
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spacingMd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        material.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimaryColor,
+                          letterSpacing: -0.1,
+                        ),
                       ),
-                    ),
-                  ],
-                  if (isDownloaded) ...[
-                    const SizedBox(width: 6),
-                    const Text(
-                      '• Offline',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.green,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(height: 5),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.secondarySoft,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              material.type,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.secondaryColor,
+                              ),
+                            ),
+                          ),
+                          if (sizeFormatted.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              sizeFormatted,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textSecondaryColor,
+                              ),
+                            ),
+                          ],
+                          if (isDownloaded) ...[
+                            const SizedBox(width: 8),
+                            const Text(
+                              '• Offline',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.successColor,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ),
-                  ],
-                ],
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isBookmarking)
-                    const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  else
-                    IconButton(
-                      icon: Icon(
-                        isBookmarked
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_outline_rounded,
-                        color: AppTheme.primaryColor,
-                      ),
-                      tooltip:
-                          isBookmarked ? 'Remove Bookmark' : 'Add Bookmark',
-                      onPressed: () => _toggleBookmark(material),
-                    ),
-                  const SizedBox(width: 4),
-                  if (material.isDownloadable) ...[
-                    if (isDownloading)
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isBookmarking)
                       const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    else if (isDownloaded)
-                      const Icon(Icons.check_circle_rounded,
-                          color: Colors.green)
                     else
                       IconButton(
-                        icon: const Icon(Icons.download_for_offline_outlined,
-                            color: AppTheme.primaryColor),
-                        onPressed: () => _downloadMaterial(material),
+                        icon: Icon(
+                          isBookmarked
+                              ? Icons.bookmark_rounded
+                              : Icons.bookmark_outline_rounded,
+                          color: AppTheme.primaryColor,
+                        ),
+                        tooltip:
+                            isBookmarked ? 'Remove Bookmark' : 'Add Bookmark',
+                        onPressed: () => _toggleBookmark(material),
                       ),
-                  ] else ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: const Text(
-                        'Online Only',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textSecondaryColor,
+                    const SizedBox(width: 2),
+                    if (material.isDownloadable) ...[
+                      if (isDownloading)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else if (isDownloaded)
+                        const Icon(Icons.check_circle_rounded,
+                            color: AppTheme.successColor)
+                      else
+                        IconButton(
+                          icon: const Icon(Icons.download_for_offline_outlined,
+                              color: AppTheme.primaryColor),
+                          onPressed: () => _downloadMaterial(material),
+                        ),
+                    ] else ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceMuted,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppTheme.borderColor),
+                        ),
+                        child: const Text(
+                          'Online Only',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textSecondaryColor,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
+                    const SizedBox(width: 4),
+                    const Icon(Icons.chevron_right_rounded,
+                        color: AppTheme.textSecondaryColor),
                   ],
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right_rounded,
-                      color: AppTheme.textSecondaryColor),
-                ],
-              ),
-              onTap: () => _onMaterialTap(material),
+                ),
+              ],
             ),
           );
         },
