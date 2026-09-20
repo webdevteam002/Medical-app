@@ -151,9 +151,10 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
       width: double.infinity,
       padding: const EdgeInsets.all(AppTheme.spacingMd),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
         border: Border.all(color: AppTheme.borderColor),
+        boxShadow: AppTheme.softShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,13 +162,13 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
           Row(
             children: [
               Icon(Icons.auto_awesome_rounded,
-                  size: 18, color: AppTheme.primaryColor),
+                  size: 18, color: AppTheme.secondaryColor),
               const SizedBox(width: 6),
               Text(
                 'AI Explanation',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.primaryColor,
+                      color: AppTheme.textPrimaryColor,
                     ),
               ),
             ],
@@ -225,8 +226,14 @@ class _McqAiExplainPanelState extends State<McqAiExplainPanel> {
                 icon: const Icon(Icons.chat_bubble_outline_rounded),
                 label: const Text('Ask about this question'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.primaryColor,
-                  side: BorderSide(color: AppTheme.primaryColor),
+                  foregroundColor: AppTheme.secondaryColor,
+                  side: BorderSide(
+                    color: AppTheme.secondaryColor.withValues(alpha: 0.6),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSm),
+                  ),
                 ),
               ),
             ),
@@ -255,9 +262,9 @@ class _ErrorBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppTheme.spacingMd),
       decoration: BoxDecoration(
-        color: AppTheme.warningSoft,
+        color: AppTheme.calloutBg('wrong'),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
-        border: Border.all(color: AppTheme.warningColor.withValues(alpha: 0.3)),
+        border: Border.all(color: AppTheme.calloutBorder('wrong')),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +273,8 @@ class _ErrorBanner extends StatelessWidget {
             message,
             style: TextStyle(
               fontSize: 13,
-              color: AppTheme.textPrimaryColor,
+              color: AppTheme.calloutTitle('wrong'),
+              fontWeight: FontWeight.w600,
               height: 1.35,
             ),
           ),
@@ -277,6 +285,10 @@ class _ErrorBanner extends StatelessWidget {
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 16),
               label: const Text('Retry'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.calloutTitle('wrong'),
+                textStyle: const TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
           ],
         ],
@@ -368,14 +380,15 @@ class _ExplanationBody extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
             padding: const EdgeInsets.all(AppTheme.spacingMd),
             decoration: BoxDecoration(
-              color: AppTheme.warningSoft,
+              color: AppTheme.calloutBg('wrong'),
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+              border: Border.all(color: AppTheme.calloutBorder('wrong')),
             ),
             child: Text(
               'Note: ${result.questionConcern}',
               style: TextStyle(
                 fontSize: 12,
-                color: AppTheme.textPrimaryColor,
+                color: AppTheme.calloutTitle('wrong'),
                 height: 1.35,
               ),
             ),
@@ -398,10 +411,21 @@ class _ExplanationBody extends StatelessWidget {
         ],
         Align(
           alignment: Alignment.centerLeft,
-          child: TextButton(
+          child: TextButton.icon(
             key: const Key('ai_explain_again'),
             onPressed: onRefresh,
-            child: Text(loading ? 'Refreshing…' : 'Refresh explanation'),
+            icon: Icon(
+              Icons.refresh_rounded,
+              size: 16,
+              color: AppTheme.secondaryColor,
+            ),
+            label: Text(
+              loading ? 'Refreshing…' : 'Refresh explanation',
+              style: TextStyle(
+                color: AppTheme.secondaryColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ),
       ],
@@ -417,32 +441,26 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bg = const Color(0xFFF8FAFC);
-    Color borderColor = const Color(0xFFE2E8F0);
-    Color titleColor = AppTheme.textPrimaryColor;
+    String type = 'default';
     IconData? icon;
 
     if (title.contains('Takeaway')) {
-      bg = const Color(0xFFEFF6FF);
-      borderColor = const Color(0xFFBFDBFE);
-      titleColor = const Color(0xFF1E40AF);
+      type = 'takeaway';
       icon = Icons.emoji_events_outlined;
     } else if (title.contains('Concept')) {
-      bg = const Color(0xFFF0FDFA);
-      borderColor = const Color(0xFF99F6E4);
-      titleColor = const Color(0xFF0F766E);
+      type = 'concept';
       icon = Icons.psychology_outlined;
     } else if (title.contains('Wrong')) {
-      bg = const Color(0xFFFFFBEB);
-      borderColor = const Color(0xFFFDE68A);
-      titleColor = const Color(0xFFB45309);
+      type = 'wrong';
       icon = Icons.info_outline_rounded;
     } else if (title.contains('Correct')) {
-      bg = const Color(0xFFF0FDF4);
-      borderColor = const Color(0xFFBBF7D0);
-      titleColor = const Color(0xFF15803D);
+      type = 'correct';
       icon = Icons.check_circle_outline_rounded;
     }
+
+    final bg = AppTheme.calloutBg(type);
+    final borderColor = AppTheme.calloutBorder(type);
+    final titleColor = AppTheme.calloutTitle(type);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),

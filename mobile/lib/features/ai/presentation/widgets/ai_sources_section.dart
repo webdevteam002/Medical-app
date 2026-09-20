@@ -66,47 +66,58 @@ class _CitationRow extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.only(bottom: compact ? 4 : 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.menu_book_outlined,
-            size: compact ? 14 : 16,
-            color: AppTheme.textSecondaryColor,
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  citation.title,
-                  style: TextStyle(
-                    fontSize: compact ? 11 : 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimaryColor,
-                  ),
-                ),
-                if (contextLabel.isNotEmpty)
-                  Text(
-                    contextLabel,
-                    style: TextStyle(
-                      fontSize: compact ? 10 : 11,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                  ),
-                if (page != null)
-                  Text(
-                    page,
-                    style: TextStyle(
-                      fontSize: compact ? 10 : 11,
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                  ),
-              ],
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 8 : 10,
+          vertical: compact ? 5 : 7,
+        ),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceMuted,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+          border: Border.all(color: AppTheme.borderColor),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.menu_book_outlined,
+              size: compact ? 14 : 16,
+              color: AppTheme.secondaryColor,
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    citation.title,
+                    style: TextStyle(
+                      fontSize: compact ? 11 : 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimaryColor,
+                    ),
+                  ),
+                  if (contextLabel.isNotEmpty)
+                    Text(
+                      contextLabel,
+                      style: TextStyle(
+                        fontSize: compact ? 10 : 11,
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                    ),
+                  if (page != null)
+                    Text(
+                      page,
+                      style: TextStyle(
+                        fontSize: compact ? 10 : 11,
+                        color: AppTheme.textSecondaryColor,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

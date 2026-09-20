@@ -94,6 +94,16 @@ class AppThemePalette {
           offset: const Offset(0, 4),
         ),
       ];
+
+  Color get onPrimaryColor =>
+      ThemeData.estimateBrightnessForColor(primary) == Brightness.light
+          ? const Color(0xFF0F172A)
+          : Colors.white;
+
+  Color get onSecondaryColor =>
+      ThemeData.estimateBrightnessForColor(secondary) == Brightness.light
+          ? const Color(0xFF0F172A)
+          : Colors.white;
 }
 
 class AppTheme {
@@ -127,6 +137,98 @@ class AppTheme {
   static Color get borderSubtle => currentPalette.borderSubtle;
   static Color get borderHover => currentPalette.borderHover;
   static bool get isDark => currentPalette.isDark;
+  static Color get onPrimaryColor => currentPalette.onPrimaryColor;
+  static Color get onSecondaryColor => currentPalette.onSecondaryColor;
+
+  static Color calloutBg(String type) {
+    if (isDark) {
+      switch (type) {
+        case 'takeaway':
+          return const Color(0xFF1E3A8A).withValues(alpha: 0.25);
+        case 'concept':
+          return const Color(0xFF0D9488).withValues(alpha: 0.22);
+        case 'wrong':
+          return const Color(0xFF78350F).withValues(alpha: 0.25);
+        case 'correct':
+          return const Color(0xFF065F46).withValues(alpha: 0.25);
+        default:
+          return currentPalette.surfaceMuted;
+      }
+    } else {
+      switch (type) {
+        case 'takeaway':
+          return const Color(0xFFEFF6FF);
+        case 'concept':
+          return const Color(0xFFF0FDFA);
+        case 'wrong':
+          return const Color(0xFFFFFBEB);
+        case 'correct':
+          return const Color(0xFFF0FDF4);
+        default:
+          return currentPalette.surfaceMuted;
+      }
+    }
+  }
+
+  static Color calloutBorder(String type) {
+    if (isDark) {
+      switch (type) {
+        case 'takeaway':
+          return const Color(0xFF3B82F6).withValues(alpha: 0.45);
+        case 'concept':
+          return const Color(0xFF14B8A6).withValues(alpha: 0.45);
+        case 'wrong':
+          return const Color(0xFFF59E0B).withValues(alpha: 0.45);
+        case 'correct':
+          return const Color(0xFF10B981).withValues(alpha: 0.45);
+        default:
+          return currentPalette.border;
+      }
+    } else {
+      switch (type) {
+        case 'takeaway':
+          return const Color(0xFFBFDBFE);
+        case 'concept':
+          return const Color(0xFF99F6E4);
+        case 'wrong':
+          return const Color(0xFFFDE68A);
+        case 'correct':
+          return const Color(0xFFBBF7D0);
+        default:
+          return currentPalette.border;
+      }
+    }
+  }
+
+  static Color calloutTitle(String type) {
+    if (isDark) {
+      switch (type) {
+        case 'takeaway':
+          return const Color(0xFF93C5FD);
+        case 'concept':
+          return const Color(0xFF5EEAD4);
+        case 'wrong':
+          return const Color(0xFFFCD34D);
+        case 'correct':
+          return const Color(0xFF6EE7B7);
+        default:
+          return currentPalette.secondary;
+      }
+    } else {
+      switch (type) {
+        case 'takeaway':
+          return const Color(0xFF1E40AF);
+        case 'concept':
+          return const Color(0xFF0F766E);
+        case 'wrong':
+          return const Color(0xFFB45309);
+        case 'correct':
+          return const Color(0xFF15803D);
+        default:
+          return currentPalette.secondary;
+      }
+    }
+  }
 
   // Semantic status colors
   static const Color successColor = Color(0xFF059669);
